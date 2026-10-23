@@ -4,6 +4,7 @@ import type { GuestItem, ReturnGift, AccompanyingPerson, RsvpStatus } from '@/ty
 import { edgeCrud } from '@/lib/supabase'
 
 const STORAGE_KEY = 'guests_store_v1'
+const GUEST_NAMES_KEY = 'guests_catalog_names_v1'
 
 const initialGuests: GuestItem[] = [
   {
@@ -11,8 +12,8 @@ const initialGuests: GuestItem[] = [
     name: 'Vikram & Ananya Sharma',
     phone: '+91 98765 43210',
     email: 'vikram.sharma@example.com',
-    group: "Groom's Family",
-    tags: ['Brother Marriage', 'VIP'],
+    group: 'Family',
+    tags: ['VIP', 'Family Event'],
     rsvpStatus: 'confirmed',
     additionalGuests: 2,
     accompanyingPersons: [
@@ -23,6 +24,7 @@ const initialGuests: GuestItem[] = [
       { name: 'Silver Coin (10g)', price: 2500 },
       { name: 'Royal Mithai Box', price: 450 },
     ],
+    returnGiftGiven: false,
     notes: 'Close family arriving from Delhi on Friday',
     createdAt: new Date().toISOString(),
   },
@@ -31,12 +33,13 @@ const initialGuests: GuestItem[] = [
     name: 'Priya Patel',
     phone: '+91 98123 45678',
     email: 'priya.patel@example.com',
-    group: "Bride's Family",
-    tags: ['Brother Marriage'],
+    group: 'Relatives',
+    tags: ['Outstation'],
     rsvpStatus: 'confirmed',
     additionalGuests: 1,
     accompanyingPersons: [{ name: 'Kavita Patel', relation: 'Sister' }],
     returnGifts: [{ name: 'Silk Stole & Scarf', price: 1200 }],
+    returnGiftGiven: false,
     notes: 'Requires ground floor seating',
     createdAt: new Date().toISOString(),
   },
@@ -45,54 +48,24 @@ const initialGuests: GuestItem[] = [
     name: 'Rahul & Meera Verma',
     phone: '+91 97234 56789',
     email: 'rahul.v@example.com',
-    group: 'College Friends',
-    tags: ['Brother Marriage', 'Outstation'],
+    group: 'Friends',
+    tags: ['College', 'Outstation'],
     rsvpStatus: 'confirmed',
     additionalGuests: 1,
     accompanyingPersons: [{ name: 'Meera Verma', relation: 'Spouse' }],
     returnGifts: [{ name: 'Sweets & Dry Fruits Hamper', price: 650 }],
+    returnGiftGiven: false,
     notes: 'Staying at Hotel Novotel',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '68eb9650-406a-48da-db5b-948b5b1b3da1',
-    name: 'Uncle Rajesh Malhotra',
-    phone: '+91 99345 67890',
-    email: 'rajesh.malhotra@example.com',
-    group: 'Close Relatives',
-    tags: ['Brother Marriage', 'VIP'],
-    rsvpStatus: 'confirmed',
-    additionalGuests: 3,
-    accompanyingPersons: [
-      { name: 'Sunita Malhotra', relation: 'Spouse' },
-      { name: 'Rohan Malhotra', relation: 'Son' },
-      { name: 'Simran Malhotra', relation: 'Daughter' },
-    ],
-    returnGifts: [{ name: 'Silver Diya Pair', price: 3200 }],
-    notes: 'Special VIP car pass required',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '79fc0761-517b-49eb-ec6c-a59c6c2c4eb2',
-    name: 'Amitabh Sengupta',
-    phone: '+91 98456 78901',
-    email: 'amitabh.s@example.com',
-    group: 'Colleagues',
-    tags: ['Office Squad'],
-    rsvpStatus: 'pending',
-    additionalGuests: 0,
-    accompanyingPersons: [],
-    returnGifts: [{ name: 'Artisanal Candle & Tea Set', price: 850 }],
-    notes: 'Awaiting leave confirmation',
     createdAt: new Date().toISOString(),
   },
 ]
 
 export const defaultGuestGroups = [
+  'Family',
+  'Relatives',
+  'Friends',
   "Groom's Family",
   "Bride's Family",
-  'Close Relatives',
-  'College Friends',
   'Colleagues',
   'Neighbors',
   'VIP',
@@ -100,13 +73,15 @@ export const defaultGuestGroups = [
 ]
 
 export const defaultSuggestedTags = [
-  'Brother Marriage',
   'VIP',
+  'Family Event',
+  'Friends',
   'Outstation',
   'Vegetarian',
   'Hotel Needed',
-  'Family Event',
+  'College',
   'Office Squad',
+  'Special Guest',
 ]
 
 export const defaultGiftPresets = [
@@ -121,14 +96,13 @@ export const defaultGiftPresets = [
 ]
 
 export const useGuestsStore = defineStore('guests', () => {
+  // 1. Stored guests
   const stored = localStorage.getItem(STORAGE_KEY)
   let rawGuests: GuestItem[] = []
   try {
     const parsed = stored ? JSON.parse(stored) : null
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      const storedIds = new Set(parsed.map((g: any) => g.id))
-      const missingInitial = initialGuests.filter((g) => !storedIds.has(g.id))
-      rawGuests = [...parsed, ...missingInitial]
+    if (Array.isArray(parsed)) {
+      rawGuests = parsed
     } else {
       rawGuests = initialGuests
     }
@@ -149,6 +123,61 @@ export const useGuestsStore = defineStore('guests', () => {
     }))
   )
 
+  // 2. Saved guest names catalog for auto-correct / autocomplete
+  const storedNames = localStorage.getItem(GUEST_NAMES_KEY)
+  let initialSavedNames: string[] = [
+    'Vikram Sharma',
+    'Ananya Sharma',
+    'Aarav Sharma',
+    'Priya Patel',
+    'Kavita Patel',
+    'Rahul Verma',
+    'Meera Verma',
+    'Uncle Rajesh Malhotra',
+    'Sunita Malhotra',
+    'Amitabh Sengupta',
+  ]
+  try {
+    if (storedNames) {
+      const parsedNames = JSON.parse(storedNames)
+      if (Array.isArray(parsedNames) && parsedNames.length > 0) {
+        initialSavedNames = Array.from(new Set([...parsedNames, ...initialSavedNames]))
+      }
+    }
+  } catch {
+    // fallback
+  }
+
+  const savedGuestNames = ref<string[]>(initialSavedNames)
+
+  function recordGuestName(name: string) {
+    if (!name || typeof name !== 'string') return
+    const trimmed = name.trim()
+    if (!trimmed) return
+    if (!savedGuestNames.value.includes(trimmed)) {
+      savedGuestNames.value.push(trimmed)
+      try {
+        localStorage.setItem(GUEST_NAMES_KEY, JSON.stringify(savedGuestNames.value))
+      } catch (e) {
+        console.warn('Failed to save guest name to catalog:', e)
+      }
+    }
+  }
+
+  // Combined autocomplete list (from current guests + companion names + saved catalog)
+  const knownGuestNames = computed(() => {
+    const nameSet = new Set<string>(savedGuestNames.value)
+    guests.value.forEach((g) => {
+      if (g.name && g.name.trim()) nameSet.add(g.name.trim())
+      if (Array.isArray(g.accompanyingPersons)) {
+        g.accompanyingPersons.forEach((p) => {
+          if (p.name && p.name.trim()) nameSet.add(p.name.trim())
+        })
+      }
+    })
+    return Array.from(nameSet).sort((a, b) => a.localeCompare(b))
+  })
+
   const isSyncing = ref(false)
   const searchQuery = ref('')
   const selectedGroup = ref<string>('all')
@@ -157,6 +186,8 @@ export const useGuestsStore = defineStore('guests', () => {
   const selectedTags = ref<string[]>([])
   const giftFilter = ref<'all' | 'with_gift' | 'without_gift'>('all')
   const selectedGiftName = ref<string | null>(null)
+  const viewMode = ref<'flat' | 'grouped_by_tag' | 'grouped_by_category'>('flat')
+  const sortBy = ref<'name' | 'party-desc' | 'newest'>('newest')
 
   watch(
     guests,
@@ -280,7 +311,7 @@ export const useGuestsStore = defineStore('guests', () => {
   })
 
   const filteredGuests = computed(() => {
-    return guests.value.filter((guest) => {
+    const result = guests.value.filter((guest) => {
       // Search by name, phone, email, notes, or companion names
       if (searchQuery.value.trim()) {
         const query = searchQuery.value.toLowerCase().trim()
@@ -288,11 +319,13 @@ export const useGuestsStore = defineStore('guests', () => {
         const phoneMatch = guest.phone ? guest.phone.toLowerCase().includes(query) : false
         const emailMatch = guest.email ? guest.email.toLowerCase().includes(query) : false
         const notesMatch = guest.notes ? guest.notes.toLowerCase().includes(query) : false
+        const tagMatch = Array.isArray(guest.tags) &&
+          guest.tags.some((t) => t.toLowerCase().includes(query))
         const giftMatch = Array.isArray(guest.returnGifts) &&
           guest.returnGifts.some((g) => g.name.toLowerCase().includes(query))
         const companionMatch = Array.isArray(guest.accompanyingPersons) &&
           guest.accompanyingPersons.some((p) => p.name.toLowerCase().includes(query))
-        if (!nameMatch && !phoneMatch && !emailMatch && !notesMatch && !giftMatch && !companionMatch) {
+        if (!nameMatch && !phoneMatch && !emailMatch && !notesMatch && !tagMatch && !giftMatch && !companionMatch) {
           return false
         }
       }
@@ -302,10 +335,9 @@ export const useGuestsStore = defineStore('guests', () => {
         return false
       }
 
-      // RSVP filter (treat 'declined' as 'all' since declined was removed from RSVP filter UI)
+      // RSVP filter
       if (
         selectedRsvp.value !== 'all' &&
-        selectedRsvp.value !== 'declined' &&
         guest.rsvpStatus !== selectedRsvp.value
       ) {
         return false
@@ -342,6 +374,58 @@ export const useGuestsStore = defineStore('guests', () => {
 
       return true
     })
+
+    // Sort order
+    if (sortBy.value === 'name') {
+      result.sort((a, b) => a.name.localeCompare(b.name))
+    } else if (sortBy.value === 'party-desc') {
+      result.sort((a, b) => (b.additionalGuests || 0) - (a.additionalGuests || 0))
+    } else {
+      // Newest
+      result.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+    }
+
+    return result
+  })
+
+  // Grouped by Tag View
+  const guestsGroupedByTag = computed(() => {
+    const tagMap = new Map<string, GuestItem[]>()
+    filteredGuests.value.forEach((guest) => {
+      const tags = Array.isArray(guest.tags) && guest.tags.length > 0 ? guest.tags : ['General']
+      tags.forEach((tag) => {
+        if (!tagMap.has(tag)) tagMap.set(tag, [])
+        tagMap.get(tag)!.push(guest)
+      })
+    })
+
+    return Array.from(tagMap.entries())
+      .map(([tag, list]) => ({
+        tag,
+        count: list.length,
+        totalParty: list.reduce((sum, g) => sum + 1 + (Number(g.additionalGuests) || 0), 0),
+        guests: list,
+      }))
+      .sort((a, b) => b.count - a.count)
+  })
+
+  // Grouped by Category View
+  const guestsGroupedByCategory = computed(() => {
+    const groupMap = new Map<string, GuestItem[]>()
+    filteredGuests.value.forEach((guest) => {
+      const grp = guest.group || 'General'
+      if (!groupMap.has(grp)) groupMap.set(grp, [])
+      groupMap.get(grp)!.push(guest)
+    })
+
+    return Array.from(groupMap.entries())
+      .map(([group, list]) => ({
+        group,
+        count: list.length,
+        totalParty: list.reduce((sum, g) => sum + 1 + (Number(g.additionalGuests) || 0), 0),
+        guests: list,
+      }))
+      .sort((a, b) => b.count - a.count)
   })
 
   function toggleTag(tag: string) {
@@ -417,18 +501,17 @@ export const useGuestsStore = defineStore('guests', () => {
           updatedAt: r.updated_at || new Date().toISOString(),
         }))
 
-        // Merge remote guests with initial demo guests by ID
-        const remoteIds = new Set(remoteGuests.map((g) => g.id))
-        const unseeded = initialGuests.filter((g) => !remoteIds.has(g.id))
-        guests.value = [...remoteGuests, ...unseeded]
-      } else if (!guests.value || guests.value.length === 0) {
-        guests.value = initialGuests
+        guests.value = remoteGuests
+        // Also register all remote names into catalog
+        remoteGuests.forEach((g) => {
+          recordGuestName(g.name)
+          if (Array.isArray(g.accompanyingPersons)) {
+            g.accompanyingPersons.forEach((p) => recordGuestName(p.name))
+          }
+        })
       }
     } catch (e) {
       console.warn('Failed to fetch guests from Edge Function:', e)
-      if (!guests.value || guests.value.length === 0) {
-        guests.value = initialGuests
-      }
     } finally {
       isSyncing.value = false
     }
@@ -459,6 +542,12 @@ export const useGuestsStore = defineStore('guests', () => {
 
     guests.value.unshift(newGuest)
 
+    // Automatically record guest name & companion names for auto-correct suggestions next time
+    recordGuestName(newGuest.name)
+    if (Array.isArray(newGuest.accompanyingPersons)) {
+      newGuest.accompanyingPersons.forEach((p) => recordGuestName(p.name))
+    }
+
     // Sync to Supabase Edge Function
     edgeCrud.create('guests', {
       id,
@@ -485,6 +574,11 @@ export const useGuestsStore = defineStore('guests', () => {
         ...guests.value[idx],
         ...updated,
         updatedAt: new Date().toISOString(),
+      }
+
+      if (updated.name) recordGuestName(updated.name)
+      if (Array.isArray(updated.accompanyingPersons)) {
+        updated.accompanyingPersons.forEach((p) => recordGuestName(p.name))
       }
     }
 
@@ -540,6 +634,9 @@ export const useGuestsStore = defineStore('guests', () => {
 
   return {
     guests,
+    savedGuestNames,
+    knownGuestNames,
+    recordGuestName,
     isSyncing,
     searchQuery,
     selectedGroup,
@@ -548,6 +645,8 @@ export const useGuestsStore = defineStore('guests', () => {
     selectedTags,
     giftFilter,
     selectedGiftName,
+    viewMode,
+    sortBy,
     totalGuests,
     totalPartyCount,
     totalConfirmedParty,
@@ -565,6 +664,8 @@ export const useGuestsStore = defineStore('guests', () => {
     activeFiltersCount,
     groupCountMap,
     filteredGuests,
+    guestsGroupedByTag,
+    guestsGroupedByCategory,
     toggleTag,
     toggleGiftNameFilter,
     resetAllFilters,

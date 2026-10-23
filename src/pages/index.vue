@@ -131,6 +131,23 @@
         </v-list-item>
 
         <v-list-item
+          :active="currentTab === 'guests'"
+          rounded="lg"
+          class="mb-1"
+          color="primary"
+          @click="selectTab('guests')"
+        >
+          <template #prepend>
+            <v-icon icon="mdi-account-multiple-check-outline" class="mr-2" size="20" />
+          </template>
+          <v-list-item-title class="font-weight-medium text-body-2">Guest List</v-list-item-title>
+          <v-list-item-subtitle class="text-caption">Addons, tags &amp; RSVPs</v-list-item-subtitle>
+          <template #append v-if="guestsStore.totalGuests > 0">
+            <v-chip size="x-small" variant="tonal" color="primary">{{ guestsStore.totalGuests }}</v-chip>
+          </template>
+        </v-list-item>
+
+        <v-list-item
           :active="currentTab === 'family'"
           rounded="lg"
           class="mb-1"
@@ -336,6 +353,9 @@
           <Expenses
             v-else-if="currentTab === 'expenses'"
           />
+          <Guestlist
+            v-else-if="currentTab === 'guests'"
+          />
           <FamilyMembers
             v-else-if="currentTab === 'family'"
           />
@@ -381,9 +401,20 @@
           <span class="nav-btn-label">Expenses</span>
         </v-btn>
 
-        <v-btn value="family" class="nav-tab-btn" :ripple="false">
-          <v-icon icon="mdi-account-group-outline" size="20" />
-          <span class="nav-btn-label">Family</span>
+        <!-- Guests Nav Tab (Replaced Family as requested) -->
+        <v-btn value="guests" class="nav-tab-btn" :ripple="false">
+          <v-badge
+            v-if="guestsStore.totalGuests > 0"
+            color="primary"
+            :content="guestsStore.totalGuests"
+            size="x-small"
+            offset-x="-2"
+            offset-y="-2"
+          >
+            <v-icon icon="mdi-account-multiple-check-outline" size="20" />
+          </v-badge>
+          <v-icon v-else icon="mdi-account-multiple-check-outline" size="20" />
+          <span class="nav-btn-label">Guests</span>
         </v-btn>
 
         <v-btn value="recurring" class="nav-tab-btn" :ripple="false">
@@ -421,6 +452,7 @@ import { useTheme } from 'vuetify'
 import MainDashboard from '@/components/MainDashboard.vue'
 import TodoList from '@/components/TodoList.vue'
 import Expenses from '@/components/Expenses.vue'
+import Guestlist from '@/components/Guestlist.vue'
 import FamilyMembers from '@/components/FamilyMembers.vue'
 import RecurringExpenses from '@/components/RecurringExpenses.vue'
 import ShoppingList from '@/components/ShoppingList.vue'
@@ -429,6 +461,7 @@ import { useAppStore } from '@/stores/app'
 import { useTodoStore } from '@/stores/todos'
 import { useFamilyStore } from '@/stores/family'
 import { useExpensesStore } from '@/stores/expenses'
+import { useGuestsStore } from '@/stores/guests'
 import { useRecurringStore } from '@/stores/recurring'
 import { useShoppingStore } from '@/stores/shopping'
 import { useModalBack } from '@/composables/useModalBack'
@@ -438,14 +471,15 @@ const appStore = useAppStore()
 const todoStore = useTodoStore()
 const familyStore = useFamilyStore()
 const expensesStore = useExpensesStore()
+const guestsStore = useGuestsStore()
 const recurringStore = useRecurringStore()
 const shoppingStore = useShoppingStore()
 
 const route = useRoute()
 const router = useRouter()
 
-type TabModule = 'dashboard' | 'todos' | 'expenses' | 'family' | 'recurring' | 'shopping'
-const VALID_TABS: TabModule[] = ['dashboard', 'todos', 'expenses', 'family', 'recurring', 'shopping']
+type TabModule = 'dashboard' | 'todos' | 'expenses' | 'guests' | 'family' | 'recurring' | 'shopping'
+const VALID_TABS: TabModule[] = ['dashboard', 'todos', 'expenses', 'guests', 'family', 'recurring', 'shopping']
 
 function getTabFromPath(path: string): TabModule {
   const segment = (path || '').replace(/^\//, '').split('/')[0].toLowerCase()
