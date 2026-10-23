@@ -32,7 +32,7 @@
             prepend-icon="mdi-account-plus"
             @click="openAddGuestDialog"
           >
-            + Add
+            Add New Guest
           </v-btn>
         </div>
       </div>
@@ -40,7 +40,7 @@
       <!-- Quick Stats Metric Pills -->
       <div class="pa-4">
         <v-row density="compact">
-          <!-- Total Party Count (+1, +2 included) -->
+          <!-- Total Attending Heads (+1, +2 included) -->
           <v-col cols="6" sm="3">
             <div class="pa-2 px-3 rounded-lg bg-lightprimary border border-primary-subtle d-flex align-center justify-space-between">
               <div>
@@ -70,28 +70,13 @@
             </div>
           </v-col>
 
-          <!-- Pending RSVPs -->
-          <v-col cols="6" sm="3">
-            <div class="pa-2 px-3 rounded-lg bg-lightwarning border border-warning-subtle d-flex align-center justify-space-between">
-              <div>
-                <div class="text-caption text-lightText font-weight-medium">Pending</div>
-                <div class="text-subtitle-1 font-weight-bold text-warning">
-                  {{ guestsStore.pendingCount }} <span class="text-caption font-weight-regular text-lightText">guests</span>
-                </div>
-              </div>
-              <v-avatar color="warning" variant="tonal" size="32" rounded="md">
-                <v-icon icon="mdi-clock-outline" size="18" />
-              </v-avatar>
-            </div>
-          </v-col>
-
-          <!-- Total Addons Count -->
+          <!-- Addon Persons Count -->
           <v-col cols="6" sm="3">
             <div class="pa-2 px-3 rounded-lg bg-lightsecondary border border-secondary-subtle d-flex align-center justify-space-between">
               <div>
                 <div class="text-caption text-lightText font-weight-medium">Addon Persons</div>
                 <div class="text-subtitle-1 font-weight-bold text-secondary">
-                  +{{ totalAddonPersonsCount }} <span class="text-caption font-weight-regular text-lightText">companions</span>
+                  +{{ totalAddonPersonsCount }} <span class="text-caption font-weight-regular text-lightText">addons</span>
                 </div>
               </div>
               <v-avatar color="secondary" variant="tonal" size="32" rounded="md">
@@ -99,16 +84,31 @@
               </v-avatar>
             </div>
           </v-col>
+
+          <!-- Return Gifts Total Stats -->
+          <v-col cols="6" sm="3">
+            <div class="pa-2 px-3 rounded-lg bg-lightwarning border border-warning-subtle d-flex align-center justify-space-between">
+              <div>
+                <div class="text-caption text-lightText font-weight-medium">Return Gifts</div>
+                <div class="text-subtitle-1 font-weight-bold text-warning">
+                  {{ guestsStore.totalReturnGiftsCount }} <span class="text-caption font-weight-regular text-lightText">gifts (₹{{ guestsStore.totalReturnGiftsCost.toLocaleString() }})</span>
+                </div>
+              </div>
+              <v-avatar color="warning" variant="tonal" size="32" rounded="md">
+                <v-icon icon="mdi-gift-outline" size="18" />
+              </v-avatar>
+            </div>
+          </v-col>
         </v-row>
       </div>
     </v-card>
 
-    <!-- 2. Search, Tag Filtering & Grouping Card -->
+    <!-- 2. Search, Tag Filtering, Return Gift Filters & Grouping Card -->
     <v-card variant="outlined" elevation="0" class="mb-4 rounded-lg bg-surface pa-3">
       <!-- Search Input -->
       <v-text-field
         v-model="guestsStore.searchQuery"
-        placeholder="Search by guest name, addon companion, phone, tags, notes..."
+        placeholder="Search by guest name, addon companion, phone, tags, gifts, notes..."
         prepend-inner-icon="mdi-magnify"
         density="compact"
         variant="outlined"
@@ -174,6 +174,55 @@
           <span v-if="guestsStore.tagCountMap[tag]" class="ml-1 opacity-70">
             ({{ guestsStore.tagCountMap[tag] }})
           </span>
+        </v-chip>
+      </div>
+
+      <!-- Return Gift Filter Chips Bar -->
+      <div class="d-flex align-center gap-1 overflow-x-auto pb-1 mb-2 no-scrollbar">
+        <span class="text-caption text-lightText font-weight-bold mr-1 flex-shrink-0">Gifts:</span>
+        <v-chip
+          size="x-small"
+          :color="guestsStore.giftFilter === 'all' && !guestsStore.selectedGiftName ? 'warning' : undefined"
+          :variant="guestsStore.giftFilter === 'all' && !guestsStore.selectedGiftName ? 'flat' : 'outlined'"
+          class="cursor-pointer flex-shrink-0 font-weight-medium"
+          @click="guestsStore.giftFilter = 'all'; guestsStore.selectedGiftName = null"
+        >
+          All ({{ guestsStore.totalGuests }})
+        </v-chip>
+
+        <v-chip
+          size="x-small"
+          :color="guestsStore.giftFilter === 'with_gift' ? 'warning' : undefined"
+          :variant="guestsStore.giftFilter === 'with_gift' ? 'flat' : 'outlined'"
+          class="cursor-pointer flex-shrink-0 font-weight-medium"
+          @click="guestsStore.giftFilter = 'with_gift'; guestsStore.selectedGiftName = null"
+        >
+          <v-icon icon="mdi-gift" size="11" class="mr-0.5" />
+          Has Gifts ({{ guestsStore.guestsWithGiftCount }})
+        </v-chip>
+
+        <v-chip
+          size="x-small"
+          :color="guestsStore.giftFilter === 'without_gift' ? 'warning' : undefined"
+          :variant="guestsStore.giftFilter === 'without_gift' ? 'flat' : 'outlined'"
+          class="cursor-pointer flex-shrink-0 font-weight-medium"
+          @click="guestsStore.giftFilter = 'without_gift'; guestsStore.selectedGiftName = null"
+        >
+          <v-icon icon="mdi-gift-off-outline" size="11" class="mr-0.5" />
+          No Gift ({{ guestsStore.guestsWithoutGiftCount }})
+        </v-chip>
+
+        <!-- Specific gift presets filters -->
+        <v-chip
+          v-for="item in guestsStore.returnGiftsDistribution.slice(0, 4)"
+          :key="item.name"
+          size="x-small"
+          :color="guestsStore.selectedGiftName === item.name ? 'warning' : undefined"
+          :variant="guestsStore.selectedGiftName === item.name ? 'flat' : 'outlined'"
+          class="cursor-pointer flex-shrink-0 font-weight-medium"
+          @click="guestsStore.toggleGiftNameFilter(item.name)"
+        >
+          {{ item.name }} ({{ item.count }})
         </v-chip>
       </div>
 
@@ -320,6 +369,30 @@
         </v-chip>
 
         <v-chip
+          v-if="guestsStore.giftFilter !== 'all'"
+          size="x-small"
+          color="warning"
+          variant="flat"
+          closable
+          @click:close="guestsStore.giftFilter = 'all'"
+        >
+          <v-icon icon="mdi-gift" size="10" class="mr-1" />
+          {{ guestsStore.giftFilter === 'with_gift' ? 'Has Gifts' : 'No Gifts' }}
+        </v-chip>
+
+        <v-chip
+          v-if="guestsStore.selectedGiftName"
+          size="x-small"
+          color="warning"
+          variant="flat"
+          closable
+          @click:close="guestsStore.selectedGiftName = null"
+        >
+          <v-icon icon="mdi-gift-outline" size="10" class="mr-1" />
+          Gift: {{ guestsStore.selectedGiftName }}
+        </v-chip>
+
+        <v-chip
           v-if="guestsStore.selectedGroup !== 'all'"
           size="x-small"
           color="secondary"
@@ -367,7 +440,7 @@
         No Guests Found
       </div>
       <div class="text-caption text-lightText mb-4" style="max-width: 340px; margin: 0 auto;">
-        {{ guestsStore.activeFiltersCount > 0 ? 'No guests match your active filters or search criteria.' : 'Start building your event guest list with companion addon persons and group tags.' }}
+        {{ guestsStore.activeFiltersCount > 0 ? 'No guests match your active filters or search criteria.' : 'Start building your event guest list with companion addon persons, group tags, and return gifts.' }}
       </div>
       <div class="d-flex justify-center gap-2">
         <v-btn
@@ -500,6 +573,80 @@
                   </v-chip>
                 </div>
 
+                <!-- FEATURE: RETURN GIFTS SECTION (1 or more gifts same as tags) -->
+                <div class="d-flex align-center gap-1.5 flex-wrap mt-2 pt-1 border-t">
+                  <span class="text-caption text-lightText font-weight-bold mr-1" style="font-size: 0.72rem;">
+                    <v-icon icon="mdi-gift-outline" size="12" class="mr-0.5 text-warning" />
+                    Return Gifts ({{ guest.returnGifts?.length || 0 }}):
+                  </span>
+
+                  <!-- Return Gift Chips (Name & Price) -->
+                  <v-chip
+                    v-for="(gift, gIdx) in (guest.returnGifts || [])"
+                    :key="gIdx"
+                    size="x-small"
+                    variant="tonal"
+                    color="warning"
+                    class="font-weight-medium"
+                  >
+                    <v-icon icon="mdi-gift" size="11" class="mr-1 text-warning" />
+                    <span>{{ gift.name }}</span>
+                    <span class="ml-1 font-weight-bold text-darkText">(₹{{ Number(gift.price || 0).toLocaleString() }})</span>
+                    <v-btn
+                      icon="mdi-close"
+                      variant="text"
+                      size="x-small"
+                      density="compact"
+                      class="ml-1 text-lightText hover-error"
+                      title="Remove this return gift"
+                      @click.stop="removeGuestGift(guest.id, gIdx)"
+                    />
+                  </v-chip>
+
+                  <!-- + Add Gift Quick Button -->
+                  <v-chip
+                    size="x-small"
+                    variant="outlined"
+                    color="warning"
+                    class="font-weight-medium cursor-pointer"
+                    @click.stop="openQuickAddGift(guest)"
+                  >
+                    <v-icon icon="mdi-plus" size="11" class="mr-0.5" />
+                    Add Gift
+                  </v-chip>
+                </div>
+
+                <!-- Return Gift Handed Over / Given Switch Row -->
+                <div
+                  v-if="guest.returnGifts && guest.returnGifts.length > 0"
+                  class="d-flex align-center justify-space-between mt-2 pa-2 px-3 border rounded-lg return-gift-toggle-row cursor-pointer"
+                  :class="guest.returnGiftGiven ? 'bg-lightsuccess border-success-subtle' : 'bg-containerBg'"
+                  @click.stop="guestsStore.toggleReturnGiftGiven(guest.id)"
+                >
+                  <div class="d-flex align-center">
+                    <v-icon
+                      :icon="guest.returnGiftGiven ? 'mdi-gift-check' : 'mdi-gift-outline'"
+                      :color="guest.returnGiftGiven ? 'success' : 'lightText'"
+                      class="mr-2"
+                      size="18"
+                    />
+                    <span
+                      class="text-caption font-weight-medium"
+                      :class="guest.returnGiftGiven ? 'text-success font-weight-bold' : 'text-darkText'"
+                    >
+                      {{ guest.returnGiftGiven ? 'Return Gift Handed Over ✓' : 'Mark Return Gift Handed Over' }}
+                    </span>
+                  </div>
+                  <v-switch
+                    :model-value="Boolean(guest.returnGiftGiven)"
+                    color="success"
+                    density="compact"
+                    hide-details
+                    @click.stop
+                    @update:model-value="guestsStore.toggleReturnGiftGiven(guest.id)"
+                  />
+                </div>
+
                 <!-- Expandable Details (Phone, Email, Notes, Full Addon Management) -->
                 <v-expand-transition>
                   <div v-if="isGuestExpanded(guest.id)" class="mt-2 pt-2 border-t">
@@ -527,17 +674,27 @@
                       {{ guest.notes }}
                     </div>
 
-                    <!-- Quick Inline Add Person CTA -->
+                    <!-- Quick Inline Add Person / Edit CTA -->
                     <div class="mt-2 d-flex align-center gap-2">
                       <v-btn
                         size="x-small"
                         variant="tonal"
                         color="primary"
-                        prepend-icon="mdi-account-plus"
+                        prepend-icon="mdi-account-edit"
                         class="text-capitalize rounded-md"
                         @click.stop="openEditGuestDialog(guest)"
                       >
                         Edit Guest &amp; Addons
+                      </v-btn>
+                      <v-btn
+                        size="x-small"
+                        variant="tonal"
+                        color="warning"
+                        prepend-icon="mdi-gift-outline"
+                        class="text-capitalize rounded-md"
+                        @click.stop="openQuickAddGift(guest)"
+                      >
+                        + Add Return Gift
                       </v-btn>
                     </div>
                   </div>
@@ -562,6 +719,11 @@
                     prepend-icon="mdi-pencil-outline"
                     title="Edit Guest & Addons"
                     @click="openEditGuestDialog(guest)"
+                  />
+                  <v-list-item
+                    prepend-icon="mdi-gift-outline"
+                    title="Add Return Gift"
+                    @click="openQuickAddGift(guest)"
                   />
                   <v-list-item
                     :prepend-icon="guest.rsvpStatus === 'confirmed' ? 'mdi-clock-outline' : 'mdi-check-circle-outline'"
@@ -625,17 +787,22 @@
                   {{ guest.name }}
                   <span class="text-primary font-weight-bold ml-1">+{{ guest.additionalGuests || 0 }}</span>
                 </div>
-                <div class="text-caption text-lightText">
-                  {{ guest.group }} •
+                <div class="text-caption text-lightText d-flex align-center gap-1 flex-wrap">
+                  <span>{{ guest.group }}</span>
+                  <span>•</span>
                   <span :class="getRsvpTextColor(guest.rsvpStatus)" class="font-weight-medium text-capitalize">
                     {{ guest.rsvpStatus }}
+                  </span>
+                  <span v-if="guest.returnGifts && guest.returnGifts.length > 0">
+                    • <v-icon icon="mdi-gift" size="11" class="text-warning mr-0.5" />{{ guest.returnGifts.length }} gifts
                   </span>
                 </div>
               </div>
             </div>
 
-            <!-- Edit & Delete Quick Icons -->
+            <!-- Edit, Gift & Delete Quick Icons -->
             <div class="d-flex align-center" @click.stop>
+              <v-btn icon="mdi-gift-outline" variant="text" size="small" color="warning" title="Add Return Gift" @click="openQuickAddGift(guest)" />
               <v-btn icon="mdi-pencil-outline" variant="text" size="small" color="primary" @click="openEditGuestDialog(guest)" />
               <v-btn icon="mdi-delete-outline" variant="text" size="small" color="error" @click="confirmDeleteGuest(guest)" />
             </div>
@@ -686,9 +853,12 @@
                   {{ guest.name }}
                   <span class="text-secondary font-weight-bold ml-1">+{{ guest.additionalGuests || 0 }}</span>
                 </div>
-                <div class="text-caption text-lightText">
+                <div class="text-caption text-lightText d-flex align-center gap-1 flex-wrap">
                   <span :class="getRsvpTextColor(guest.rsvpStatus)" class="font-weight-medium text-capitalize">
                     {{ guest.rsvpStatus }}
+                  </span>
+                  <span v-if="guest.returnGifts && guest.returnGifts.length > 0">
+                    • <v-icon icon="mdi-gift" size="11" class="text-warning mr-0.5" />{{ guest.returnGifts.length }} gifts
                   </span>
                   <span v-if="guest.tags && guest.tags.length > 0">
                     • {{ guest.tags.map(t => '#' + t).join(', ') }}
@@ -698,6 +868,7 @@
             </div>
 
             <div class="d-flex align-center" @click.stop>
+              <v-btn icon="mdi-gift-outline" variant="text" size="small" color="warning" title="Add Return Gift" @click="openQuickAddGift(guest)" />
               <v-btn icon="mdi-pencil-outline" variant="text" size="small" color="primary" @click="openEditGuestDialog(guest)" />
               <v-btn icon="mdi-delete-outline" variant="text" size="small" color="error" @click="confirmDeleteGuest(guest)" />
             </div>
@@ -709,7 +880,7 @@
     <!-- ================================================================= -->
     <!-- 7. ADD / EDIT GUEST MODAL DIALOG                                 -->
     <!-- ================================================================= -->
-    <v-dialog v-model="guestDialog" max-width="560" persistent scrollable>
+    <v-dialog v-model="guestDialog" max-width="580" persistent scrollable>
       <v-card class="rounded-xl overflow-hidden">
         <!-- Dialog Header -->
         <v-card-title class="pa-4 bg-primary text-white d-flex align-center justify-space-between">
@@ -719,10 +890,10 @@
             </v-avatar>
             <div>
               <div class="text-subtitle-1 font-weight-bold line-height-1">
-                {{ isEditing ? 'Edit Guest & Addon Persons' : 'Add New Guest' }}
+                {{ isEditing ? 'Edit Guest & Details' : 'Add New Guest' }}
               </div>
               <div class="text-caption text-white-75" style="font-size: 0.7rem;">
-                Autocomplete name, addon companions &amp; group tagging
+                Autocomplete name, addon companions, tags &amp; return gifts
               </div>
             </div>
           </div>
@@ -742,15 +913,7 @@
           <v-form ref="guestFormRef" @submit.prevent="saveGuest">
             <!-- SECTION 1: GUEST NAME WITH AUTOCOMPLETE / AUTO-CORRECT -->
             <div class="mb-3">
-              <div class="d-flex align-center justify-space-between mb-1">
-                <span class="text-caption font-weight-bold text-darkText">
-                  Guest Name * (with Auto-correct / Suggestions)
-                </span>
-                <span class="text-caption text-lightText" style="font-size: 0.68rem;">
-                  Select saved or type new
-                </span>
-              </div>
-
+              
               <v-combobox
                 v-model="guestForm.name"
                 :items="guestsStore.knownGuestNames"
@@ -794,7 +957,7 @@
                 <div class="d-flex align-center gap-1">
                   <v-icon icon="mdi-account-multiple-plus" size="18" class="text-primary" />
                   <span class="text-subtitle-2 font-weight-bold text-darkText">
-                    Addon Persons (Companions)
+                    Addons
                   </span>
                 </div>
 
@@ -802,10 +965,6 @@
                 <v-chip size="x-small" color="primary" variant="flat" class="font-weight-bold">
                   Party of {{ calculatedTotalParty }}
                 </v-chip>
-              </div>
-
-              <div class="text-caption text-lightText mb-3">
-                Add family members, spouse, kids, or friends joining this guest.
               </div>
 
               <!-- Quick Presets for Additional Guests -->
@@ -883,7 +1042,109 @@
               </v-btn>
             </div>
 
-            <!-- SECTION 3: TAGGING FEATURE FOR GROUPING -->
+            <!-- SECTION 3: RETURN GIFTS (1 or more gifts same as tags) -->
+            <div class="mb-4 pa-3 rounded-lg bg-containerBg border">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center gap-1">
+                  <v-icon icon="mdi-gift-outline" size="18" class="text-warning" />
+                  <span class="text-subtitle-2 font-weight-bold text-darkText">
+                    Return Gifts ({{ guestForm.returnGifts.length }})
+                  </span>
+                </div>
+
+                <!-- Live Total Value Badge -->
+                <v-chip size="x-small" color="warning" variant="flat" class="font-weight-bold">
+                  Total: ₹{{ formReturnGiftsTotal.toLocaleString() }}
+                </v-chip>
+              </div>
+
+              <div class="text-caption text-lightText mb-2">
+                Guest can have 1 or more return gifts (same as tags). Click presets or add custom.
+              </div>
+
+              <!-- Quick 1-Tap Preset Gifts (Just like Quick Tags!) -->
+              <div class="mb-3">
+                <div class="text-caption font-weight-medium text-darkText mb-1" style="font-size: 0.72rem;">
+                  Quick Add Preset Gifts:
+                </div>
+                <div class="d-flex align-center gap-1 flex-wrap">
+                  <v-chip
+                    v-for="preset in guestsStore.defaultGiftPresets"
+                    :key="preset.name"
+                    size="x-small"
+                    variant="tonal"
+                    color="warning"
+                    class="cursor-pointer font-weight-medium"
+                    @click="addPresetGiftToForm(preset)"
+                  >
+                    <v-icon icon="mdi-plus" size="10" class="mr-0.5" />
+                    {{ preset.name }} (₹{{ preset.price }})
+                  </v-chip>
+                </div>
+              </div>
+
+              <!-- List of Added Return Gifts -->
+              <div
+                v-for="(gift, gIdx) in guestForm.returnGifts"
+                :key="gIdx"
+                class="d-flex align-center gap-2 mb-2 pa-2 rounded-lg bg-surface border"
+              >
+                <!-- Gift Name with Autocomplete from Known Gifts -->
+                <v-combobox
+                  v-model="gift.name"
+                  :items="guestsStore.knownGiftNames"
+                  :label="`Gift #${gIdx + 1} Name`"
+                  placeholder="e.g. Silver Coin (10g)"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  rounded="md"
+                  class="flex-grow-1"
+                />
+
+                <!-- Price Field -->
+                <v-text-field
+                  v-model.number="gift.price"
+                  label="Price (₹)"
+                  placeholder="0"
+                  type="number"
+                  min="0"
+                  step="50"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  rounded="md"
+                  style="max-width: 130px;"
+                  prepend-inner-icon="mdi-currency-inr"
+                />
+
+                <!-- Remove Gift Button -->
+                <v-btn
+                  icon="mdi-trash-can-outline"
+                  variant="text"
+                  color="error"
+                  size="small"
+                  title="Remove gift"
+                  @click="removeGiftFromForm(gIdx)"
+                />
+              </div>
+
+              <!-- Add Custom Gift Button -->
+              <v-btn
+                variant="tonal"
+                color="warning"
+                size="small"
+                block
+                rounded="lg"
+                prepend-icon="mdi-plus"
+                class="font-weight-bold text-capitalize mt-2"
+                @click="addBlankGiftToForm"
+              >
+                + Add Return Gift
+              </v-btn>
+            </div>
+
+            <!-- SECTION 4: TAGGING FEATURE FOR GROUPING -->
             <div class="mb-4">
               <div class="text-subtitle-2 font-weight-bold text-darkText mb-2 d-flex align-center">
                 <v-icon icon="mdi-tag-multiple-outline" size="18" class="mr-1 text-primary" />
@@ -961,7 +1222,7 @@
               </div>
             </div>
 
-            <!-- SECTION 4: CONTACT & NOTES (Optional) -->
+            <!-- SECTION 5: CONTACT & NOTES (Optional) -->
             <v-expansion-panels variant="accordion" class="mb-2">
               <v-expansion-panel elevation="0" class="border rounded-lg">
                 <v-expansion-panel-title class="py-2 text-caption font-weight-bold text-darkText">
@@ -1041,7 +1302,96 @@
       </v-card>
     </v-dialog>
 
-    <!-- 8. DELETE CONFIRMATION DIALOG -->
+    <!-- ================================================================= -->
+    <!-- 8. QUICK ADD RETURN GIFT MODAL (Inline from Card)                 -->
+    <!-- ================================================================= -->
+    <v-dialog v-model="quickAddGiftDialog" max-width="480">
+      <v-card class="rounded-xl pa-2">
+        <v-card-title class="d-flex align-center justify-space-between pt-4 px-4">
+          <div class="d-flex align-center">
+            <v-avatar color="warning" variant="tonal" size="36" rounded="lg" class="mr-2">
+              <v-icon icon="mdi-gift-outline" size="22" />
+            </v-avatar>
+            <div>
+              <div class="text-subtitle-1 font-weight-bold text-darkText">Add Return Gift</div>
+              <div class="text-caption text-lightText font-weight-medium">
+                For: <span class="text-primary font-weight-bold">{{ targetGuestForGift?.name }}</span>
+              </div>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="quickAddGiftDialog = false" />
+        </v-card-title>
+
+        <v-card-text class="px-4 py-2">
+          <!-- Presets for 1-Tap Addition -->
+          <div class="text-caption font-weight-bold text-darkText mb-1.5">
+            Quick Add from Presets (1 Tap):
+          </div>
+          <div class="d-flex align-center gap-1.5 flex-wrap mb-3">
+            <v-chip
+              v-for="preset in guestsStore.defaultGiftPresets"
+              :key="preset.name"
+              size="small"
+              variant="tonal"
+              color="warning"
+              class="cursor-pointer font-weight-medium"
+              @click="assignPresetGiftToTarget(preset)"
+            >
+              <v-icon icon="mdi-plus" size="12" class="mr-1" />
+              {{ preset.name }} (₹{{ preset.price }})
+            </v-chip>
+          </div>
+
+          <v-divider class="my-3" />
+
+          <!-- Custom Gift Form -->
+          <div class="text-caption font-weight-bold text-darkText mb-2">
+            Or Type Custom Return Gift:
+          </div>
+          <v-combobox
+            v-model="quickGiftForm.name"
+            :items="guestsStore.knownGiftNames"
+            label="Gift Name *"
+            placeholder="e.g. Royal Mithai Box"
+            variant="outlined"
+            density="comfortable"
+            rounded="md"
+            class="mb-2"
+          />
+          <v-text-field
+            v-model.number="quickGiftForm.price"
+            label="Price (₹)"
+            placeholder="0"
+            type="number"
+            min="0"
+            step="50"
+            variant="outlined"
+            density="comfortable"
+            rounded="md"
+            prepend-inner-icon="mdi-currency-inr"
+          />
+        </v-card-text>
+
+        <v-card-actions class="px-4 pb-4 pt-1 d-flex justify-end gap-2">
+          <v-btn variant="outlined" rounded="lg" color="secondary" @click="quickAddGiftDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn
+            color="warning"
+            variant="flat"
+            rounded="lg"
+            class="font-weight-bold text-capitalize"
+            prepend-icon="mdi-gift-outline"
+            :disabled="!quickGiftForm.name || !quickGiftForm.name.trim()"
+            @click="saveQuickCustomGift"
+          >
+            Add Gift
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 9. DELETE CONFIRMATION DIALOG -->
     <v-dialog v-model="deleteConfirmDialog" max-width="400">
       <v-card class="rounded-xl pa-2">
         <v-card-title class="d-flex align-center pt-4 px-4">
@@ -1070,7 +1420,7 @@
 import { ref, computed } from 'vue'
 import { useGuestsStore } from '@/stores/guests'
 import { useModalBack } from '@/composables/useModalBack'
-import type { GuestItem, AccompanyingPerson, RsvpStatus } from '@/types'
+import type { GuestItem, AccompanyingPerson, ReturnGift, RsvpStatus } from '@/types'
 import {
   getInitials,
   getRsvpColor,
@@ -1080,6 +1430,8 @@ import {
   createEditGuestForm,
   syncAccompanyingPersons,
   sanitizeAccompanyingPersons,
+  sanitizeReturnGifts,
+  calculateGuestGiftsTotal,
 } from '@/services/service.js'
 
 const guestsStore = useGuestsStore()
@@ -1148,13 +1500,16 @@ function getRsvpTextColor(status: string) {
 // ============================================================================
 const guestDialog = ref(false)
 const deleteConfirmDialog = ref(false)
+const quickAddGiftDialog = ref(false)
 const isEditing = ref(false)
 const editingGuestId = ref<string | null>(null)
 const guestToDelete = ref<GuestItem | null>(null)
+const targetGuestForGift = ref<GuestItem | null>(null)
 const guestFormRef = ref<any>(null)
 
 useModalBack(guestDialog, 'guestFormModal')
 useModalBack(deleteConfirmDialog, 'deleteGuestModal')
+useModalBack(quickAddGiftDialog, 'quickAddGiftModal')
 
 const guestForm = ref({
   name: '',
@@ -1165,12 +1520,21 @@ const guestForm = ref({
   rsvpStatus: 'confirmed' as RsvpStatus,
   additionalGuests: 0,
   accompanyingPersons: [] as AccompanyingPerson[],
-  returnGifts: [] as any[],
+  returnGifts: [] as ReturnGift[],
   notes: '',
+})
+
+const quickGiftForm = ref({
+  name: '',
+  price: 0,
 })
 
 const calculatedTotalParty = computed(() => {
   return (Number(guestForm.value.additionalGuests) || 0) + 1
+})
+
+const formReturnGiftsTotal = computed(() => {
+  return calculateGuestGiftsTotal(guestForm.value.returnGifts)
 })
 
 const recentSuggestions = computed(() => {
@@ -1186,6 +1550,9 @@ function onGuestNameChange(val: string) {
     if (match.group) guestForm.value.group = match.group
     if (Array.isArray(match.tags) && match.tags.length > 0) guestForm.value.tags = [...match.tags]
     if (match.phone && !guestForm.value.phone) guestForm.value.phone = match.phone
+    if (Array.isArray(match.returnGifts) && match.returnGifts.length > 0 && guestForm.value.returnGifts.length === 0) {
+      guestForm.value.returnGifts = match.returnGifts.map((g) => ({ ...g }))
+    }
   }
 }
 
@@ -1205,6 +1572,9 @@ function toggleFormTag(tag: string) {
   }
 }
 
+// ============================================================================
+// Accompanying / Addon Persons Helpers
+// ============================================================================
 function setAdditionalCount(count: number) {
   guestForm.value.additionalGuests = count
   guestForm.value.accompanyingPersons = syncAccompanyingPersons(
@@ -1226,10 +1596,65 @@ function removeAccompanyingPerson(index: number) {
   guestForm.value.additionalGuests = guestForm.value.accompanyingPersons.length
 }
 
+// ============================================================================
+// Return Gifts Helpers
+// ============================================================================
+function addPresetGiftToForm(preset: { name: string; price: number }) {
+  guestForm.value.returnGifts.push({
+    name: preset.name,
+    price: preset.price,
+  })
+}
+
+function addBlankGiftToForm() {
+  guestForm.value.returnGifts.push({
+    name: '',
+    price: 0,
+  })
+}
+
+function removeGiftFromForm(index: number) {
+  guestForm.value.returnGifts.splice(index, 1)
+}
+
+// Quick Add Gift directly on any Guest Card
+function openQuickAddGift(guest: GuestItem) {
+  targetGuestForGift.value = guest
+  quickGiftForm.value = {
+    name: '',
+    price: 0,
+  }
+  quickAddGiftDialog.value = true
+}
+
+async function assignPresetGiftToTarget(preset: { name: string; price: number }) {
+  if (!targetGuestForGift.value) return
+  await guestsStore.addReturnGiftToGuest(targetGuestForGift.value.id, {
+    name: preset.name,
+    price: preset.price,
+  })
+  quickAddGiftDialog.value = false
+}
+
+async function saveQuickCustomGift() {
+  if (!targetGuestForGift.value || !quickGiftForm.value.name) return
+  await guestsStore.addReturnGiftToGuest(targetGuestForGift.value.id, {
+    name: quickGiftForm.value.name.trim(),
+    price: Number(quickGiftForm.value.price) || 0,
+  })
+  quickAddGiftDialog.value = false
+}
+
+async function removeGuestGift(guestId: string, giftIndex: number) {
+  await guestsStore.removeReturnGiftFromGuest(guestId, giftIndex)
+}
+
+// ============================================================================
+// Open Add / Edit Dialogs
+// ============================================================================
 function openAddGuestDialog() {
   isEditing.value = false
   editingGuestId.value = null
-  const def = createDefaultGuestForm()
   guestForm.value = {
     name: '',
     phone: '',
@@ -1273,6 +1698,7 @@ async function saveGuest() {
   }
 
   const sanitizedCompanions = sanitizeAccompanyingPersons(guestForm.value.accompanyingPersons)
+  const sanitizedGifts = sanitizeReturnGifts(guestForm.value.returnGifts)
   const additionalCount = Math.max(
     Number(guestForm.value.additionalGuests) || 0,
     sanitizedCompanions.length
@@ -1292,7 +1718,7 @@ async function saveGuest() {
     rsvpStatus: guestForm.value.rsvpStatus || 'confirmed',
     additionalGuests: additionalCount,
     accompanyingPersons: sanitizedCompanions,
-    returnGifts: guestForm.value.returnGifts || [],
+    returnGifts: sanitizedGifts,
     notes: (guestForm.value.notes || '').trim(),
   }
 

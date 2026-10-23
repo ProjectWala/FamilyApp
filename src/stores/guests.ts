@@ -629,6 +629,18 @@ export const useGuestsStore = defineStore('guests', () => {
     return guests.value.find((g) => g.id === id)
   }
 
+  const knownGiftNames = computed(() => {
+    const giftSet = new Set<string>(defaultGiftPresets.map((p) => p.name))
+    guests.value.forEach((g) => {
+      if (Array.isArray(g.returnGifts)) {
+        g.returnGifts.forEach((gift) => {
+          if (gift.name && gift.name.trim()) giftSet.add(gift.name.trim())
+        })
+      }
+    })
+    return Array.from(giftSet)
+  })
+
   // Initial load
   fetchFromSupabase()
 
@@ -636,6 +648,8 @@ export const useGuestsStore = defineStore('guests', () => {
     guests,
     savedGuestNames,
     knownGuestNames,
+    knownGiftNames,
+    defaultGiftPresets,
     recordGuestName,
     isSyncing,
     searchQuery,

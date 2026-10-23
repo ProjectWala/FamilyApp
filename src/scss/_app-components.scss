@@ -474,3 +474,12 @@ body {
     color: #ff4d4f !important;
   }
 }
+
+.return-gift-toggle-row {
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    filter: brightness(0.98);
+  }
+}
+
