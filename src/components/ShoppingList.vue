@@ -678,25 +678,13 @@
               <v-icon :icon="isEditing ? 'mdi-pencil' : 'mdi-cart-plus'" size="18" />
             </v-avatar>
             <span class="font-weight-bold text-darkText">
-              {{ isEditing ? 'Edit Shopping Product' : 'Add Product to Shopping List' }}
+              Add/Edit Product
             </span>
           </div>
           <v-btn icon="mdi-close" variant="text" size="small" @click="closeDialog" />
         </v-card-title>
 
-        <v-card-text class="pt-2 px-4">
-          <!-- Active impersonated user banner (matching Expenses theme) -->
-          <v-alert
-            density="compact"
-            variant="tonal"
-            color="primary"
-            rounded="md"
-            class="text-caption mb-3 d-flex align-center"
-            icon="mdi-account-check"
-          >
-            Adding as <strong>{{ familyStore.activeMember.name }}</strong> (Auto-selected)
-          </v-alert>
-
+        <v-card-text class="pt-2 px-4 pb-0">
           <v-form ref="formRef" @submit.prevent="submitProduct">
             <!-- 1. PRODUCT NAME WITH AUTOCOMPLETE (Saved from DB) -->
             <div class="mb-3">
@@ -719,10 +707,6 @@
                   </div>
                 </template>
               </v-combobox>
-              <div class="text-caption text-lightText mt-1 d-flex align-center" style="font-size: 0.72rem;">
-                <v-icon icon="mdi-database-check-outline" size="13" class="mr-1 text-success" />
-                New products are auto-saved to DB and will appear in autocomplete next time.
-              </div>
             </div>
 
             <!-- 2. PRICE & QUANTITY INPUTS -->
@@ -782,38 +766,38 @@
               >
                 <v-btn
                   value="urgent"
-                  size="small"
-                  class="flex-grow-1 text-caption font-weight-bold"
+                  size="x-small"
+                  class="flex-grow-1 font-weight-bold px-1"
                   :color="form.priority === 'urgent' ? 'error' : undefined"
                 >
-                  <v-icon icon="mdi-alert-octagon" size="14" class="mr-1" />
+                  <v-icon icon="mdi-alert-octagon" size="13" class="mr-0.5" />
                   Urgent
                 </v-btn>
                 <v-btn
                   value="high"
-                  size="small"
-                  class="flex-grow-1 text-caption font-weight-bold"
+                  size="x-small"
+                  class="flex-grow-1 font-weight-bold px-1"
                   :color="form.priority === 'high' ? 'warning' : undefined"
                 >
-                  <v-icon icon="mdi-alert-circle" size="14" class="mr-1" />
+                  <v-icon icon="mdi-alert-circle" size="13" class="mr-0.5" />
                   High
                 </v-btn>
                 <v-btn
                   value="medium"
-                  size="small"
-                  class="flex-grow-1 text-caption font-weight-bold"
+                  size="x-small"
+                  class="flex-grow-1 font-weight-bold px-1"
                   :color="form.priority === 'medium' ? 'primary' : undefined"
                 >
-                  <v-icon icon="mdi-arrow-up-circle-outline" size="14" class="mr-1" />
+                  <v-icon icon="mdi-arrow-up-circle-outline" size="13" class="mr-0.5" />
                   Medium
                 </v-btn>
                 <v-btn
                   value="low"
-                  size="small"
-                  class="flex-grow-1 text-caption font-weight-bold"
+                  size="x-small"
+                  class="flex-grow-1 font-weight-bold px-1"
                   :color="form.priority === 'low' ? 'success' : undefined"
                 >
-                  <v-icon icon="mdi-arrow-down-circle-outline" size="14" class="mr-1" />
+                  <v-icon icon="mdi-arrow-down-circle-outline" size="13" class="mr-0.5" />
                   Low
                 </v-btn>
               </v-btn-toggle>
@@ -878,11 +862,13 @@
               density="comfortable"
               rounded="md"
               auto-grow
+              hide-details="auto"
+              class="mb-1"
             />
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="px-4 pb-4">
+        <v-card-actions class="px-4 pb-3 pt-0">
           <v-spacer />
           <v-btn variant="text" rounded="md" @click="closeDialog">
             Cancel
@@ -1174,8 +1160,30 @@ function getMemberName(id?: string) {
   font-family: 'Roboto Mono', monospace, sans-serif !important;
 }
 
-.priority-toggle-group :deep(.v-btn) {
-  text-transform: capitalize !important;
-  letter-spacing: 0;
+.priority-toggle-group {
+  width: 100%;
+  display: flex !important;
+
+  :deep(.v-btn) {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+    text-transform: capitalize !important;
+    letter-spacing: 0 !important;
+    font-size: 0.72rem !important;
+
+    .v-btn__content {
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      padding: 0 !important;
+    }
+
+    .v-icon {
+      font-size: 13px !important;
+      margin-right: 2px !important;
+    }
+  }
 }
 </style>
