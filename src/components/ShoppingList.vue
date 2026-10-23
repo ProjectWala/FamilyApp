@@ -817,13 +817,12 @@
                 density="comfortable"
                 rounded="lg"
                 prepend-inner-icon="mdi-tag-multiple-outline"
-                hint="Group items by category like 'Groceries', 'Household', 'Pantry'"
                 persistent-hint
               />
 
               <!-- Quick Tag Suggestions -->
               <div class="d-flex align-center gap-1 mt-2 flex-wrap text-caption">
-                <span class="text-medium-emphasis">Popular:</span>
+                <span class="text-medium-emphasis">Tags:</span>
                 <v-chip
                   v-for="sug in suggestedQuickTags"
                   :key="sug"
