@@ -165,21 +165,22 @@
         </v-list-item>
 
         <v-list-item
-          :active="currentTab === 'guests'"
+          :active="currentTab === 'shopping'"
           rounded="lg"
           class="mb-1"
           color="primary"
-          @click="selectTab('guests')"
+          @click="selectTab('shopping')"
         >
           <template #prepend>
-            <v-icon icon="mdi-account-multiple-check-outline" class="mr-2" size="20" />
+            <v-icon icon="mdi-cart-outline" class="mr-2" size="20" />
           </template>
-          <v-list-item-title class="font-weight-medium text-body-2">Guest List</v-list-item-title>
-          <v-list-item-subtitle class="text-caption">RSVPs &amp; Return gifts</v-list-item-subtitle>
-          <template #append v-if="guestsStore.totalGuests > 0">
-            <v-chip size="x-small" variant="tonal" color="secondary">{{ guestsStore.totalGuests }}</v-chip>
+          <v-list-item-title class="font-weight-medium text-body-2">Shopping List</v-list-item-title>
+          <v-list-item-subtitle class="text-caption">Groceries, prices &amp; tags</v-list-item-subtitle>
+          <template #append v-if="shoppingStore.pendingCount > 0">
+            <v-badge color="error" :content="shoppingStore.pendingCount" inline />
           </template>
         </v-list-item>
+
 
         <v-divider class="my-2" />
 
@@ -341,8 +342,8 @@
           <RecurringExpenses
             v-else-if="currentTab === 'recurring'"
           />
-          <GuestsList
-            v-else-if="currentTab === 'guests'"
+          <ShoppingList
+            v-else-if="currentTab === 'shopping'"
           />
         </v-fade-transition>
       </div>
@@ -390,20 +391,21 @@
           <span class="nav-btn-label">Recurring</span>
         </v-btn>
 
-        <v-btn value="guests" class="nav-tab-btn" :ripple="false">
+        <v-btn value="shopping" class="nav-tab-btn" :ripple="false">
           <v-badge
-            v-if="guestsStore.totalGuests > 0"
-            color="secondary"
-            :content="guestsStore.totalGuests"
+            v-if="shoppingStore.pendingCount > 0"
+            color="error"
+            :content="shoppingStore.pendingCount"
             size="x-small"
             offset-x="-2"
             offset-y="-2"
           >
-            <v-icon icon="mdi-account-multiple-check-outline" size="20" />
+            <v-icon icon="mdi-cart-outline" size="20" />
           </v-badge>
-          <v-icon v-else icon="mdi-account-multiple-check-outline" size="20" />
-          <span class="nav-btn-label">Guests</span>
+          <v-icon v-else icon="mdi-cart-outline" size="20" />
+          <span class="nav-btn-label">Shopping</span>
         </v-btn>
+
       </v-bottom-navigation>
 
       <!-- Global Profile Switcher Dialog -->
@@ -421,14 +423,14 @@ import TodoList from '@/components/TodoList.vue'
 import Expenses from '@/components/Expenses.vue'
 import FamilyMembers from '@/components/FamilyMembers.vue'
 import RecurringExpenses from '@/components/RecurringExpenses.vue'
-import GuestsList from '@/components/GuestsList.vue'
+import ShoppingList from '@/components/ShoppingList.vue'
 import ProfileSwitcher from '@/components/ProfileSwitcher.vue'
 import { useAppStore } from '@/stores/app'
 import { useTodoStore } from '@/stores/todos'
 import { useFamilyStore } from '@/stores/family'
 import { useExpensesStore } from '@/stores/expenses'
 import { useRecurringStore } from '@/stores/recurring'
-import { useGuestsStore } from '@/stores/guests'
+import { useShoppingStore } from '@/stores/shopping'
 import { useModalBack } from '@/composables/useModalBack'
 
 const theme = useTheme()
@@ -437,13 +439,13 @@ const todoStore = useTodoStore()
 const familyStore = useFamilyStore()
 const expensesStore = useExpensesStore()
 const recurringStore = useRecurringStore()
-const guestsStore = useGuestsStore()
+const shoppingStore = useShoppingStore()
 
 const route = useRoute()
 const router = useRouter()
 
-type TabModule = 'dashboard' | 'todos' | 'expenses' | 'family' | 'recurring' | 'guests'
-const VALID_TABS: TabModule[] = ['dashboard', 'todos', 'expenses', 'family', 'recurring', 'guests']
+type TabModule = 'dashboard' | 'todos' | 'expenses' | 'family' | 'recurring' | 'shopping'
+const VALID_TABS: TabModule[] = ['dashboard', 'todos', 'expenses', 'family', 'recurring', 'shopping']
 
 function getTabFromPath(path: string): TabModule {
   const segment = (path || '').replace(/^\//, '').split('/')[0].toLowerCase()

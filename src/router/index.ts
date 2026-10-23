@@ -41,8 +41,8 @@ const router = createRouter({
       component: Index,
     },
     {
-      path: '/guests',
-      name: 'guests',
+      path: '/shopping',
+      name: 'shopping',
       component: Index,
     },
     {

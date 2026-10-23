@@ -13,6 +13,8 @@ export type SupportedResource =
   | 'expenses'
   | 'recurring_expenses'
   | 'guests'
+  | 'shopping_list'
+  | 'shopping_products'
 
 /**
  * Universal client helper for calling the Supabase Edge Function

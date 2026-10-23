@@ -864,6 +864,8 @@ export function getTitleForTab(tab) {
       return 'Family Members'
     case 'recurring':
       return 'Recurring Expenses'
+    case 'shopping':
+      return 'Shopping List'
     case 'guests':
       return 'Guest List & RSVP'
     default:
@@ -886,10 +888,52 @@ export function getSubtitleForTab(tab) {
       return 'Add, update & impersonate'
     case 'recurring':
       return 'Repeating bills & subscriptions'
+    case 'shopping':
+      return 'Products, quantities, prices & tags'
     case 'guests':
       return 'Tagging, family +1/+2 & return gifts'
     default:
       return 'Daily Tasks & Budget Management'
+  }
+}
+
+/**
+ * Returns color token for a shopping item priority level.
+ * @param {string} priority
+ * @returns {string}
+ */
+export function getShoppingPriorityColor(priority) {
+  switch (priority) {
+    case 'urgent':
+      return 'error'
+    case 'high':
+      return 'warning'
+    case 'medium':
+      return 'primary'
+    case 'low':
+      return 'success'
+    default:
+      return 'secondary'
+  }
+}
+
+/**
+ * Returns icon for a shopping item priority level.
+ * @param {string} priority
+ * @returns {string}
+ */
+export function getShoppingPriorityIcon(priority) {
+  switch (priority) {
+    case 'urgent':
+      return 'mdi-alert-octagon'
+    case 'high':
+      return 'mdi-alert-circle'
+    case 'medium':
+      return 'mdi-arrow-up-circle-outline'
+    case 'low':
+      return 'mdi-arrow-down-circle-outline'
+    default:
+      return 'mdi-tag-outline'
   }
 }
 
@@ -1228,6 +1272,10 @@ export default {
   getTitleForTab,
   getSubtitleForTab,
   toggleAppTheme,
+
+  // Shopping List
+  getShoppingPriorityColor,
+  getShoppingPriorityIcon,
 
   // Guests & Return Gifts
   getGuestGroupColor,

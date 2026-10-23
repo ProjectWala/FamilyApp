@@ -87,3 +87,29 @@ export interface GuestItem {
   createdAt?: string
   updatedAt?: string
 }
+
+export type ShoppingPriority = 'urgent' | 'high' | 'medium' | 'low'
+
+export interface ShoppingProduct {
+  id?: string
+  name: string
+  defaultPrice?: number
+  defaultQuantity?: number
+  defaultTag?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ShoppingItem {
+  id: string
+  productName: string
+  price: number
+  quantity: number
+  tags: string[]
+  priority: ShoppingPriority
+  isPurchased: boolean
+  memberId?: string
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
+}

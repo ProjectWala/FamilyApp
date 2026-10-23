@@ -221,47 +221,39 @@
         </v-card>
       </v-col>
 
-      <!-- 5. Guest List & Return Gifts CTA (Purple / Royal Accent) -->
-      <v-col cols="12">
+      <!-- 5. Shopping List CTA -->
+      <v-col cols="12" sm="6">
         <v-card
           variant="outlined"
           elevation="0"
-          class="card-hover-border pa-3 rounded-lg bg-surface cursor-pointer mt-1"
-          style="border-left: 4px solid #722ed1 !important;"
-          @click="emit('select-module', 'guests')"
+          class="card-hover-border pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between cursor-pointer"
+          style="border-left: 4px solid #1677ff !important;"
+          @click="emit('select-module', 'shopping')"
         >
-          <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-            <div class="d-flex align-center">
-              <v-avatar color="secondary" variant="tonal" size="38" rounded="lg" class="mr-3">
-                <v-icon icon="mdi-account-multiple-check-outline" size="22" color="secondary" />
+          <div>
+            <div class="d-flex justify-space-between align-center mb-2">
+              <v-avatar color="primary" variant="tonal" size="36" rounded="lg">
+                <v-icon icon="mdi-cart-outline" size="20" />
               </v-avatar>
-              <div>
-                <div class="d-flex align-center gap-1.5">
-                  <span class="text-subtitle-2 font-weight-bold text-darkText">
-                    5. Guest List &amp; Return Gifts
-                  </span>
-                  <v-chip size="x-small" color="secondary" variant="flat" class="font-weight-bold">
-                    {{ guestsStore.totalGuests }} Guests
-                  </v-chip>
-                  <v-chip size="x-small" color="primary" variant="tonal" class="font-weight-bold">
-                    {{ guestsStore.totalPartyCount }} Heads (+family)
-                  </v-chip>
-                </div>
-                <div class="text-caption text-lightText mt-0.5">
-                  Tagging, group filters, guestX +1/+2 family members &amp; return gifts array
-                </div>
-              </div>
-            </div>
-
-            <div class="d-flex align-center gap-2">
-              <v-chip size="small" color="warning" variant="tonal" class="font-weight-bold">
-                <v-icon icon="mdi-gift-outline" size="14" class="mr-1" />
-                {{ guestsStore.totalReturnGiftsCount }} Gifts (₹{{ guestsStore.totalReturnGiftsCost.toLocaleString() }})
+              <v-chip size="small" color="primary" variant="tonal" label rounded="md" class="font-weight-medium border-primary-subtle">
+                {{ shoppingStore.pendingCount }} to buy
               </v-chip>
-              <div class="d-flex align-center text-secondary text-caption font-weight-bold">
-                <span>Manage</span>
-                <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
-              </div>
+            </div>
+            <div class="text-subtitle-2 font-weight-bold text-darkText mb-1">
+              5. Shopping List
+            </div>
+            <div class="text-caption text-lightText line-clamp-2">
+              Products, quantities, prices &amp; group tags
+            </div>
+          </div>
+
+          <div class="d-flex align-center justify-space-between text-caption font-weight-medium mt-3">
+            <span class="text-primary font-weight-bold">
+              Est: ₹{{ shoppingStore.totalEstimatedCost.toFixed(0) }}
+            </span>
+            <div class="d-flex align-center text-primary">
+              <span>Open List</span>
+              <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
             </div>
           </div>
         </v-card>
@@ -325,7 +317,7 @@ import { useTodoStore } from '@/stores/todos'
 import { useExpensesStore } from '@/stores/expenses'
 import { useFamilyStore } from '@/stores/family'
 import { useRecurringStore } from '@/stores/recurring'
-import { useGuestsStore } from '@/stores/guests'
+import { useShoppingStore } from '@/stores/shopping'
 import ProfileSwitcher from '@/components/ProfileSwitcher.vue'
 import {
   getCurrentDateString,
@@ -334,7 +326,7 @@ import {
 } from '@/services/service.js'
 
 const emit = defineEmits<{
-  (e: 'select-module', moduleName: 'todos' | 'expenses' | 'family' | 'recurring' | 'guests'): void
+  (e: 'select-module', moduleName: 'todos' | 'expenses' | 'family' | 'recurring' | 'shopping'): void
 }>()
 
 const profileModalOpen = ref(false)
@@ -343,7 +335,7 @@ const todoStore = useTodoStore()
 const expensesStore = useExpensesStore()
 const familyStore = useFamilyStore()
 const recurringStore = useRecurringStore()
-const guestsStore = useGuestsStore()
+const shoppingStore = useShoppingStore()
 
 const brotherMarriageTotal = computed(() => getBrotherMarriageTotal(expensesStore))
 

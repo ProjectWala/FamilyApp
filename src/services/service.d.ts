@@ -167,6 +167,9 @@ export function getTitleForTab(tab: string): string
 export function getSubtitleForTab(tab: string): string
 export function toggleAppTheme(theme: any, isDark: boolean): void
 
+export function getShoppingPriorityColor(priority: string): string
+export function getShoppingPriorityIcon(priority: string): string
+
 export function getGuestGroupColor(group: string): string
 export function getGuestGroupIcon(group: string): string
 export function getRsvpColor(status: string): string
@@ -254,6 +257,8 @@ declare const service: {
   getTitleForTab: typeof getTitleForTab
   getSubtitleForTab: typeof getSubtitleForTab
   toggleAppTheme: typeof toggleAppTheme
+  getShoppingPriorityColor: typeof getShoppingPriorityColor
+  getShoppingPriorityIcon: typeof getShoppingPriorityIcon
   getGuestGroupColor: typeof getGuestGroupColor
   getGuestGroupIcon: typeof getGuestGroupIcon
   getRsvpColor: typeof getRsvpColor
