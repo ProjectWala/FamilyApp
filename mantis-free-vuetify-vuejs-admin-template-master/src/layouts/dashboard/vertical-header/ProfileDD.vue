@@ -1,0 +1,134 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+// icons
+import {
+  LogoutOutlined,
+  UserOutlined,
+  SettingOutlined,
+  QuestionCircleOutlined,
+  LockOutlined,
+  CommentOutlined,
+  UnorderedListOutlined,
+  EditOutlined,
+  ProfileOutlined,
+  WalletOutlined
+} from '@ant-design/icons-vue';
+
+const tab = ref(null);
+</script>
+
+<template>
+  <!-- ---------------------------------------------- -->
+  <!-- profile DD -->
+  <!-- ---------------------------------------------- -->
+  <div>
+    <div class="d-flex align-center pa-5">
+      <v-avatar size="32" class="mr-2">
+        <img src="@/assets/images/users/avatar-1.png" width="32" alt="Julia" />
+      </v-avatar>
+      <div>
+        <h6 class="mb-0">JWT User</h6>
+        <p class="text-label-small mb-0">UI/UX Designer</p>
+      </div>
+      <div class="ml-auto">
+        <v-btn variant="text" color="primary" rounded="sm" icon size="large">
+          <LogoutOutlined :style="{ fontSize: '20px' }" />
+        </v-btn>
+      </div>
+    </div>
+    <v-tabs v-model="tab" color="primary" grow>
+      <v-tab value="111"> <UserOutlined class="v-icon--start" /> Profile </v-tab>
+      <v-tab value="222"> <SettingOutlined class="v-icon--start" /> Setting </v-tab>
+    </v-tabs>
+    <perfect-scrollbar style="height: calc(100vh - 300px); max-height: 240px">
+      <v-window v-model="tab">
+        <v-window-item value="111">
+          <v-list class="py-0" aria-label="profile list" aria-busy="true">
+            <v-list-item color="primary" rounded="0" value="Edit profile">
+              <template v-slot:prepend>
+                <EditOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>Edit Profile</h6>
+            </v-list-item>
+
+            <v-list-item color="primary" rounded="0" value="View Profile">
+              <template v-slot:prepend>
+                <UserOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>View Profile</h6>
+            </v-list-item>
+
+            <v-list-item color="primary" rounded="0" value="Social Profile">
+              <template v-slot:prepend>
+                <ProfileOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>Social Profile</h6>
+            </v-list-item>
+
+            <v-list-item color="primary" rounded="0" value="Billing">
+              <template v-slot:prepend>
+                <WalletOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>Billing</h6>
+            </v-list-item>
+
+            <v-list-item color="secondary" rounded="0">
+              <template v-slot:prepend>
+                <LogoutOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>Logout</h6>
+            </v-list-item>
+          </v-list>
+        </v-window-item>
+        <v-window-item value="222">
+          <v-list class="py-0" aria-label="profile list" aria-busy="true">
+            <v-list-item color="primary" rounded="0" value="Support">
+              <template v-slot:prepend>
+                <QuestionCircleOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>Support</h6>
+            </v-list-item>
+
+            <v-list-item color="primary" rounded="0" value="Account">
+              <template v-slot:prepend>
+                <UserOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>Account settings</h6>
+            </v-list-item>
+
+            <v-list-item color="primary" rounded="0" value="Privacy">
+              <template v-slot:prepend>
+                <LockOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>Privacy center</h6>
+            </v-list-item>
+
+            <v-list-item color="primary" rounded="0" value="Feedback">
+              <template v-slot:prepend>
+                <CommentOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>Feedback</h6>
+            </v-list-item>
+
+            <v-list-item color="primary" rounded="0" value="History">
+              <template v-slot:prepend>
+                <UnorderedListOutlined :style="{ fontSize: '14px' }" class="mr-4" />
+              </template>
+
+              <h6>History</h6>
+            </v-list-item>
+          </v-list>
+        </v-window-item>
+      </v-window>
+    </perfect-scrollbar>
+  </div>
+</template>
