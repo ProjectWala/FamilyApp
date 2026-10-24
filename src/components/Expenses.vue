@@ -16,10 +16,6 @@
 
       <div class="d-flex justify-space-between text-caption pt-1 text-white-85">
         <span>This Month: <strong class="text-white">₹{{ expensesStore.thisMonthAmount.toFixed(2) }}</strong></span>
-        <span>
-          Acting As:
-          <strong class="text-white font-weight-bold">{{ familyStore.activeMember.name }}</strong>
-        </span>
       </div>
     </v-card>
 

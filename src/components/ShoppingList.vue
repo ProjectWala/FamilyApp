@@ -34,11 +34,6 @@
             <strong class="text-white font-weight-bold">{{ shoppingStore.purchasedCount }}</strong>
           </span>
         </div>
-
-        <span>
-          Acting As:
-          <strong class="text-white font-weight-bold">{{ familyStore.activeMember.name }}</strong>
-        </span>
       </div>
     </v-card>
 

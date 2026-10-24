@@ -103,328 +103,432 @@
       </div>
     </v-card>
 
-    <!-- 2. Search, Tag Filtering, Return Gift Filters & Grouping Card -->
-    <v-card variant="outlined" elevation="0" class="mb-4 rounded-lg bg-surface pa-3">
-      <!-- Search Input -->
-      <v-text-field
-        v-model="guestsStore.searchQuery"
-        placeholder="Search by guest name, addon companion, phone, tags, gifts, notes..."
-        prepend-inner-icon="mdi-magnify"
-        density="compact"
-        variant="outlined"
-        hide-details
-        clearable
-        rounded="lg"
-        class="mb-3"
-      />
-
-      <!-- Group Category Chips (Horizontal Scrollable) -->
-      <div class="d-flex align-center gap-1 overflow-x-auto pb-1 mb-2 no-scrollbar">
-        <v-chip
-          :color="guestsStore.selectedGroup === 'all' ? 'primary' : undefined"
-          :variant="guestsStore.selectedGroup === 'all' ? 'flat' : 'outlined'"
-          size="small"
-          class="font-weight-medium cursor-pointer flex-shrink-0"
-          @click="guestsStore.selectedGroup = 'all'"
-        >
-          All Groups ({{ guestsStore.totalGuests }})
-        </v-chip>
-
-        <v-chip
-          v-for="grp in guestsStore.allGroups"
-          :key="grp"
-          :color="guestsStore.selectedGroup === grp ? 'primary' : undefined"
-          :variant="guestsStore.selectedGroup === grp ? 'flat' : 'outlined'"
-          size="small"
-          class="font-weight-medium cursor-pointer flex-shrink-0"
-          @click="guestsStore.selectedGroup = grp"
-        >
-          <v-icon :icon="getGuestGroupIcon(grp)" size="14" class="mr-1" />
-          {{ grp }}
-          <span v-if="guestsStore.groupCountMap[grp]" class="ml-1 opacity-70">
-            ({{ guestsStore.groupCountMap[grp] }})
-          </span>
-        </v-chip>
-      </div>
-
-      <!-- Tag Filter Chips Bar (Tagging Feature for Grouping) -->
-      <div class="d-flex align-center gap-1 overflow-x-auto pb-1 mb-2 no-scrollbar">
-        <span class="text-caption text-lightText font-weight-bold mr-1 flex-shrink-0">Tags:</span>
-        <v-chip
-          :color="guestsStore.selectedTags.length === 0 ? 'primary' : undefined"
-          :variant="guestsStore.selectedTags.length === 0 ? 'flat' : 'outlined'"
-          size="x-small"
-          class="font-weight-medium cursor-pointer flex-shrink-0"
-          @click="guestsStore.selectedTags = []; guestsStore.selectedTag = null"
-        >
-          All Tags
-        </v-chip>
-
-        <v-chip
-          v-for="tag in guestsStore.allTags"
-          :key="tag"
-          :color="isTagSelected(tag) ? 'primary' : undefined"
-          :variant="isTagSelected(tag) ? 'flat' : 'outlined'"
-          size="x-small"
-          class="font-weight-medium cursor-pointer flex-shrink-0"
-          @click="guestsStore.toggleTag(tag)"
-        >
-          <v-icon icon="mdi-tag" size="11" class="mr-0.5" />
-          #{{ tag }}
-          <span v-if="guestsStore.tagCountMap[tag]" class="ml-1 opacity-70">
-            ({{ guestsStore.tagCountMap[tag] }})
-          </span>
-        </v-chip>
-      </div>
-
-      <!-- Return Gift Filter Chips Bar -->
-      <div class="d-flex align-center gap-1 overflow-x-auto pb-1 mb-2 no-scrollbar">
-        <span class="text-caption text-lightText font-weight-bold mr-1 flex-shrink-0">Gifts:</span>
-        <v-chip
-          size="x-small"
-          :color="guestsStore.giftFilter === 'all' && !guestsStore.selectedGiftName ? 'warning' : undefined"
-          :variant="guestsStore.giftFilter === 'all' && !guestsStore.selectedGiftName ? 'flat' : 'outlined'"
-          class="cursor-pointer flex-shrink-0 font-weight-medium"
-          @click="guestsStore.giftFilter = 'all'; guestsStore.selectedGiftName = null"
-        >
-          All ({{ guestsStore.totalGuests }})
-        </v-chip>
-
-        <v-chip
-          size="x-small"
-          :color="guestsStore.giftFilter === 'with_gift' ? 'warning' : undefined"
-          :variant="guestsStore.giftFilter === 'with_gift' ? 'flat' : 'outlined'"
-          class="cursor-pointer flex-shrink-0 font-weight-medium"
-          @click="guestsStore.giftFilter = 'with_gift'; guestsStore.selectedGiftName = null"
-        >
-          <v-icon icon="mdi-gift" size="11" class="mr-0.5" />
-          Has Gifts ({{ guestsStore.guestsWithGiftCount }})
-        </v-chip>
-
-        <v-chip
-          size="x-small"
-          :color="guestsStore.giftFilter === 'without_gift' ? 'warning' : undefined"
-          :variant="guestsStore.giftFilter === 'without_gift' ? 'flat' : 'outlined'"
-          class="cursor-pointer flex-shrink-0 font-weight-medium"
-          @click="guestsStore.giftFilter = 'without_gift'; guestsStore.selectedGiftName = null"
-        >
-          <v-icon icon="mdi-gift-off-outline" size="11" class="mr-0.5" />
-          No Gift ({{ guestsStore.guestsWithoutGiftCount }})
-        </v-chip>
-
-        <!-- Specific gift presets filters -->
-        <v-chip
-          v-for="item in guestsStore.returnGiftsDistribution.slice(0, 4)"
-          :key="item.name"
-          size="x-small"
-          :color="guestsStore.selectedGiftName === item.name ? 'warning' : undefined"
-          :variant="guestsStore.selectedGiftName === item.name ? 'flat' : 'outlined'"
-          class="cursor-pointer flex-shrink-0 font-weight-medium"
-          @click="guestsStore.toggleGiftNameFilter(item.name)"
-        >
-          {{ item.name }} ({{ item.count }})
-        </v-chip>
-      </div>
-
-      <!-- Secondary Controls: RSVP Filter, View Mode, Sort -->
-      <div class="d-flex align-center justify-space-between flex-wrap gap-2 pt-2 border-t">
-        <!-- RSVP Status filter -->
-        <div class="d-flex align-center gap-1 flex-wrap">
-          <span class="text-caption text-lightText font-weight-medium mr-1">RSVP:</span>
-          <v-chip
-            size="x-small"
-            :variant="guestsStore.selectedRsvp === 'all' ? 'flat' : 'tonal'"
-            color="primary"
-            class="cursor-pointer"
-            @click="guestsStore.selectedRsvp = 'all'"
-          >
-            All
-          </v-chip>
-          <v-chip
-            size="x-small"
-            :variant="guestsStore.selectedRsvp === 'confirmed' ? 'flat' : 'tonal'"
-            color="success"
-            class="cursor-pointer"
-            @click="guestsStore.selectedRsvp = 'confirmed'"
-          >
-            Confirmed ({{ guestsStore.confirmedCount }})
-          </v-chip>
-          <v-chip
-            size="x-small"
-            :variant="guestsStore.selectedRsvp === 'pending' ? 'flat' : 'tonal'"
-            color="warning"
-            class="cursor-pointer"
-            @click="guestsStore.selectedRsvp = 'pending'"
-          >
-            Pending ({{ guestsStore.pendingCount }})
-          </v-chip>
-        </div>
-
-        <!-- View Mode & Details Toggles -->
-        <div class="d-flex align-center gap-1 flex-wrap">
-          <!-- View Mode Toggle Menu (Flat vs Grouped by Tag vs Grouped by Category) -->
-          <v-menu location="bottom end">
-            <template #activator="{ props: menuProps }">
-              <v-btn
-                v-bind="menuProps"
-                size="x-small"
-                variant="outlined"
-                color="primary"
-                rounded="lg"
-                class="text-capitalize font-weight-medium"
-              >
-                <v-icon :icon="viewModeIcon" size="13" class="mr-1" />
-                {{ viewModeLabel }}
-                <v-icon icon="mdi-chevron-down" size="12" class="ml-1" />
-              </v-btn>
-            </template>
-            <v-list density="compact" rounded="lg" elevation="4">
-              <v-list-item
-                :active="guestsStore.viewMode === 'flat'"
-                prepend-icon="mdi-view-headline"
-                title="Flat Cards View"
-                @click="guestsStore.viewMode = 'flat'"
-              />
-              <v-list-item
-                :active="guestsStore.viewMode === 'grouped_by_tag'"
-                prepend-icon="mdi-tag-multiple-outline"
-                title="Grouped by Tag"
-                @click="guestsStore.viewMode = 'grouped_by_tag'"
-              />
-              <v-list-item
-                :active="guestsStore.viewMode === 'grouped_by_category'"
-                prepend-icon="mdi-folder-outline"
-                title="Grouped by Category"
-                @click="guestsStore.viewMode = 'grouped_by_category'"
-              />
-            </v-list>
-          </v-menu>
-
-          <!-- Toggle Expand All Details Button -->
-          <v-btn
-            size="x-small"
-            :variant="showAllDetails ? 'flat' : 'outlined'"
-            :color="showAllDetails ? 'primary' : 'secondary'"
-            rounded="lg"
-            class="text-capitalize font-weight-medium px-2"
-            title="Toggle details for all guests"
-            @click="showAllDetails = !showAllDetails"
-          >
-            <v-icon :icon="showAllDetails ? 'mdi-eye-check-outline' : 'mdi-eye-outline'" size="13" class="mr-1" />
-            {{ showAllDetails ? 'Hide Details' : 'Show Details' }}
-          </v-btn>
-
-          <!-- Sort Button -->
-          <v-menu location="bottom end">
-            <template #activator="{ props: sortProps }">
-              <v-btn
-                v-bind="sortProps"
-                size="x-small"
-                variant="outlined"
-                color="secondary"
-                rounded="lg"
-                icon="mdi-sort-variant"
-                title="Sort guests"
-              />
-            </template>
-            <v-list density="compact" rounded="lg" elevation="4">
-              <v-list-item
-                :active="guestsStore.sortBy === 'newest'"
-                title="Newest Added"
-                @click="guestsStore.sortBy = 'newest'"
-              />
-              <v-list-item
-                :active="guestsStore.sortBy === 'name'"
-                title="Guest Name (A-Z)"
-                @click="guestsStore.sortBy = 'name'"
-              />
-              <v-list-item
-                :active="guestsStore.sortBy === 'party-desc'"
-                title="Party Size (Largest First)"
-                @click="guestsStore.sortBy = 'party-desc'"
-              />
-            </v-list>
-          </v-menu>
-        </div>
-      </div>
-
-      <!-- Active Filters Reset Banner -->
+    <!-- 2. COLLAPSIBLE SEARCH, TAGS & FILTERS PANEL (Mantis Style - Matching ShoppingList) -->
+    <v-card
+      variant="outlined"
+      elevation="0"
+      class="mb-3 rounded-lg bg-surface card-hover-border overflow-hidden"
+    >
       <div
-        v-if="guestsStore.activeFiltersCount > 0"
-        class="d-flex align-center flex-wrap gap-1 pt-2 mt-2 border-t"
+        class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none filter-header-bar"
+        @click="showFiltersPanel = !showFiltersPanel"
       >
-        <span class="text-caption text-lightText font-weight-bold mr-1">Active:</span>
+        <div class="d-flex align-center flex-wrap gap-2" style="min-width: 0;">
+          <v-avatar color="primary" variant="tonal" size="28" rounded="md">
+            <v-icon icon="mdi-filter-variant" size="16" />
+          </v-avatar>
+          <div>
+            <div class="text-subtitle-2 font-weight-bold text-darkText d-flex align-center">
+              Search, Tags &amp; Filters
+              <v-chip
+                v-if="hasActiveFilters"
+                size="x-small"
+                color="primary"
+                variant="flat"
+                rounded="pill"
+                class="ml-2 font-weight-bold px-2"
+              >
+                Filtered
+              </v-chip>
+            </div>
+            <div class="text-caption text-lightText" style="font-size: 0.68rem !important;">
+              {{ filterSummary }}
+            </div>
+          </div>
+        </div>
 
-        <v-chip
-          v-for="tag in guestsStore.selectedTags"
-          :key="tag"
-          size="x-small"
-          color="primary"
-          variant="flat"
-          closable
-          @click:close="guestsStore.toggleTag(tag)"
-        >
-          <v-icon icon="mdi-tag" size="10" class="mr-1" />
-          #{{ tag }}
-        </v-chip>
-
-        <v-chip
-          v-if="guestsStore.giftFilter !== 'all'"
-          size="x-small"
-          color="warning"
-          variant="flat"
-          closable
-          @click:close="guestsStore.giftFilter = 'all'"
-        >
-          <v-icon icon="mdi-gift" size="10" class="mr-1" />
-          {{ guestsStore.giftFilter === 'with_gift' ? 'Has Gifts' : 'No Gifts' }}
-        </v-chip>
-
-        <v-chip
-          v-if="guestsStore.selectedGiftName"
-          size="x-small"
-          color="warning"
-          variant="flat"
-          closable
-          @click:close="guestsStore.selectedGiftName = null"
-        >
-          <v-icon icon="mdi-gift-outline" size="10" class="mr-1" />
-          Gift: {{ guestsStore.selectedGiftName }}
-        </v-chip>
-
-        <v-chip
-          v-if="guestsStore.selectedGroup !== 'all'"
-          size="x-small"
-          color="secondary"
-          variant="flat"
-          closable
-          @click:close="guestsStore.selectedGroup = 'all'"
-        >
-          {{ guestsStore.selectedGroup }}
-        </v-chip>
-
-        <v-chip
-          v-if="guestsStore.selectedRsvp !== 'all'"
-          size="x-small"
-          color="success"
-          variant="flat"
-          closable
-          @click:close="guestsStore.selectedRsvp = 'all'"
-        >
-          RSVP: {{ guestsStore.selectedRsvp }}
-        </v-chip>
-
-        <v-btn
-          variant="text"
-          size="x-small"
-          color="error"
-          class="font-weight-bold text-caption px-1 ml-auto"
-          @click="guestsStore.resetAllFilters()"
-        >
-          Clear Filters
-        </v-btn>
+        <div class="d-flex align-center">
+          <v-btn
+            v-if="hasActiveFilters"
+            variant="text"
+            size="x-small"
+            color="error"
+            class="mr-1 text-capitalize px-2 font-weight-bold"
+            @click.stop="resetFilters"
+          >
+            Reset
+          </v-btn>
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            color="lightText"
+            :aria-label="showFiltersPanel ? 'Collapse Filters' : 'Expand Filters'"
+          >
+            <v-icon :icon="showFiltersPanel ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="20" />
+          </v-btn>
+        </div>
       </div>
+
+      <!-- Collapsible Container for Search, Tags, Groups, Gifts & RSVP -->
+      <v-expand-transition>
+        <div v-if="showFiltersPanel" class="px-3 pb-3 pt-1 border-t">
+          <!-- Search Input -->
+          <v-text-field
+            v-model="guestsStore.searchQuery"
+            placeholder="Search by guest name, addon companion, phone, tags, gifts, notes..."
+            prepend-inner-icon="mdi-magnify"
+            density="compact"
+            variant="outlined"
+            hide-details
+            clearable
+            rounded="lg"
+            class="mb-3"
+          />
+
+          <!-- Group Category Chips -->
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+              Guest Group:
+            </div>
+            <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+              <v-chip
+                :color="guestsStore.selectedGroup === 'all' ? 'primary' : undefined"
+                :variant="guestsStore.selectedGroup === 'all' ? 'flat' : 'outlined'"
+                size="small"
+                class="font-weight-medium cursor-pointer"
+                @click="guestsStore.selectedGroup = 'all'"
+              >
+                All Groups ({{ guestsStore.totalGuests }})
+              </v-chip>
+
+              <v-chip
+                v-for="grp in guestsStore.allGroups"
+                :key="grp"
+                :color="guestsStore.selectedGroup === grp ? 'primary' : undefined"
+                :variant="guestsStore.selectedGroup === grp ? 'flat' : 'outlined'"
+                size="small"
+                class="font-weight-medium cursor-pointer"
+                @click="guestsStore.selectedGroup = grp"
+              >
+                <v-icon :icon="getGuestGroupIcon(grp)" size="14" class="mr-1" />
+                {{ grp }}
+                <span v-if="guestsStore.groupCountMap[grp]" class="ml-1 opacity-70">
+                  ({{ guestsStore.groupCountMap[grp] }})
+                </span>
+              </v-chip>
+            </div>
+          </div>
+
+          <!-- Tag Filter Chips Bar -->
+          <div class="mb-3">
+            <div class="d-flex align-center justify-space-between mb-1">
+              <span class="text-caption font-weight-bold text-lightText text-uppercase">
+                Tags ({{ guestsStore.allTags.length }}):
+              </span>
+              <span class="text-caption text-lightText" style="font-size: 0.68rem !important;">
+                Tap tag to toggle
+              </span>
+            </div>
+            <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+              <v-chip
+                :color="guestsStore.selectedTags.length === 0 ? 'primary' : undefined"
+                :variant="guestsStore.selectedTags.length === 0 ? 'flat' : 'outlined'"
+                size="x-small"
+                class="font-weight-medium cursor-pointer"
+                @click="guestsStore.selectedTags = []; guestsStore.selectedTag = null"
+              >
+                All Tags
+              </v-chip>
+
+              <v-chip
+                v-for="tag in guestsStore.allTags"
+                :key="tag"
+                :color="isTagSelected(tag) ? 'primary' : undefined"
+                :variant="isTagSelected(tag) ? 'flat' : 'outlined'"
+                size="x-small"
+                class="font-weight-medium cursor-pointer"
+                @click="guestsStore.toggleTag(tag)"
+              >
+                <v-icon icon="mdi-tag" size="11" class="mr-0.5" />
+                #{{ tag }}
+                <span v-if="guestsStore.tagCountMap[tag]" class="ml-1 opacity-70">
+                  ({{ guestsStore.tagCountMap[tag] }})
+                </span>
+              </v-chip>
+            </div>
+          </div>
+
+          <!-- Return Gift Filter Chips Bar -->
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+              Return Gifts Filter:
+            </div>
+            <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+              <v-chip
+                size="x-small"
+                :color="guestsStore.giftFilter === 'all' && !guestsStore.selectedGiftName ? 'warning' : undefined"
+                :variant="guestsStore.giftFilter === 'all' && !guestsStore.selectedGiftName ? 'flat' : 'outlined'"
+                class="cursor-pointer font-weight-medium"
+                @click="guestsStore.giftFilter = 'all'; guestsStore.selectedGiftName = null"
+              >
+                All ({{ guestsStore.totalGuests }})
+              </v-chip>
+
+              <v-chip
+                size="x-small"
+                :color="guestsStore.giftFilter === 'with_gift' ? 'warning' : undefined"
+                :variant="guestsStore.giftFilter === 'with_gift' ? 'flat' : 'outlined'"
+                class="cursor-pointer font-weight-medium"
+                @click="guestsStore.giftFilter = 'with_gift'; guestsStore.selectedGiftName = null"
+              >
+                <v-icon icon="mdi-gift" size="11" class="mr-0.5" />
+                Has Gifts ({{ guestsStore.guestsWithGiftCount }})
+              </v-chip>
+
+              <v-chip
+                size="x-small"
+                :color="guestsStore.giftFilter === 'without_gift' ? 'warning' : undefined"
+                :variant="guestsStore.giftFilter === 'without_gift' ? 'flat' : 'outlined'"
+                class="cursor-pointer font-weight-medium"
+                @click="guestsStore.giftFilter = 'without_gift'; guestsStore.selectedGiftName = null"
+              >
+                <v-icon icon="mdi-gift-off-outline" size="11" class="mr-0.5" />
+                No Gift ({{ guestsStore.guestsWithoutGiftCount }})
+              </v-chip>
+
+              <!-- Specific gift presets filters -->
+              <v-chip
+                v-for="item in guestsStore.returnGiftsDistribution.slice(0, 4)"
+                :key="item.name"
+                size="x-small"
+                :color="guestsStore.selectedGiftName === item.name ? 'warning' : undefined"
+                :variant="guestsStore.selectedGiftName === item.name ? 'flat' : 'outlined'"
+                class="cursor-pointer font-weight-medium"
+                @click="guestsStore.toggleGiftNameFilter(item.name)"
+              >
+                {{ item.name }} ({{ item.count }})
+              </v-chip>
+            </div>
+          </div>
+
+          <!-- RSVP Status Filter -->
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+              RSVP Status:
+            </div>
+            <div class="d-flex align-center gap-1.5 flex-wrap">
+              <v-chip
+                size="x-small"
+                :variant="guestsStore.selectedRsvp === 'all' ? 'flat' : 'tonal'"
+                color="primary"
+                class="cursor-pointer font-weight-medium"
+                @click="guestsStore.selectedRsvp = 'all'"
+              >
+                All RSVPs ({{ guestsStore.totalGuests }})
+              </v-chip>
+              <v-chip
+                size="x-small"
+                :variant="guestsStore.selectedRsvp === 'confirmed' ? 'flat' : 'tonal'"
+                color="success"
+                class="cursor-pointer font-weight-medium"
+                @click="guestsStore.selectedRsvp = 'confirmed'"
+              >
+                <v-icon icon="mdi-check-circle" size="12" class="mr-1" />
+                Confirmed ({{ guestsStore.confirmedCount }})
+              </v-chip>
+              <v-chip
+                size="x-small"
+                :variant="guestsStore.selectedRsvp === 'pending' ? 'flat' : 'tonal'"
+                color="warning"
+                class="cursor-pointer font-weight-medium"
+                @click="guestsStore.selectedRsvp = 'pending'"
+              >
+                <v-icon icon="mdi-clock-outline" size="12" class="mr-1" />
+                Pending ({{ guestsStore.pendingCount }})
+              </v-chip>
+            </div>
+          </div>
+
+          <!-- Active Filters Reset Banner (Inside Panel) -->
+          <div
+            v-if="hasActiveFilters"
+            class="d-flex align-center flex-wrap gap-1 pt-2 mt-2 border-t"
+          >
+            <span class="text-caption text-lightText font-weight-bold mr-1">Active:</span>
+
+            <v-chip
+              v-if="guestsStore.searchQuery.trim()"
+              size="x-small"
+              color="primary"
+              variant="flat"
+              closable
+              @click:close="guestsStore.searchQuery = ''"
+            >
+              <v-icon icon="mdi-magnify" size="10" class="mr-1" />
+              "{{ guestsStore.searchQuery.trim() }}"
+            </v-chip>
+
+            <v-chip
+              v-for="tag in guestsStore.selectedTags"
+              :key="tag"
+              size="x-small"
+              color="primary"
+              variant="flat"
+              closable
+              @click:close="guestsStore.toggleTag(tag)"
+            >
+              <v-icon icon="mdi-tag" size="10" class="mr-1" />
+              #{{ tag }}
+            </v-chip>
+
+            <v-chip
+              v-if="guestsStore.giftFilter !== 'all'"
+              size="x-small"
+              color="warning"
+              variant="flat"
+              closable
+              @click:close="guestsStore.giftFilter = 'all'"
+            >
+              <v-icon icon="mdi-gift" size="10" class="mr-1" />
+              {{ guestsStore.giftFilter === 'with_gift' ? 'Has Gifts' : 'No Gifts' }}
+            </v-chip>
+
+            <v-chip
+              v-if="guestsStore.selectedGiftName"
+              size="x-small"
+              color="warning"
+              variant="flat"
+              closable
+              @click:close="guestsStore.selectedGiftName = null"
+            >
+              <v-icon icon="mdi-gift-outline" size="10" class="mr-1" />
+              Gift: {{ guestsStore.selectedGiftName }}
+            </v-chip>
+
+            <v-chip
+              v-if="guestsStore.selectedGroup !== 'all'"
+              size="x-small"
+              color="secondary"
+              variant="flat"
+              closable
+              @click:close="guestsStore.selectedGroup = 'all'"
+            >
+              {{ guestsStore.selectedGroup }}
+            </v-chip>
+
+            <v-chip
+              v-if="guestsStore.selectedRsvp !== 'all'"
+              size="x-small"
+              color="success"
+              variant="flat"
+              closable
+              @click:close="guestsStore.selectedRsvp = 'all'"
+            >
+              RSVP: {{ guestsStore.selectedRsvp }}
+            </v-chip>
+
+            <v-btn
+              variant="text"
+              size="x-small"
+              color="error"
+              class="font-weight-bold text-caption px-1 ml-auto"
+              @click="resetFilters"
+            >
+              Clear Filters
+            </v-btn>
+          </div>
+        </div>
+      </v-expand-transition>
     </v-card>
+
+    <!-- Toolbar: View Mode, Details Toggle, Sort & Guests Count (Matching ShoppingList Toolbar) -->
+    <div class="d-flex align-center justify-space-between mb-3 px-1 flex-wrap gap-2">
+      <div class="text-subtitle-1 font-weight-bold d-flex align-center text-darkText">
+        <v-icon icon="mdi-account-group" class="mr-2 text-primary" size="20" />
+        {{ listHeaderTitle }}
+      </div>
+
+      <div class="d-flex align-center gap-1.5 flex-wrap">
+        <!-- View Mode Toggle Menu (Flat vs Grouped by Tag vs Grouped by Category) -->
+        <v-menu location="bottom end">
+          <template #activator="{ props: menuProps }">
+            <v-btn
+              v-bind="menuProps"
+              size="x-small"
+              variant="outlined"
+              color="primary"
+              rounded="lg"
+              class="text-capitalize font-weight-medium"
+            >
+              <v-icon :icon="viewModeIcon" size="13" class="mr-1" />
+              {{ viewModeLabel }}
+              <v-icon icon="mdi-chevron-down" size="12" class="ml-1" />
+            </v-btn>
+          </template>
+          <v-list density="compact" rounded="lg" elevation="4">
+            <v-list-item
+              :active="guestsStore.viewMode === 'flat'"
+              prepend-icon="mdi-view-headline"
+              title="Flat Cards View"
+              @click="guestsStore.viewMode = 'flat'"
+            />
+            <v-list-item
+              :active="guestsStore.viewMode === 'grouped_by_tag'"
+              prepend-icon="mdi-tag-multiple-outline"
+              title="Grouped by Tag"
+              @click="guestsStore.viewMode = 'grouped_by_tag'"
+            />
+            <v-list-item
+              :active="guestsStore.viewMode === 'grouped_by_category'"
+              prepend-icon="mdi-folder-outline"
+              title="Grouped by Category"
+              @click="guestsStore.viewMode = 'grouped_by_category'"
+            />
+          </v-list>
+        </v-menu>
+
+        <!-- Toggle Expand All Details Button -->
+        <v-btn
+          size="x-small"
+          :variant="showAllDetails ? 'flat' : 'outlined'"
+          :color="showAllDetails ? 'primary' : 'secondary'"
+          rounded="lg"
+          class="text-capitalize font-weight-medium px-2"
+          title="Toggle details for all guests"
+          @click="showAllDetails = !showAllDetails"
+        >
+          <v-icon :icon="showAllDetails ? 'mdi-eye-check-outline' : 'mdi-eye-outline'" size="13" class="mr-1" />
+          {{ showAllDetails ? 'Hide Details' : 'Show Details' }}
+        </v-btn>
+
+        <!-- Sort Menu -->
+        <v-menu location="bottom end">
+          <template #activator="{ props: sortProps }">
+            <v-btn
+              v-bind="sortProps"
+              size="x-small"
+              variant="outlined"
+              color="secondary"
+              rounded="lg"
+              class="text-capitalize font-weight-medium px-2"
+              prepend-icon="mdi-sort-variant"
+              title="Sort guests"
+            >
+              {{ currentSortLabel }}
+              <v-icon icon="mdi-chevron-down" size="12" class="ml-1" />
+            </v-btn>
+          </template>
+          <v-list density="compact" rounded="lg" elevation="4">
+            <v-list-item
+              :active="guestsStore.sortBy === 'newest'"
+              title="Newest Added"
+              @click="guestsStore.sortBy = 'newest'"
+            />
+            <v-list-item
+              :active="guestsStore.sortBy === 'name'"
+              title="Guest Name (A-Z)"
+              @click="guestsStore.sortBy = 'name'"
+            />
+            <v-list-item
+              :active="guestsStore.sortBy === 'party-desc'"
+              title="Party Size (Largest First)"
+              @click="guestsStore.sortBy = 'party-desc'"
+            />
+          </v-list>
+        </v-menu>
+      </div>
+    </div>
 
     <!-- 3. Empty State -->
     <v-card
@@ -440,15 +544,15 @@
         No Guests Found
       </div>
       <div class="text-caption text-lightText mb-4" style="max-width: 340px; margin: 0 auto;">
-        {{ guestsStore.activeFiltersCount > 0 ? 'No guests match your active filters or search criteria.' : 'Start building your event guest list with companion addon persons, group tags, and return gifts.' }}
+        {{ hasActiveFilters ? 'No guests match your active filters or search criteria.' : 'Start building your event guest list with companion addon persons, group tags, and return gifts.' }}
       </div>
       <div class="d-flex justify-center gap-2">
         <v-btn
-          v-if="guestsStore.activeFiltersCount > 0"
+          v-if="hasActiveFilters"
           variant="outlined"
           size="small"
           rounded="lg"
-          @click="guestsStore.resetAllFilters()"
+          @click="resetFilters"
         >
           Reset Filters
         </v-btn>
@@ -1435,6 +1539,74 @@ import {
 } from '@/services/service.js'
 
 const guestsStore = useGuestsStore()
+
+// Collapsible filter panel state & helpers (matching ShoppingList pattern)
+const showFiltersPanel = ref(false)
+
+const hasActiveFilters = computed(() => {
+  return (
+    guestsStore.activeFiltersCount > 0 ||
+    !!guestsStore.searchQuery.trim()
+  )
+})
+
+const filterSummary = computed(() => {
+  const parts: string[] = []
+  if (guestsStore.searchQuery.trim()) parts.push(`Query: "${guestsStore.searchQuery.trim()}"`)
+  if (guestsStore.selectedGroup !== 'all') parts.push(`Group: ${guestsStore.selectedGroup}`)
+  if (guestsStore.selectedTags.length > 0) {
+    parts.push(`Tags: ${guestsStore.selectedTags.map((t) => '#' + t).join(', ')}`)
+  } else if (guestsStore.selectedTag) {
+    parts.push(`Tag: #${guestsStore.selectedTag}`)
+  }
+  if (guestsStore.giftFilter !== 'all') {
+    parts.push(guestsStore.giftFilter === 'with_gift' ? 'Has Gifts' : 'No Gifts')
+  }
+  if (guestsStore.selectedGiftName) {
+    parts.push(`Gift: ${guestsStore.selectedGiftName}`)
+  }
+  if (guestsStore.selectedRsvp !== 'all') {
+    parts.push(`RSVP: ${guestsStore.selectedRsvp}`)
+  }
+  return parts.length > 0 ? parts.join(' • ') : 'Showing all guests'
+})
+
+function resetFilters() {
+  guestsStore.resetAllFilters()
+}
+
+const listHeaderTitle = computed(() => {
+  if (guestsStore.searchQuery.trim()) {
+    return `Results for "${guestsStore.searchQuery.trim()}" (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.selectedTags.length > 0) {
+    return `Tagged: ${guestsStore.selectedTags.map((t) => '#' + t).join(', ')} (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.selectedGroup !== 'all') {
+    return `${guestsStore.selectedGroup} (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.selectedRsvp === 'confirmed') {
+    return `Confirmed Guests (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.selectedRsvp === 'pending') {
+    return `Pending RSVPs (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.giftFilter === 'with_gift') {
+    return `Guests with Gifts (${guestsStore.filteredGuests.length})`
+  }
+  return `All Guests (${guestsStore.filteredGuests.length})`
+})
+
+const currentSortLabel = computed(() => {
+  switch (guestsStore.sortBy) {
+    case 'name':
+      return 'Name (A-Z)'
+    case 'party-desc':
+      return 'Party Size'
+    default:
+      return 'Newest'
+  }
+})
 
 // View toggles
 const showAllDetails = ref(false)

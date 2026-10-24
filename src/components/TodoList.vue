@@ -27,8 +27,7 @@
         />
       </div>
 
-      <div class="d-flex justify-space-between text-caption pt-2 mt-2 border-t-white-20 text-white-75">
-        <span>Active User: <strong class="text-white">{{ familyStore.activeMember.name }}</strong></span>
+      <div class="d-flex justify-end text-caption pt-2 mt-2 border-t-white-20 text-white-75">
         <span>Total: <strong class="text-white">{{ todoStore.totalCount }} tasks</strong></span>
       </div>
     </v-card>

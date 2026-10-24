@@ -40,10 +40,6 @@
             Switch
           </v-btn>
         </div>
-
-        <div class="text-body-small text-white-85 mt-2">
-          Active Profile: <strong>{{ familyStore.activeMember.name }}</strong>. Activities &amp; entries automatically link to you.
-        </div>
       </div>
       <div class="bg-decoration" />
     </v-card>
