@@ -91,7 +91,7 @@
         :key="item.id"
         variant="outlined"
         elevation="0"
-        class="mb-2 rounded-lg bg-surface card-hover-border transition-all"
+        class="mb-2 rounded-lg bg-surface card-hover-border"
         :class="{ 'opacity-60': item.completed }"
       >
         <div class="d-flex align-center pa-3">

@@ -152,16 +152,21 @@ p {
   }
 }
 
-// accordion page css
+// accordion page css & hardware-accelerated expansion transitions
 .v-expansion-panels {
+  contain: layout style;
+
   &.v-expansion-panels--variant-accordion {
     .v-expansion-panel {
+      transform: translateZ(0);
+      backface-visibility: hidden;
+
       &:not(:last-child) {
         border-bottom: 1px solid rgb(var(--v-theme-gray200));
       }
 
       &.v-expansion-panel--active {
-        .v-expansion-panel-text {
+        .v-expansion-panel-text__wrapper {
           border-top: 1px solid rgb(var(--v-theme-gray200));
         }
       }
@@ -181,6 +186,25 @@ p {
       }
     }
   }
+
+  .v-expansion-panel-text {
+    will-change: height;
+    contain: paint;
+  }
+}
+
+// Hardware-accelerated Vuetify transitions
+.expand-transition-enter-active,
+.expand-transition-leave-active {
+  will-change: height;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.slide-y-transition-move {
+  transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  will-change: transform;
 }
 
 .blur-logo {

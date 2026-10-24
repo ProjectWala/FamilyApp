@@ -39,12 +39,12 @@
 
     <!-- TAG GROUP BANNER (When Tag Filter is Active - Identical to Expenses Theme) -->
     <v-expand-transition>
-      <v-card
-        v-if="shoppingStore.activeTagFilter"
-        variant="outlined"
-        elevation="0"
-        class="mb-4 pa-4 rounded-lg bg-surface card-hover-border"
-      >
+      <div v-if="shoppingStore.activeTagFilter" class="expand-wrapper">
+        <v-card
+          variant="outlined"
+          elevation="0"
+          class="mb-4 pa-4 rounded-lg bg-surface card-hover-border"
+        >
         <div class="d-flex justify-space-between align-start">
           <div class="d-flex align-center">
             <v-avatar color="primary" variant="tonal" size="38" rounded="lg" class="mr-3">
@@ -100,7 +100,8 @@
           </v-btn>
         </div>
       </v-card>
-    </v-expand-transition>
+    </div>
+  </v-expand-transition>
 
     <!-- Add Product CTA Button -->
     <v-btn
@@ -175,7 +176,8 @@
 
       <!-- Collapsible Container for Tags, Priority, and Search -->
       <v-expand-transition>
-        <div v-if="showFiltersPanel" class="px-3 pb-3 pt-1 border-t">
+        <div v-if="showFiltersPanel" class="expand-wrapper">
+          <div class="px-3 pb-3 pt-1 border-t">
           <!-- Search input -->
           <v-text-field
             v-model="shoppingStore.searchQuery"
@@ -327,7 +329,8 @@
             </div>
           </div>
         </div>
-      </v-expand-transition>
+      </div>
+    </v-expand-transition>
     </v-card>
 
     <!-- Toolbar: Sort, Grouping & Items Count -->
@@ -1138,7 +1141,7 @@ function getMemberName(id?: string) {
 }
 
 .shopping-item-card {
-  transition: all 0.2s ease-in-out;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     border-color: rgba(var(--v-theme-primary), 0.5) !important;

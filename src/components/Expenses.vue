@@ -21,12 +21,12 @@
 
     <!-- EVENT GROUP BANNER (When Tag Filter is Active) -->
     <v-expand-transition>
-      <v-card
-        v-if="activeTagFilter"
-        variant="outlined"
-        elevation="0"
-        class="mb-4 pa-4 rounded-lg bg-surface card-hover-border"
-      >
+      <div v-if="activeTagFilter" class="expand-wrapper">
+        <v-card
+          variant="outlined"
+          elevation="0"
+          class="mb-4 pa-4 rounded-lg bg-surface card-hover-border"
+        >
         <div class="d-flex justify-space-between align-start">
           <div class="d-flex align-center">
             <v-avatar color="primary" variant="tonal" size="38" rounded="lg" class="mr-3">
@@ -84,7 +84,8 @@
           </v-chip>
         </div>
       </v-card>
-    </v-expand-transition>
+    </div>
+  </v-expand-transition>
 
     <!-- Add Expense CTA Button -->
     <v-btn
@@ -159,7 +160,8 @@
 
       <!-- Collapsible Container for All Togglable Tags -->
       <v-expand-transition>
-        <div v-if="showTagFilters" class="px-3 pb-3 pt-1 border-t">
+        <div v-if="showTagFilters" class="expand-wrapper">
+          <div class="px-3 pb-3 pt-1 border-t">
           <!-- Active Filter Pill if set -->
           <div v-if="activeTagFilter" class="mb-2 d-flex align-center justify-space-between bg-primary100 pa-2 rounded-md">
             <span class="text-caption font-weight-medium text-primary">
@@ -231,7 +233,8 @@
             />
           </div>
         </div>
-      </v-expand-transition>
+      </div>
+    </v-expand-transition>
     </v-card>
 
     <!-- Expenses Section Title -->

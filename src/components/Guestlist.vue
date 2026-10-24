@@ -32,74 +32,58 @@
             prepend-icon="mdi-account-plus"
             @click="openAddGuestDialog"
           >
-            Add New Guest
+            + Add
           </v-btn>
         </div>
       </div>
 
-      <!-- Quick Stats Metric Pills -->
-      <div class="pa-4">
-        <v-row density="compact">
-          <!-- Total Attending Heads (+1, +2 included) -->
-          <v-col cols="6" sm="3">
-            <div class="pa-2 px-3 rounded-lg bg-lightprimary border border-primary-subtle d-flex align-center justify-space-between">
-              <div>
-                <div class="text-caption text-lightText font-weight-medium">Attending</div>
-                <div class="text-subtitle-1 font-weight-bold text-primary">
-                  {{ guestsStore.totalConfirmedParty }} <span class="text-caption font-weight-regular text-lightText">heads</span>
-                </div>
-              </div>
-              <v-avatar color="primary" variant="tonal" size="32" rounded="md">
-                <v-icon icon="mdi-account-group" size="18" />
-              </v-avatar>
+      <!-- Quick Stats Metric Grid (2 Rows x 4 Cols) -->
+      <div class="pa-3 px-4">
+        <div class="stats-overview-grid">
+          <!-- Col 1: Attending -->
+          <div class="stat-grid-col pr-2 border-e">
+            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
+              <v-icon icon="mdi-account-group" size="13" class="text-primary mr-1 flex-shrink-0" />
+              <span>Attending</span>
             </div>
-          </v-col>
+            <div class="text-subtitle-2 font-weight-bold text-primary text-truncate">
+              {{ guestsStore.totalConfirmedParty }} <span class="text-caption font-weight-regular text-lightText">heads</span>
+            </div>
+          </div>
 
-          <!-- Confirmed RSVPs -->
-          <v-col cols="6" sm="3">
-            <div class="pa-2 px-3 rounded-lg bg-lightsuccess border border-success-subtle d-flex align-center justify-space-between">
-              <div>
-                <div class="text-caption text-lightText font-weight-medium">Confirmed</div>
-                <div class="text-subtitle-1 font-weight-bold text-success">
-                  {{ guestsStore.confirmedCount }} <span class="text-caption font-weight-regular text-lightText">guests</span>
-                </div>
-              </div>
-              <v-avatar color="success" variant="tonal" size="32" rounded="md">
-                <v-icon icon="mdi-check-decagram" size="18" />
-              </v-avatar>
+          <!-- Col 2: Confirmed -->
+          <div class="stat-grid-col px-2 border-e">
+            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
+              <v-icon icon="mdi-check-decagram" size="13" class="text-success mr-1 flex-shrink-0" />
+              <span>Confirmed</span>
             </div>
-          </v-col>
+            <div class="text-subtitle-2 font-weight-bold text-success text-truncate">
+              {{ guestsStore.confirmedCount }} <span class="text-caption font-weight-regular text-lightText">guests</span>
+            </div>
+          </div>
 
-          <!-- Addon Persons Count -->
-          <v-col cols="6" sm="3">
-            <div class="pa-2 px-3 rounded-lg bg-lightsecondary border border-secondary-subtle d-flex align-center justify-space-between">
-              <div>
-                <div class="text-caption text-lightText font-weight-medium">Addon Persons</div>
-                <div class="text-subtitle-1 font-weight-bold text-secondary">
-                  +{{ totalAddonPersonsCount }} <span class="text-caption font-weight-regular text-lightText">addons</span>
-                </div>
-              </div>
-              <v-avatar color="secondary" variant="tonal" size="32" rounded="md">
-                <v-icon icon="mdi-account-multiple-plus" size="18" />
-              </v-avatar>
+          <!-- Col 3: Addon Persons -->
+          <div class="stat-grid-col px-2 border-e">
+            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
+              <v-icon icon="mdi-account-multiple-plus" size="13" class="text-secondary mr-1 flex-shrink-0" />
+              <span>Addon Persons</span>
             </div>
-          </v-col>
+            <div class="text-subtitle-2 font-weight-bold text-secondary text-truncate">
+              +{{ totalAddonPersonsCount }} <span class="text-caption font-weight-regular text-lightText">addons</span>
+            </div>
+          </div>
 
-          <!-- Return Gifts Total Stats -->
-          <v-col cols="6" sm="3">
-            <div class="pa-2 px-3 rounded-lg bg-lightwarning border border-warning-subtle d-flex align-center justify-space-between">
-              <div>
-                <div class="text-caption text-lightText font-weight-medium">Return Gifts</div>
-                <div class="text-subtitle-1 font-weight-bold text-warning">
-                  {{ guestsStore.totalReturnGiftsCount }} <span class="text-caption font-weight-regular text-lightText">gifts (₹{{ guestsStore.totalReturnGiftsCost.toLocaleString() }})</span>
-                </div>
-              </div>
-              <v-avatar color="warning" variant="tonal" size="32" rounded="md">
-                <v-icon icon="mdi-gift-outline" size="18" />
-              </v-avatar>
+          <!-- Col 4: Return Gifts -->
+          <div class="stat-grid-col pl-2">
+            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
+              <v-icon icon="mdi-gift-outline" size="13" class="text-warning mr-1 flex-shrink-0" />
+              <span>Return Gifts</span>
             </div>
-          </v-col>
-        </v-row>
+            <div class="text-subtitle-2 font-weight-bold text-warning text-truncate">
+              {{ guestsStore.totalReturnGiftsCount }} <span class="text-caption font-weight-regular text-lightText">gifts (₹{{ guestsStore.totalReturnGiftsCost.toLocaleString() }})</span>
+            </div>
+          </div>
+        </div>
       </div>
     </v-card>
 
@@ -162,8 +146,9 @@
 
       <!-- Collapsible Container for Search, Tags, Groups, Gifts & RSVP -->
       <v-expand-transition>
-        <div v-if="showFiltersPanel" class="px-3 pb-3 pt-1 border-t">
-          <!-- Search Input -->
+        <div v-if="showFiltersPanel" class="expand-wrapper">
+          <div class="px-3 pb-3 pt-1 border-t">
+            <!-- Search Input -->
           <v-text-field
             v-model="guestsStore.searchQuery"
             placeholder="Search by guest name, addon companion, phone, tags, gifts, notes..."
@@ -429,7 +414,8 @@
             </v-btn>
           </div>
         </div>
-      </v-expand-transition>
+      </div>
+    </v-expand-transition>
     </v-card>
 
     <!-- Toolbar: View Mode, Details Toggle, Sort & Guests Count (Matching ShoppingList Toolbar) -->
@@ -574,6 +560,7 @@
         <v-card
           v-for="guest in guestsStore.filteredGuests"
           :key="guest.id"
+          :ripple="false"
           variant="outlined"
           elevation="0"
           class="mb-3 pa-3 rounded-lg bg-surface card-hover-border cursor-pointer"
@@ -587,9 +574,10 @@
               <v-avatar
                 color="primary"
                 variant="tonal"
-                size="42"
-                rounded="lg"
+                size="32"
+                rounded="md"
                 class="flex-shrink-0 font-weight-bold"
+                style="font-size: 0.75rem;"
               >
                 {{ getInitials(guest.name) }}
               </v-avatar>
@@ -723,20 +711,20 @@
                 <!-- Return Gift Handed Over / Given Switch Row -->
                 <div
                   v-if="guest.returnGifts && guest.returnGifts.length > 0"
-                  class="d-flex align-center justify-space-between mt-2 pa-2 px-3 border rounded-lg return-gift-toggle-row cursor-pointer"
-                  :class="guest.returnGiftGiven ? 'bg-lightsuccess border-success-subtle' : 'bg-containerBg'"
+                  class="d-flex align-center justify-space-between mt-1.5 cursor-pointer"
                   @click.stop="guestsStore.toggleReturnGiftGiven(guest.id)"
                 >
                   <div class="d-flex align-center">
                     <v-icon
                       :icon="guest.returnGiftGiven ? 'mdi-gift-check' : 'mdi-gift-outline'"
                       :color="guest.returnGiftGiven ? 'success' : 'lightText'"
-                      class="mr-2"
-                      size="18"
+                      class="mr-1"
+                      size="14"
                     />
                     <span
-                      class="text-caption font-weight-medium"
-                      :class="guest.returnGiftGiven ? 'text-success font-weight-bold' : 'text-darkText'"
+                      class="font-weight-regular"
+                      style="font-size: 0.7rem; line-height: 1.2;"
+                      :class="guest.returnGiftGiven ? 'text-success' : 'text-darkText'"
                     >
                       {{ guest.returnGiftGiven ? 'Return Gift Handed Over ✓' : 'Mark Return Gift Handed Over' }}
                     </span>
@@ -753,53 +741,55 @@
 
                 <!-- Expandable Details (Phone, Email, Notes, Full Addon Management) -->
                 <v-expand-transition>
-                  <div v-if="isGuestExpanded(guest.id)" class="mt-2 pt-2 border-t">
-                    <!-- Phone Contact -->
-                    <div v-if="guest.phone" class="d-flex align-center gap-1 text-lightText mb-1">
-                      <v-icon icon="mdi-phone" size="14" class="text-primary flex-shrink-0" />
-                      <span class="text-caption font-weight-medium text-darkText">Phone:</span>
-                      <a :href="`tel:${guest.phone}`" class="text-primary font-weight-bold text-caption text-decoration-none" @click.stop>
-                        {{ guest.phone }}
-                      </a>
-                    </div>
+                  <div v-if="isGuestExpanded(guest.id)" class="expand-wrapper">
+                    <div class="mt-2 pt-2 border-t">
+                      <!-- Phone Contact -->
+                      <div v-if="guest.phone" class="d-flex align-center gap-1 text-lightText mb-1">
+                        <v-icon icon="mdi-phone" size="14" class="text-primary flex-shrink-0" />
+                        <span class="text-caption font-weight-medium text-darkText">Phone:</span>
+                        <a :href="`tel:${guest.phone}`" class="text-primary font-weight-bold text-caption text-decoration-none" @click.stop>
+                          {{ guest.phone }}
+                        </a>
+                      </div>
 
-                    <!-- Email Contact -->
-                    <div v-if="guest.email" class="d-flex align-center gap-1 text-lightText mb-1">
-                      <v-icon icon="mdi-email-outline" size="14" class="text-secondary flex-shrink-0" />
-                      <span class="text-caption font-weight-medium text-darkText">Email:</span>
-                      <a :href="`mailto:${guest.email}`" class="text-darkText text-caption text-decoration-none" @click.stop>
-                        {{ guest.email }}
-                      </a>
-                    </div>
+                      <!-- Email Contact -->
+                      <div v-if="guest.email" class="d-flex align-center gap-1 text-lightText mb-1">
+                        <v-icon icon="mdi-email-outline" size="14" class="text-secondary flex-shrink-0" />
+                        <span class="text-caption font-weight-medium text-darkText">Email:</span>
+                        <a :href="`mailto:${guest.email}`" class="text-darkText text-caption text-decoration-none" @click.stop>
+                          {{ guest.email }}
+                        </a>
+                      </div>
 
-                    <!-- Notes -->
-                    <div v-if="guest.notes" class="pa-2 rounded-md bg-containerBg mt-1 text-caption text-darkText font-italic">
-                      <v-icon icon="mdi-note-text-outline" size="13" class="text-lightText mr-1" />
-                      {{ guest.notes }}
-                    </div>
+                      <!-- Notes -->
+                      <div v-if="guest.notes" class="pa-2 rounded-md bg-containerBg mt-1 text-caption text-darkText font-italic">
+                        <v-icon icon="mdi-note-text-outline" size="13" class="text-lightText mr-1" />
+                        {{ guest.notes }}
+                      </div>
 
-                    <!-- Quick Inline Add Person / Edit CTA -->
-                    <div class="mt-2 d-flex align-center gap-2">
-                      <v-btn
-                        size="x-small"
-                        variant="tonal"
-                        color="primary"
-                        prepend-icon="mdi-account-edit"
-                        class="text-capitalize rounded-md"
-                        @click.stop="openEditGuestDialog(guest)"
-                      >
-                        Edit Guest &amp; Addons
-                      </v-btn>
-                      <v-btn
-                        size="x-small"
-                        variant="tonal"
-                        color="warning"
-                        prepend-icon="mdi-gift-outline"
-                        class="text-capitalize rounded-md"
-                        @click.stop="openQuickAddGift(guest)"
-                      >
-                        + Add Return Gift
-                      </v-btn>
+                      <!-- Quick Inline Add Person / Edit CTA -->
+                      <div class="mt-2 d-flex align-center gap-2">
+                        <v-btn
+                          size="x-small"
+                          variant="tonal"
+                          color="primary"
+                          prepend-icon="mdi-account-edit"
+                          class="text-capitalize rounded-md"
+                          @click.stop="openEditGuestDialog(guest)"
+                        >
+                          Edit Guest &amp; Addons
+                        </v-btn>
+                        <v-btn
+                          size="x-small"
+                          variant="tonal"
+                          color="warning"
+                          prepend-icon="mdi-gift-outline"
+                          class="text-capitalize rounded-md"
+                          @click.stop="openQuickAddGift(guest)"
+                        >
+                          + Add Return Gift
+                        </v-btn>
+                      </div>
                     </div>
                   </div>
                 </v-expand-transition>
@@ -876,14 +866,14 @@
         <v-card
           v-for="guest in tagGroup.guests"
           :key="guest.id"
+          :ripple="false"
           variant="outlined"
           elevation="0"
-          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border cursor-pointer"
-          @click="toggleGuestExpand(guest.id)"
+          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border"
         >
           <div class="d-flex align-center justify-space-between">
             <div class="d-flex align-center gap-2" style="min-width: 0;">
-              <v-avatar color="primary" variant="tonal" size="34" rounded="md" class="font-weight-bold">
+              <v-avatar color="primary" variant="tonal" size="28" rounded="md" class="font-weight-bold" style="font-size: 0.68rem;">
                 {{ getInitials(guest.name) }}
               </v-avatar>
               <div class="text-truncate">
@@ -942,14 +932,14 @@
         <v-card
           v-for="guest in catGroup.guests"
           :key="guest.id"
+          :ripple="false"
           variant="outlined"
           elevation="0"
-          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border cursor-pointer"
-          @click="toggleGuestExpand(guest.id)"
+          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border"
         >
           <div class="d-flex align-center justify-space-between">
             <div class="d-flex align-center gap-2" style="min-width: 0;">
-              <v-avatar color="secondary" variant="tonal" size="34" rounded="md" class="font-weight-bold">
+              <v-avatar color="secondary" variant="tonal" size="28" rounded="md" class="font-weight-bold" style="font-size: 0.68rem;">
                 {{ getInitials(guest.name) }}
               </v-avatar>
               <div class="text-truncate">
@@ -995,9 +985,6 @@
             <div>
               <div class="text-subtitle-1 font-weight-bold line-height-1">
                 {{ isEditing ? 'Edit Guest & Details' : 'Add New Guest' }}
-              </div>
-              <div class="text-caption text-white-75" style="font-size: 0.7rem;">
-                Autocomplete name, addon companions, tags &amp; return gifts
               </div>
             </div>
           </div>
@@ -1333,7 +1320,7 @@
                   <v-icon icon="mdi-card-account-phone-outline" size="16" class="mr-2 text-primary" />
                   Additional Details (Phone, Email, Notes)
                 </v-expansion-panel-title>
-                <v-expansion-panel-text>
+                <v-expansion-panel-text eager>
                   <v-row density="compact" class="pt-2">
                     <v-col cols="12" sm="6">
                       <v-text-field
@@ -1613,11 +1600,13 @@ const showAllDetails = ref(false)
 const expandedGuestIds = ref<Set<string>>(new Set())
 
 function toggleGuestExpand(id: string) {
-  if (expandedGuestIds.value.has(id)) {
-    expandedGuestIds.value.delete(id)
+  const next = new Set(expandedGuestIds.value)
+  if (next.has(id)) {
+    next.delete(id)
   } else {
-    expandedGuestIds.value.add(id)
+    next.add(id)
   }
+  expandedGuestIds.value = next
 }
 
 function isGuestExpanded(id: string) {

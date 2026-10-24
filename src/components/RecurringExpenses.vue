@@ -66,7 +66,7 @@
         :key="item.id"
         variant="outlined"
         elevation="0"
-        class="mb-3 pa-3 rounded-lg bg-surface card-hover-border transition-all"
+        class="mb-3 pa-3 rounded-lg bg-surface card-hover-border"
         :class="{ 'opacity-60': !item.isActive }"
       >
         <div class="d-flex align-start justify-space-between">

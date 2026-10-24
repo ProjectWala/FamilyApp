@@ -62,7 +62,7 @@ body {
 }
 
 .transition-all {
-  transition: all 0.25s ease-in-out;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .line-height-1 {
@@ -464,7 +464,22 @@ body {
 
 .card-hover-border {
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  transition: all 0.2s ease-in-out;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  will-change: border-color;
+}
+
+// ----------------------------------------------------------------------------
+// GPU-Accelerated Smooth Expand/Collapse Containers
+// ----------------------------------------------------------------------------
+.expand-wrapper {
+  overflow: hidden;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  will-change: height;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: paint;
 }
 
 .hover-error {
@@ -480,6 +495,16 @@ body {
 
   &:hover {
     filter: brightness(0.98);
+  }
+}
+
+.stats-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+
+  .stat-grid-col {
+    min-width: 0;
   }
 }
 
