@@ -2,16 +2,33 @@
   <div class="todo-component">
     <!-- Header Summary Card (Mantis Style) -->
     <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white" style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
-      <div class="d-flex align-center justify-space-between mb-2">
-        <div>
-          <div class="text-caption text-white-75 text-uppercase font-weight-medium">Task Tracker</div>
-          <div class="text-h5 font-weight-bold">
-            {{ todoStore.activeCount }} Pending
+      <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
+        <div class="d-flex align-center gap-2">
+          <v-avatar color="white" variant="tonal" size="38" rounded="lg">
+            <v-icon icon="mdi-checkbox-marked-circle-outline" size="22" color="white" />
+          </v-avatar>
+          <div>
+            <span class="text-caption text-white-75 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
+              Task Tracker
+            </span>
+            <div class="text-h6 font-weight-bold text-white line-height-1">
+              {{ todoStore.activeCount }} Pending • {{ todoStore.totalCount }} Total
+            </div>
           </div>
         </div>
-        <v-avatar color="white" variant="tonal" size="40" rounded="lg">
-          <v-icon icon="mdi-checkbox-marked-circle-outline" size="22" color="white" />
-        </v-avatar>
+
+        <!-- Add Task Primary CTA -->
+        <v-btn
+          color="white"
+          variant="flat"
+          size="small"
+          rounded="lg"
+          class="text-primary font-weight-bold text-capitalize"
+          prepend-icon="mdi-plus"
+          @click="openAddModal"
+        >
+          + Add
+        </v-btn>
       </div>
 
       <div class="mt-2">
@@ -28,23 +45,9 @@
       </div>
 
       <div class="d-flex justify-end text-caption pt-2 mt-2 border-t-white-20 text-white-75">
-        <span>Total: <strong class="text-white">{{ todoStore.totalCount }} tasks</strong></span>
+        <span>Completed: <strong class="text-white">{{ todoStore.completedCount }}</strong> / {{ todoStore.totalCount }} tasks</span>
       </div>
     </v-card>
-
-    <!-- Add Task CTA Button (Opens Modal like Add Expenses) -->
-    <v-btn
-      block
-      color="primary"
-      size="large"
-      prepend-icon="mdi-plus-circle"
-      rounded="lg"
-      elevation="0"
-      class="mb-4 font-weight-medium text-capitalize text-white"
-      @click="openAddModal"
-    >
-      Add New Task
-    </v-btn>
 
     <!-- Filters & Action Bar -->
     <div class="d-flex align-center justify-space-between mb-3">
@@ -153,7 +156,7 @@
             </div>
           </div>
 
-          <!-- Mark As Done button / Delete button -->
+          <!-- Mark As Done button / Edit button / Delete button -->
           <div class="d-flex align-center ml-2 flex-shrink-0">
             <v-btn
               :icon="item.completed ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
@@ -162,6 +165,14 @@
               size="small"
               title="Toggle Done"
               @click.stop="todoStore.toggleDone(item.id)"
+            />
+            <v-btn
+              icon="mdi-pencil-outline"
+              color="primary"
+              variant="text"
+              size="small"
+              title="Edit Task"
+              @click.stop="openEditModal(item)"
             />
             <v-btn
               icon="mdi-trash-can-outline"
@@ -176,20 +187,34 @@
       </v-card>
     </v-slide-y-transition>
 
-    <!-- Add Task Modal Dialog with Assignable Family Members & Unassigned Option -->
-    <v-dialog v-model="dialogOpen" max-width="500" persistent>
-      <v-card class="rounded-lg pa-2">
-        <v-card-title class="d-flex align-center justify-space-between pt-4 px-4">
+    <!-- Add / Edit Task Modal Dialog with Assignable Family Members & Unassigned Option -->
+    <v-dialog v-model="dialogOpen" max-width="520" persistent scrollable>
+      <v-card class="rounded-xl overflow-hidden">
+        <!-- Dialog Header -->
+        <v-card-title class="pa-4 bg-primary text-white d-flex align-center justify-space-between">
           <div class="d-flex align-center">
-            <v-avatar color="primary" variant="tonal" size="32" rounded="lg" class="mr-2">
-              <v-icon icon="mdi-checkbox-marked-circle-plus-outline" size="18" />
+            <v-avatar color="white" variant="tonal" size="34" class="mr-3">
+              <v-icon :icon="isEditing ? 'mdi-pencil-outline' : 'mdi-checkbox-marked-circle-plus-outline'" size="20" color="white" />
             </v-avatar>
-            <span class="font-weight-bold text-darkText">Add New Task</span>
+            <div>
+              <div class="text-subtitle-1 font-weight-bold line-height-1">
+                {{ isEditing ? 'Edit Task & Assignee' : 'Add New Task' }}
+              </div>
+            </div>
           </div>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="closeDialog" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            color="white"
+            @click="closeDialog"
+          />
         </v-card-title>
 
-        <v-card-text class="pt-2 px-4">
+        <v-divider />
+
+        <!-- Form Body -->
+        <v-card-text class="pa-4" style="max-height: 75vh;">
           <v-form @submit.prevent="submitTask">
             <v-text-field
               v-model="form.title"
@@ -347,17 +372,29 @@
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="px-4 pb-4">
-          <v-spacer />
-          <v-btn variant="text" rounded="lg" @click="closeDialog">Cancel</v-btn>
+        <v-divider />
+
+        <!-- Dialog Footer Actions -->
+        <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
+          <v-btn
+            variant="outlined"
+            rounded="lg"
+            color="secondary"
+            class="text-capitalize"
+            @click="closeDialog"
+          >
+            Cancel
+          </v-btn>
+
           <v-btn
             color="primary"
             variant="flat"
             rounded="lg"
-            class="px-5 font-weight-medium text-capitalize text-white"
+            class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save"
             @click="submitTask"
           >
-            Create Task
+            {{ isEditing ? 'Save Changes' : 'Create Task' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -370,7 +407,7 @@ import { ref, computed } from 'vue'
 import { useTodoStore } from '@/stores/todos'
 import { useFamilyStore } from '@/stores/family'
 import { useModalBack } from '@/composables/useModalBack'
-import type { Priority } from '@/types'
+import type { TodoItem, Priority } from '@/types'
 import {
   getPriorityColor as serviceGetPriorityColor,
   calculateProgressPercent,
@@ -383,6 +420,8 @@ const todoStore = useTodoStore()
 const familyStore = useFamilyStore()
 
 const dialogOpen = ref(false)
+const isEditing = ref(false)
+const editingTaskId = ref<string | null>(null)
 useModalBack(dialogOpen, 'todoDialog')
 const activeFilter = ref<'all' | 'active' | 'completed'>('all')
 
@@ -397,7 +436,22 @@ const progressPercent = computed(() =>
 const filteredTodos = computed(() => serviceFilterTodos(todoStore.todos, activeFilter.value))
 
 function openAddModal() {
+  isEditing.value = false
+  editingTaskId.value = null
   form.value = createDefaultTodoForm()
+  dialogOpen.value = true
+}
+
+function openEditModal(todo: TodoItem) {
+  isEditing.value = true
+  editingTaskId.value = todo.id
+  form.value = {
+    title: todo.title,
+    priority: todo.priority,
+    category: todo.category || 'General',
+    dueDate: todo.dueDate || new Date().toISOString().split('T')[0],
+    memberId: todo.memberId || '',
+  }
   dialogOpen.value = true
 }
 
@@ -407,13 +461,24 @@ function closeDialog() {
 
 function submitTask() {
   if (!form.value.title.trim()) return
-  todoStore.addTodo(
-    form.value.title.trim(),
-    form.value.priority,
-    form.value.category,
-    form.value.dueDate || undefined,
-    form.value.memberId || undefined
-  )
+
+  if (isEditing.value && editingTaskId.value) {
+    todoStore.updateTodo(editingTaskId.value, {
+      title: form.value.title.trim(),
+      priority: form.value.priority,
+      category: form.value.category,
+      dueDate: form.value.dueDate || undefined,
+      memberId: form.value.memberId || undefined,
+    })
+  } else {
+    todoStore.addTodo(
+      form.value.title.trim(),
+      form.value.priority,
+      form.value.category,
+      form.value.dueDate || undefined,
+      form.value.memberId || undefined
+    )
+  }
   closeDialog()
 }
 

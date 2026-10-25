@@ -2,20 +2,40 @@
   <div class="expenses-component">
     <!-- Summary Header Cards (Mantis Style) -->
     <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white" style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
-      <div class="d-flex justify-space-between align-center mb-1">
-        <span class="text-caption text-white-75 text-uppercase font-weight-medium">Total Tracked Expenses</span>
-        <v-avatar color="white" variant="tonal" size="36" rounded="lg">
-          <v-icon icon="mdi-wallet-outline" size="20" color="white" />
-        </v-avatar>
-      </div>
-      <div class="text-h4 font-weight-bold mb-3">
-        ₹{{ expensesStore.totalAmount.toFixed(2) }}
+      <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
+        <div class="d-flex align-center gap-2">
+          <v-avatar color="white" variant="tonal" size="38" rounded="lg">
+            <v-icon icon="mdi-wallet-outline" size="22" color="white" />
+          </v-avatar>
+          <div>
+            <span class="text-caption text-white-75 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
+              Expense Tracker
+            </span>
+            <div class="text-h6 font-weight-bold text-white line-height-1">
+              ₹{{ expensesStore.totalAmount.toFixed(2) }} Total
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Expense Primary CTA -->
+        <v-btn
+          color="white"
+          variant="flat"
+          size="small"
+          rounded="lg"
+          class="text-primary font-weight-bold text-capitalize"
+          prepend-icon="mdi-plus"
+          @click="openAddModal"
+        >
+          + Add
+        </v-btn>
       </div>
 
       <v-divider class="my-2 border-t-white-20" />
 
       <div class="d-flex justify-space-between text-caption pt-1 text-white-85">
         <span>This Month: <strong class="text-white">₹{{ expensesStore.thisMonthAmount.toFixed(2) }}</strong></span>
+        <span>Entries: <strong class="text-white">{{ expensesStore.expenses.length }} items</strong></span>
       </div>
     </v-card>
 
@@ -87,19 +107,6 @@
     </div>
   </v-expand-transition>
 
-    <!-- Add Expense CTA Button -->
-    <v-btn
-      block
-      color="primary"
-      size="large"
-      prepend-icon="mdi-plus-circle"
-      rounded="lg"
-      elevation="0"
-      class="mb-4 font-weight-medium text-capitalize"
-      @click="openAddModal"
-    >
-      Add New Expense
-    </v-btn>
 
     <!-- COLLAPSIBLE TAGS & FILTERS PANEL -->
     <v-card
@@ -323,37 +330,62 @@
             </div>
           </div>
 
-          <!-- Amount and Delete (Styled in Red) -->
+          <!-- Amount and Actions -->
           <div class="text-right ml-2 flex-shrink-0">
             <div class="text-subtitle-1 font-weight-bold expense-amount-red">
               -₹{{ Number(expense.amount).toFixed(2) }}
             </div>
-            <v-btn
-              icon="mdi-trash-can-outline"
-              size="x-small"
-              variant="text"
-              color="error"
-              @click="expensesStore.deleteExpense(expense.id)"
-            />
+            <div class="d-flex align-center justify-end">
+              <v-btn
+                icon="mdi-pencil-outline"
+                size="x-small"
+                variant="text"
+                color="primary"
+                title="Edit Expense"
+                @click.stop="openEditModal(expense)"
+              />
+              <v-btn
+                icon="mdi-trash-can-outline"
+                size="x-small"
+                variant="text"
+                color="error"
+                title="Delete Expense"
+                @click.stop="expensesStore.deleteExpense(expense.id)"
+              />
+            </div>
           </div>
         </div>
       </v-card>
     </v-slide-y-transition>
 
-    <!-- Add Expense Dialog with Tagging System -->
-    <v-dialog v-model="dialogOpen" max-width="500" persistent>
-      <v-card class="rounded-lg pa-2">
-        <v-card-title class="d-flex align-center justify-space-between pt-4 px-4">
+    <!-- Add / Edit Expense Dialog with Tagging System -->
+    <v-dialog v-model="dialogOpen" max-width="540" persistent scrollable>
+      <v-card class="rounded-xl overflow-hidden">
+        <!-- Dialog Header -->
+        <v-card-title class="pa-4 bg-primary text-white d-flex align-center justify-space-between">
           <div class="d-flex align-center">
-            <v-avatar color="primary" variant="tonal" size="32" rounded="lg" class="mr-2">
-              <v-icon icon="mdi-cash-plus" size="18" />
+            <v-avatar color="white" variant="tonal" size="34" class="mr-3">
+              <v-icon :icon="isEditing ? 'mdi-cash-edit' : 'mdi-cash-plus'" size="20" color="white" />
             </v-avatar>
-            <span class="font-weight-bold text-darkText">Add Expense</span>
+            <div>
+              <div class="text-subtitle-1 font-weight-bold line-height-1">
+                {{ isEditing ? 'Edit Expense & Details' : 'Add New Expense' }}
+              </div>
+            </div>
           </div>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="closeDialog" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            color="white"
+            @click="closeDialog"
+          />
         </v-card-title>
 
-        <v-card-text class="pt-2 px-4">
+        <v-divider />
+
+        <!-- Form Body -->
+        <v-card-text class="pa-4" style="max-height: 75vh;">
           <!-- Active impersonated user banner -->
           <v-alert
             density="compact"
@@ -475,17 +507,29 @@
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="px-4 pb-4">
-          <v-spacer />
-          <v-btn variant="text" rounded="md" @click="closeDialog">Cancel</v-btn>
+        <v-divider />
+
+        <!-- Dialog Footer Actions -->
+        <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
+          <v-btn
+            variant="outlined"
+            rounded="lg"
+            color="secondary"
+            class="text-capitalize"
+            @click="closeDialog"
+          >
+            Cancel
+          </v-btn>
+
           <v-btn
             color="primary"
             variant="flat"
-            rounded="md"
-            class="px-5 font-weight-medium text-capitalize"
+            rounded="lg"
+            class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save"
             @click="submitExpense"
           >
-            Save Expense
+            {{ isEditing ? 'Save Changes' : 'Save Expense' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -498,7 +542,7 @@ import { ref, computed } from 'vue'
 import { useExpensesStore } from '@/stores/expenses'
 import { useFamilyStore } from '@/stores/family'
 import { useModalBack } from '@/composables/useModalBack'
-import type { ExpenseCategory } from '@/types'
+import type { ExpenseItem, ExpenseCategory } from '@/types'
 import {
   getCategoryIcon as serviceGetCategoryIcon,
   getCategoryColor as serviceGetCategoryColor,
@@ -514,6 +558,8 @@ const expensesStore = useExpensesStore()
 const familyStore = useFamilyStore()
 
 const dialogOpen = ref(false)
+const isEditing = ref(false)
+const editingExpenseId = ref<string | null>(null)
 useModalBack(dialogOpen, 'expenseDialog')
 const selectedCategory = ref('All')
 const activeTagFilter = ref<string | null>(null)
@@ -576,7 +622,24 @@ function getCategoryColor(cat: ExpenseCategory) {
 }
 
 function openAddModal() {
+  isEditing.value = false
+  editingExpenseId.value = null
   form.value = createDefaultExpenseForm(familyStore.activeMember.id, activeTagFilter.value)
+  dialogOpen.value = true
+}
+
+function openEditModal(expense: ExpenseItem) {
+  isEditing.value = true
+  editingExpenseId.value = expense.id
+  form.value = {
+    title: expense.title,
+    amount: expense.amount,
+    category: expense.category,
+    memberId: expense.memberId,
+    tags: Array.isArray(expense.tags) ? [...expense.tags] : [],
+    date: expense.date,
+    notes: expense.notes || '',
+  }
   dialogOpen.value = true
 }
 
@@ -601,15 +664,27 @@ function submitExpense() {
   // Clean and filter tags using service function
   const cleanTags = cleanExpenseTags(form.value.tags)
 
-  expensesStore.addExpense({
-    title: form.value.title.trim(),
-    amount: Number(form.value.amount),
-    category: form.value.category,
-    memberId: form.value.memberId || familyStore.activeMember.id,
-    tags: cleanTags,
-    date: form.value.date || new Date().toISOString().split('T')[0],
-    notes: form.value.notes.trim(),
-  })
+  if (isEditing.value && editingExpenseId.value) {
+    expensesStore.updateExpense(editingExpenseId.value, {
+      title: form.value.title.trim(),
+      amount: Number(form.value.amount),
+      category: form.value.category,
+      memberId: form.value.memberId || familyStore.activeMember.id,
+      tags: cleanTags,
+      date: form.value.date || new Date().toISOString().split('T')[0],
+      notes: form.value.notes.trim(),
+    })
+  } else {
+    expensesStore.addExpense({
+      title: form.value.title.trim(),
+      amount: Number(form.value.amount),
+      category: form.value.category,
+      memberId: form.value.memberId || familyStore.activeMember.id,
+      tags: cleanTags,
+      date: form.value.date || new Date().toISOString().split('T')[0],
+      notes: form.value.notes.trim(),
+    })
+  }
 
   closeDialog()
 }

@@ -51,6 +51,16 @@ const router = createRouter({
       component: Index,
     },
     {
+      path: '/tags',
+      name: 'tags',
+      component: Index,
+    },
+    {
+      path: '/gifts',
+      name: 'gifts',
+      component: Index,
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/dashboard',
     },

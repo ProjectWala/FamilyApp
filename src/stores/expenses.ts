@@ -61,6 +61,7 @@ export const useExpensesStore = defineStore('expenses', () => {
     { deep: true }
   )
 
+  const EXPENSES_TAGS_KEY = 'expenses_tags_catalog_v1'
   const defaultSuggestedTags = [
     'Brother Marriage',
     'Home Renovation',
@@ -71,8 +72,29 @@ export const useExpensesStore = defineStore('expenses', () => {
     'Family Event',
   ]
 
+  let initialExpenseTags: string[] = defaultSuggestedTags
+  try {
+    const storedTags = localStorage.getItem(EXPENSES_TAGS_KEY)
+    if (storedTags) {
+      const parsed = JSON.parse(storedTags)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        initialExpenseTags = parsed
+      }
+    }
+  } catch {}
+
+  const customTags = ref<string[]>(initialExpenseTags)
+
+  watch(
+    customTags,
+    (newVal) => {
+      localStorage.setItem(EXPENSES_TAGS_KEY, JSON.stringify(newVal))
+    },
+    { deep: true }
+  )
+
   const allTags = computed(() => {
-    const tagSet = new Set<string>(defaultSuggestedTags)
+    const tagSet = new Set<string>(customTags.value)
     expenses.value.forEach((e) => {
       if (Array.isArray(e.tags)) {
         e.tags.forEach((t) => {
@@ -82,6 +104,25 @@ export const useExpensesStore = defineStore('expenses', () => {
     })
     return Array.from(tagSet)
   })
+
+  function addCustomTag(tag: string) {
+    const trimmed = tag.trim()
+    if (!trimmed) return
+    if (!customTags.value.includes(trimmed)) {
+      customTags.value.push(trimmed)
+    }
+  }
+
+  function removeCustomTag(tag: string, removeFromExpenses = true) {
+    customTags.value = customTags.value.filter((t) => t !== tag)
+    if (removeFromExpenses) {
+      expenses.value.forEach((e) => {
+        if (Array.isArray(e.tags) && e.tags.includes(tag)) {
+          e.tags = e.tags.filter((t) => t !== tag)
+        }
+      })
+    }
+  }
 
   const totalAmount = computed(() => {
     return expenses.value.reduce((acc, curr) => acc + Number(curr.amount || 0), 0)
@@ -152,6 +193,27 @@ export const useExpensesStore = defineStore('expenses', () => {
     return newExpense
   }
 
+  async function updateExpense(id: string, updated: Partial<ExpenseItem>) {
+    const idx = expenses.value.findIndex((e) => e.id === id)
+    if (idx !== -1) {
+      expenses.value[idx] = {
+        ...expenses.value[idx],
+        ...updated,
+        amount: updated.amount !== undefined ? Number(updated.amount) : expenses.value[idx].amount,
+        tags: Array.isArray(updated.tags) ? updated.tags : expenses.value[idx].tags,
+      }
+      edgeCrud.update('expenses', id, {
+        title: expenses.value[idx].title,
+        amount: expenses.value[idx].amount,
+        category: expenses.value[idx].category,
+        member_id: expenses.value[idx].memberId,
+        date: expenses.value[idx].date,
+        tags: expenses.value[idx].tags,
+        notes: expenses.value[idx].notes,
+      })
+    }
+  }
+
   async function deleteExpense(id: string) {
     expenses.value = expenses.value.filter((e) => e.id !== id)
     // Sync to Supabase Edge Function
@@ -164,6 +226,9 @@ export const useExpensesStore = defineStore('expenses', () => {
   return {
     expenses,
     allTags,
+    customTags,
+    addCustomTag,
+    removeCustomTag,
     isSyncing,
     totalAmount,
     thisMonthAmount,
@@ -171,6 +236,7 @@ export const useExpensesStore = defineStore('expenses', () => {
     getTagTotal,
     getTagExpensesCount,
     addExpense,
+    updateExpense,
     deleteExpense,
   }
 })

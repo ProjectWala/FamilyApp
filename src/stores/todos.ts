@@ -130,6 +130,21 @@ export const useTodoStore = defineStore('todos', () => {
     }
   }
 
+  async function updateTodo(id: string, updated: Partial<TodoItem>) {
+    const todo = todos.value.find((t) => t.id === id)
+    if (todo) {
+      Object.assign(todo, updated)
+      edgeCrud.update('todos', id, {
+        title: todo.title,
+        priority: todo.priority,
+        category: todo.category,
+        due_date: todo.dueDate,
+        member_id: todo.memberId || null,
+        completed: todo.completed,
+      })
+    }
+  }
+
   async function deleteTodo(id: string) {
     todos.value = todos.value.filter((t) => t.id !== id)
     // Sync to Supabase Edge Function
@@ -156,6 +171,7 @@ export const useTodoStore = defineStore('todos', () => {
     totalCount,
     fetchFromSupabase,
     addTodo,
+    updateTodo,
     toggleDone,
     deleteTodo,
     clearCompleted,

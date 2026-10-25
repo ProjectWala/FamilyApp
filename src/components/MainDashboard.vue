@@ -79,15 +79,15 @@
       </div>
     </v-card>
 
-    <!-- SECTION TITLE: 5 Main Action CTAs -->
+    <!-- SECTION TITLE: 6 Main Action CTAs -->
     <div class="d-flex align-center justify-space-between mb-3 px-1">
       <div class="text-headline-medium text-darkText font-weight-bold">
         Quick Action Hub
       </div>
-      <span class="text-caption text-lightText">5 modules</span>
+      <span class="text-caption text-lightText">6 modules</span>
     </div>
 
-    <!-- 5 CTA Buttons / Cards Grid (Mantis Outlined Card Hover Style) -->
+    <!-- 6 CTA Buttons / Cards Grid (Mantis Outlined Card Hover Style) -->
     <v-row density="compact" class="mb-4">
       <!-- 1. To Do List CTA -->
       <v-col cols="6">
@@ -218,11 +218,11 @@
       </v-col>
 
       <!-- 5. Shopping List CTA -->
-      <v-col cols="12" sm="6">
+      <v-col cols="6">
         <v-card
           variant="outlined"
           elevation="0"
-          class="card-hover-border pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between cursor-pointer"
+          class="card-hover-border pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between cursor-pointer mt-1"
           style="border-left: 4px solid #1677ff !important;"
           @click="emit('select-module', 'shopping')"
         >
@@ -249,6 +249,44 @@
             </span>
             <div class="d-flex align-center text-primary">
               <span>Open List</span>
+              <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- 6. Guest List CTA -->
+      <v-col cols="6">
+        <v-card
+          variant="outlined"
+          elevation="0"
+          class="card-hover-border pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between cursor-pointer mt-1"
+          style="border-left: 4px solid #722ed1 !important;"
+          @click="emit('select-module', 'guests')"
+        >
+          <div>
+            <div class="d-flex justify-space-between align-center mb-2">
+              <v-avatar color="secondary" variant="tonal" size="36" rounded="lg">
+                <v-icon icon="mdi-account-multiple-check-outline" size="20" color="#722ed1" />
+              </v-avatar>
+              <v-chip size="small" color="secondary" variant="tonal" label rounded="md" class="font-weight-medium border-secondary-subtle">
+                {{ guestsStore.totalGuests }} Guests
+              </v-chip>
+            </div>
+            <div class="text-subtitle-2 font-weight-bold text-darkText mb-1">
+              6. Guest List
+            </div>
+            <div class="text-caption text-lightText line-clamp-2">
+              Addons, RSVPs, group tags &amp; return gifts
+            </div>
+          </div>
+
+          <div class="d-flex align-center justify-space-between text-caption font-weight-medium mt-3">
+            <span class="font-weight-bold" style="color: #722ed1;">
+              {{ guestsStore.totalPartyCount }} Heads
+            </span>
+            <div class="d-flex align-center" style="color: #722ed1;">
+              <span>Open Guests</span>
               <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
             </div>
           </div>
@@ -314,6 +352,7 @@ import { useExpensesStore } from '@/stores/expenses'
 import { useFamilyStore } from '@/stores/family'
 import { useRecurringStore } from '@/stores/recurring'
 import { useShoppingStore } from '@/stores/shopping'
+import { useGuestsStore } from '@/stores/guests'
 import ProfileSwitcher from '@/components/ProfileSwitcher.vue'
 import {
   getCurrentDateString,
@@ -322,7 +361,7 @@ import {
 } from '@/services/service.js'
 
 const emit = defineEmits<{
-  (e: 'select-module', moduleName: 'todos' | 'expenses' | 'family' | 'recurring' | 'shopping'): void
+  (e: 'select-module', moduleName: 'todos' | 'expenses' | 'family' | 'recurring' | 'shopping' | 'guests'): void
 }>()
 
 const profileModalOpen = ref(false)
@@ -332,6 +371,7 @@ const expensesStore = useExpensesStore()
 const familyStore = useFamilyStore()
 const recurringStore = useRecurringStore()
 const shoppingStore = useShoppingStore()
+const guestsStore = useGuestsStore()
 
 const brotherMarriageTotal = computed(() => getBrotherMarriageTotal(expensesStore))
 

@@ -5,6 +5,7 @@ import { edgeCrud } from '@/lib/supabase'
 
 const ITEMS_STORAGE_KEY = 'shopping_list_v1'
 const CATALOG_STORAGE_KEY = 'shopping_products_catalog_v1'
+const SHOPPING_TAGS_KEY = 'shopping_tags_catalog_v1'
 
 const defaultSuggestedTags = [
   'Groceries',
@@ -140,9 +141,51 @@ export const useShoppingStore = defineStore('shopping', () => {
       .reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1), 0)
   })
 
+  let initialShoppingTags: string[] = defaultSuggestedTags
+  try {
+    const storedTags = localStorage.getItem(SHOPPING_TAGS_KEY)
+    if (storedTags) {
+      const parsed = JSON.parse(storedTags)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        initialShoppingTags = parsed
+      }
+    }
+  } catch {}
+
+  const customTags = ref<string[]>(initialShoppingTags)
+
+  watch(
+    customTags,
+    (newVal) => {
+      localStorage.setItem(SHOPPING_TAGS_KEY, JSON.stringify(newVal))
+    },
+    { deep: true }
+  )
+
+  function addCustomTag(tag: string) {
+    const trimmed = tag.trim()
+    if (!trimmed) return
+    if (!customTags.value.includes(trimmed)) {
+      customTags.value.push(trimmed)
+    }
+  }
+
+  function removeCustomTag(tag: string, removeFromItems = true) {
+    customTags.value = customTags.value.filter((t) => t !== tag)
+    if (removeFromItems) {
+      items.value.forEach((item) => {
+        if (Array.isArray(item.tags) && item.tags.includes(tag)) {
+          item.tags = item.tags.filter((t) => t !== tag)
+          item.updatedAt = new Date().toISOString()
+          edgeCrud.update('shopping_list', item.id, { tags: item.tags })
+        }
+      })
+    }
+  }
+
   // All distinct tags combining defaults and existing items
   const allTags = computed(() => {
-    const tagSet = new Set<string>(defaultSuggestedTags)
+    const tagSet = new Set<string>(customTags.value)
     items.value.forEach((item) => {
       if (Array.isArray(item.tags)) {
         item.tags.forEach((t) => {
@@ -473,6 +516,7 @@ export const useShoppingStore = defineStore('shopping', () => {
     pendingCost,
     purchasedCost,
     allTags,
+    customTags,
     tagCountMap,
     tagTotalMap,
     catalogProductNames,
@@ -488,5 +532,7 @@ export const useShoppingStore = defineStore('shopping', () => {
     deleteShoppingItem,
     togglePurchased,
     clearPurchased,
+    addCustomTag,
+    removeCustomTag,
   }
 })

@@ -2,38 +2,42 @@
   <div class="recurring-component">
     <!-- Header Summary Card (Mantis Style) -->
     <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white" style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
-      <div class="d-flex justify-space-between align-center mb-1">
-        <span class="text-caption text-white-75 text-uppercase font-weight-medium">Recurring Commitments</span>
-        <v-avatar color="white" variant="tonal" size="36" rounded="lg">
-          <v-icon icon="mdi-repeat" size="20" color="white" />
-        </v-avatar>
-      </div>
-      <div class="text-h4 font-weight-bold mb-3">
-        ₹{{ recurringStore.activeMonthlyEstimate.toFixed(2) }}
-        <span class="text-caption text-white-75 font-weight-regular">/ month</span>
+      <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
+        <div class="d-flex align-center gap-2">
+          <v-avatar color="white" variant="tonal" size="38" rounded="lg">
+            <v-icon icon="mdi-repeat" size="22" color="white" />
+          </v-avatar>
+          <div>
+            <span class="text-caption text-white-75 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
+              Recurring Commitments
+            </span>
+            <div class="text-h6 font-weight-bold text-white line-height-1">
+              ₹{{ recurringStore.activeMonthlyEstimate.toFixed(0) }} <span class="text-caption text-white-75 font-weight-regular">/ month</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Recurring Primary CTA -->
+        <v-btn
+          color="white"
+          variant="flat"
+          size="small"
+          rounded="lg"
+          class="text-primary font-weight-bold text-capitalize"
+          prepend-icon="mdi-plus"
+          @click="openAddDialog"
+        >
+          + Add
+        </v-btn>
       </div>
 
       <v-divider class="my-2 border-t-white-20" />
 
       <div class="d-flex justify-space-between text-caption pt-1 text-white-85">
         <span>Active: <strong>{{ activeCount }}</strong></span>
-        <span>Total Repeating: <strong>{{ recurringStore.items.length }}</strong></span>
+        <span>Total Repeating: <strong>{{ recurringStore.items.length }} items</strong></span>
       </div>
     </v-card>
-
-    <!-- Add Recurring CTA Button -->
-    <v-btn
-      block
-      color="primary"
-      size="large"
-      prepend-icon="mdi-plus-circle"
-      rounded="lg"
-      elevation="0"
-      class="mb-4 font-weight-medium text-capitalize text-white"
-      @click="openAddDialog"
-    >
-      Add Recurring Expense
-    </v-btn>
 
     <!-- Header and Status Filter -->
     <div class="d-flex align-center justify-space-between mb-3">
@@ -153,14 +157,33 @@
     </v-slide-y-transition>
 
     <!-- Add / Edit Dialog -->
-    <v-dialog v-model="dialogOpen" max-width="500" persistent>
-      <v-card class="rounded-lg pa-2">
-        <v-card-title class="d-flex align-center justify-space-between pt-4 px-4">
-          <span class="font-weight-bold">{{ isEditing ? 'Update Recurring Expense' : 'Add Recurring Expense' }}</span>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="closeDialog" />
+    <v-dialog v-model="dialogOpen" max-width="520" persistent scrollable>
+      <v-card class="rounded-xl overflow-hidden">
+        <!-- Dialog Header -->
+        <v-card-title class="pa-4 bg-primary text-white d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <v-avatar color="white" variant="tonal" size="34" class="mr-3">
+              <v-icon :icon="isEditing ? 'mdi-autorenew' : 'mdi-plus-circle-outline'" size="20" color="white" />
+            </v-avatar>
+            <div>
+              <div class="text-subtitle-1 font-weight-bold line-height-1">
+                {{ isEditing ? 'Update Recurring Expense' : 'Add Recurring Expense' }}
+              </div>
+            </div>
+          </div>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            color="white"
+            @click="closeDialog"
+          />
         </v-card-title>
 
-        <v-card-text class="pt-2 px-4">
+        <v-divider />
+
+        <!-- Form Body -->
+        <v-card-text class="pa-4" style="max-height: 75vh;">
           <v-form @submit.prevent="saveItem">
             <v-text-field
               v-model="form.title"
@@ -259,14 +282,26 @@
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="px-4 pb-4">
-          <v-spacer />
-          <v-btn variant="text" rounded="lg" @click="closeDialog">Cancel</v-btn>
+        <v-divider />
+
+        <!-- Dialog Footer Actions -->
+        <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
+          <v-btn
+            variant="outlined"
+            rounded="lg"
+            color="secondary"
+            class="text-capitalize"
+            @click="closeDialog"
+          >
+            Cancel
+          </v-btn>
+
           <v-btn
             color="primary"
             variant="flat"
             rounded="lg"
-            class="px-5 font-weight-bold text-white"
+            class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save"
             @click="saveItem"
           >
             {{ isEditing ? 'Save Changes' : 'Add Recurring' }}

@@ -868,6 +868,10 @@ export function getTitleForTab(tab) {
       return 'Shopping List'
     case 'guests':
       return 'Guest List & RSVP'
+    case 'tags':
+      return 'Tag Manager'
+    case 'gifts':
+      return 'Return Gifts'
     default:
       return 'Family Life App'
   }
@@ -892,6 +896,10 @@ export function getSubtitleForTab(tab) {
       return 'Products, quantities, prices & tags'
     case 'guests':
       return 'Tagging, family +1/+2 & return gifts'
+    case 'tags':
+      return 'Manage & organize tags across all modules'
+    case 'gifts':
+      return 'Return gift presets, pricing & allocations'
     default:
       return 'Daily Tasks & Budget Management'
   }

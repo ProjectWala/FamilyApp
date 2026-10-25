@@ -198,6 +198,42 @@
           </template>
         </v-list-item>
 
+        <v-divider class="my-2" />
+
+        <v-list-subheader class="text-uppercase text-caption font-weight-bold text-lightText tracking-wider" style="font-size: 0.68rem;">
+          Misc
+        </v-list-subheader>
+
+        <v-list-item
+          :active="currentTab === 'tags'"
+          rounded="lg"
+          class="mb-1"
+          color="primary"
+          @click="selectTab('tags')"
+        >
+          <template #prepend>
+            <v-icon icon="mdi-tag-multiple-outline" class="mr-2" size="20" />
+          </template>
+          <v-list-item-title class="font-weight-medium text-body-2">Tag Manager</v-list-item-title>
+          <v-list-item-subtitle class="text-caption">Expenses, guests & shopping</v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item
+          :active="currentTab === 'gifts'"
+          rounded="lg"
+          class="mb-1"
+          color="primary"
+          @click="selectTab('gifts')"
+        >
+          <template #prepend>
+            <v-icon icon="mdi-gift-outline" class="mr-2" size="20" />
+          </template>
+          <v-list-item-title class="font-weight-medium text-body-2">Return Gifts</v-list-item-title>
+          <v-list-item-subtitle class="text-caption">Presets & allocations</v-list-item-subtitle>
+          <template #append v-if="guestsStore.giftPresets.length > 0">
+            <v-chip size="x-small" variant="tonal" color="warning">{{ guestsStore.giftPresets.length }}</v-chip>
+          </template>
+        </v-list-item>
 
         <v-divider class="my-2" />
 
@@ -365,6 +401,12 @@
           <ShoppingList
             v-else-if="currentTab === 'shopping'"
           />
+          <TagsManager
+            v-else-if="currentTab === 'tags'"
+          />
+          <ReturnGiftsManager
+            v-else-if="currentTab === 'gifts'"
+          />
         </v-fade-transition>
       </div>
 
@@ -456,6 +498,8 @@ import Guestlist from '@/components/Guestlist.vue'
 import FamilyMembers from '@/components/FamilyMembers.vue'
 import RecurringExpenses from '@/components/RecurringExpenses.vue'
 import ShoppingList from '@/components/ShoppingList.vue'
+import TagsManager from '@/components/TagsManager.vue'
+import ReturnGiftsManager from '@/components/ReturnGiftsManager.vue'
 import ProfileSwitcher from '@/components/ProfileSwitcher.vue'
 import { useAppStore } from '@/stores/app'
 import { useTodoStore } from '@/stores/todos'
@@ -478,8 +522,8 @@ const shoppingStore = useShoppingStore()
 const route = useRoute()
 const router = useRouter()
 
-type TabModule = 'dashboard' | 'todos' | 'expenses' | 'guests' | 'family' | 'recurring' | 'shopping'
-const VALID_TABS: TabModule[] = ['dashboard', 'todos', 'expenses', 'guests', 'family', 'recurring', 'shopping']
+type TabModule = 'dashboard' | 'todos' | 'expenses' | 'guests' | 'family' | 'recurring' | 'shopping' | 'tags' | 'gifts'
+const VALID_TABS: TabModule[] = ['dashboard', 'todos', 'expenses', 'guests', 'family', 'recurring', 'shopping', 'tags', 'gifts']
 
 function getTabFromPath(path: string): TabModule {
   const segment = (path || '').replace(/^\//, '').split('/')[0].toLowerCase()

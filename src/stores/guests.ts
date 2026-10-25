@@ -5,6 +5,8 @@ import { edgeCrud } from '@/lib/supabase'
 
 const STORAGE_KEY = 'guests_store_v1'
 const GUEST_NAMES_KEY = 'guests_catalog_names_v1'
+const GIFT_PRESETS_KEY = 'guests_gift_presets_v1'
+const GUEST_TAGS_KEY = 'guests_tags_catalog_v1'
 
 const initialGuests: GuestItem[] = [
   {
@@ -84,7 +86,7 @@ export const defaultSuggestedTags = [
   'Special Guest',
 ]
 
-export const defaultGiftPresets = [
+export const defaultGiftPresets: ReturnGift[] = [
   { name: 'Silver Coin (10g)', price: 2500 },
   { name: 'Silver Diya Pair', price: 3200 },
   { name: 'Royal Mithai Box', price: 450 },
@@ -122,6 +124,108 @@ export const useGuestsStore = defineStore('guests', () => {
       group: g.group || 'General',
     }))
   )
+
+  // Persisted Return Gift presets
+  let initialGiftPresets: ReturnGift[] = defaultGiftPresets
+  try {
+    const storedGifts = localStorage.getItem(GIFT_PRESETS_KEY)
+    if (storedGifts) {
+      const parsedGifts = JSON.parse(storedGifts)
+      if (Array.isArray(parsedGifts) && parsedGifts.length > 0) {
+        initialGiftPresets = parsedGifts
+      }
+    }
+  } catch {}
+
+  const giftPresets = ref<ReturnGift[]>(initialGiftPresets)
+
+  watch(
+    giftPresets,
+    (newVal) => {
+      localStorage.setItem(GIFT_PRESETS_KEY, JSON.stringify(newVal))
+    },
+    { deep: true }
+  )
+
+  // Persisted Custom Tags for guests
+  let initialGuestTags: string[] = defaultSuggestedTags
+  try {
+    const storedTags = localStorage.getItem(GUEST_TAGS_KEY)
+    if (storedTags) {
+      const parsedTags = JSON.parse(storedTags)
+      if (Array.isArray(parsedTags) && parsedTags.length > 0) {
+        initialGuestTags = parsedTags
+      }
+    }
+  } catch {}
+
+  const customTags = ref<string[]>(initialGuestTags)
+
+  watch(
+    customTags,
+    (newVal) => {
+      localStorage.setItem(GUEST_TAGS_KEY, JSON.stringify(newVal))
+    },
+    { deep: true }
+  )
+
+  function addGiftPreset(name: string, price: number) {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    const existing = giftPresets.value.find((g) => g.name.toLowerCase() === trimmed.toLowerCase())
+    if (existing) {
+      existing.price = Number(price) || 0
+    } else {
+      giftPresets.value.push({ name: trimmed, price: Number(price) || 0 })
+    }
+  }
+
+  function updateGiftPreset(oldName: string, updated: { name: string; price: number }) {
+    const idx = giftPresets.value.findIndex((g) => g.name.toLowerCase() === oldName.toLowerCase())
+    if (idx !== -1) {
+      giftPresets.value[idx] = { name: updated.name.trim(), price: Number(updated.price) || 0 }
+      guests.value.forEach((guest) => {
+        if (Array.isArray(guest.returnGifts)) {
+          guest.returnGifts.forEach((gift) => {
+            if (gift.name.toLowerCase() === oldName.toLowerCase()) {
+              gift.name = updated.name.trim()
+              gift.price = Number(updated.price) || 0
+            }
+          })
+        }
+      })
+    }
+  }
+
+  function removeGiftPreset(name: string, removeFromGuests = true) {
+    giftPresets.value = giftPresets.value.filter((g) => g.name.toLowerCase() !== name.toLowerCase())
+    if (removeFromGuests) {
+      guests.value.forEach((guest) => {
+        if (Array.isArray(guest.returnGifts)) {
+          guest.returnGifts = guest.returnGifts.filter((g) => g.name.toLowerCase() !== name.toLowerCase())
+        }
+      })
+    }
+  }
+
+  function addCustomTag(tag: string) {
+    const trimmed = tag.trim()
+    if (!trimmed) return
+    if (!customTags.value.includes(trimmed)) {
+      customTags.value.push(trimmed)
+    }
+  }
+
+  function removeCustomTag(tag: string, removeFromGuests = true) {
+    customTags.value = customTags.value.filter((t) => t !== tag)
+    if (removeFromGuests) {
+      guests.value.forEach((g) => {
+        if (Array.isArray(g.tags) && g.tags.includes(tag)) {
+          g.tags = g.tags.filter((t) => t !== tag)
+        }
+      })
+    }
+  }
 
   // 2. Saved guest names catalog for auto-correct / autocomplete
   const storedNames = localStorage.getItem(GUEST_NAMES_KEY)
@@ -263,7 +367,7 @@ export const useGuestsStore = defineStore('guests', () => {
   })
 
   const allTags = computed(() => {
-    const tagSet = new Set<string>(defaultSuggestedTags)
+    const tagSet = new Set<string>(customTags.value)
     guests.value.forEach((g) => {
       if (Array.isArray(g.tags)) {
         g.tags.forEach((t) => {
@@ -630,7 +734,7 @@ export const useGuestsStore = defineStore('guests', () => {
   }
 
   const knownGiftNames = computed(() => {
-    const giftSet = new Set<string>(defaultGiftPresets.map((p) => p.name))
+    const giftSet = new Set<string>(giftPresets.value.map((p) => p.name))
     guests.value.forEach((g) => {
       if (Array.isArray(g.returnGifts)) {
         g.returnGifts.forEach((gift) => {
@@ -649,7 +753,14 @@ export const useGuestsStore = defineStore('guests', () => {
     savedGuestNames,
     knownGuestNames,
     knownGiftNames,
-    defaultGiftPresets,
+    giftPresets,
+    defaultGiftPresets: giftPresets,
+    addGiftPreset,
+    updateGiftPreset,
+    removeGiftPreset,
+    customTags,
+    addCustomTag,
+    removeCustomTag,
     recordGuestName,
     isSyncing,
     searchQuery,

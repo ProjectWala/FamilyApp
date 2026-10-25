@@ -5,17 +5,33 @@
       class="mb-4 pa-4 rounded-lg elevation-0 text-white"
       style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));"
     >
-      <div class="d-flex justify-space-between align-center mb-1">
-        <span class="text-caption text-white-75 text-uppercase font-weight-medium">
-          Total Shopping Budget Estimate
-        </span>
-        <v-avatar color="white" variant="tonal" size="36" rounded="lg">
-          <v-icon icon="mdi-cart-outline" size="20" color="white" />
-        </v-avatar>
-      </div>
+      <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
+        <div class="d-flex align-center gap-2">
+          <v-avatar color="white" variant="tonal" size="38" rounded="lg">
+            <v-icon icon="mdi-cart-outline" size="22" color="white" />
+          </v-avatar>
+          <div>
+            <span class="text-caption text-white-75 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
+              Shopping List
+            </span>
+            <div class="text-h6 font-weight-bold text-white line-height-1">
+              ₹{{ shoppingStore.totalEstimatedCost.toFixed(2) }} Est.
+            </div>
+          </div>
+        </div>
 
-      <div class="text-h4 font-weight-bold mb-3">
-        ₹{{ shoppingStore.totalEstimatedCost.toFixed(2) }}
+        <!-- Add Product Primary CTA -->
+        <v-btn
+          color="white"
+          variant="flat"
+          size="small"
+          rounded="lg"
+          class="text-primary font-weight-bold text-capitalize"
+          prepend-icon="mdi-plus"
+          @click="openAddModal"
+        >
+          + Add
+        </v-btn>
       </div>
 
       <v-divider class="my-2 border-t-white-20" />
@@ -103,19 +119,6 @@
     </div>
   </v-expand-transition>
 
-    <!-- Add Product CTA Button -->
-    <v-btn
-      block
-      color="primary"
-      size="large"
-      prepend-icon="mdi-cart-plus"
-      rounded="lg"
-      elevation="0"
-      class="mb-4 font-weight-medium text-capitalize"
-      @click="openAddModal"
-    >
-      Add New Product
-    </v-btn>
 
     <!-- COLLAPSIBLE TAGS & FILTERS PANEL (Mantis Style) -->
     <v-card
@@ -435,120 +438,111 @@
         :key="item.id"
         variant="outlined"
         elevation="0"
-        class="mb-3 pa-3 rounded-lg bg-surface card-hover-border shopping-item-card"
-        :class="{ 'shopping-item-purchased': item.isPurchased }"
+        class="mb-2 rounded-xl bg-surface card-hover-border shopping-item-card"
+        :class="{ 'opacity-60': item.isPurchased }"
       >
-        <div class="d-flex align-center">
-          <!-- Purchase Checkbox Button -->
-          <div class="mr-3 flex-shrink-0">
-            <v-btn
-              :icon="item.isPurchased ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline'"
-              variant="text"
-              size="small"
-              :color="item.isPurchased ? 'success' : 'lightText'"
-              :title="item.isPurchased ? 'Mark as to-buy' : 'Mark as purchased'"
-              @click.stop="shoppingStore.togglePurchased(item.id)"
-            />
-          </div>
+        <div class="d-flex align-center pa-3 px-4">
+          <!-- Title and Info -->
+          <div class="flex-grow-1 cursor-pointer" style="min-width: 0;" @click="shoppingStore.togglePurchased(item.id)">
+            <div
+              class="text-body-2 font-weight-medium text-truncate text-darkText"
+              :class="{ 'text-decoration-line-through text-medium-emphasis': item.isPurchased }"
+              :title="item.productName"
+            >
+              {{ item.productName }}
+            </div>
 
-          <!-- Product Details -->
-          <div class="flex-grow-1" style="min-width: 0;">
-            <!-- Title & Priority -->
-            <div class="d-flex align-center justify-space-between flex-wrap gap-1">
-              <div
-                class="text-subtitle-2 font-weight-bold text-truncate product-title-text"
-                :class="{ 'text-decoration-line-through text-lightText': item.isPurchased }"
-                :title="item.productName"
-              >
-                {{ item.productName }}
-              </div>
-
-              <!-- Priority Flag Badge -->
+            <div class="d-flex align-center gap-2 mt-1 flex-wrap">
+              <!-- Priority badge (solid color pill) -->
               <v-chip
                 size="x-small"
                 :color="getPriorityColor(item.priority)"
-                variant="tonal"
-                class="font-weight-bold flex-shrink-0"
+                variant="flat"
+                rounded="md"
+                class="text-capitalize font-weight-medium"
               >
-                <v-icon :icon="getPriorityIcon(item.priority)" size="11" class="mr-1" />
-                {{ item.priority.toUpperCase() }}
+                {{ item.priority }}
               </v-chip>
-            </div>
 
-            <!-- Price & Quantity Breakdown -->
-            <div class="d-flex align-center gap-2 mt-1 text-caption text-lightText flex-wrap">
-              <span class="font-weight-bold text-darkText font-mono">
-                Qty: {{ item.quantity }}
-              </span>
-              <span>•</span>
-              <span>₹{{ Number(item.price).toFixed(2) }} / unit</span>
-              <span v-if="item.memberId" class="d-inline-flex align-center">
-                <span>•</span>
-                <v-avatar
-                  v-if="getMember(item.memberId)"
-                  size="14"
-                  variant="flat"
-                  :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }"
-                  class="ml-1 mr-1"
+              <!-- Category / Tags (tonal light pills) -->
+              <template v-if="item.tags && item.tags.length > 0">
+                <v-chip
+                  v-for="tag in item.tags"
+                  :key="tag"
+                  size="x-small"
+                  variant="tonal"
+                  rounded="md"
+                  class="font-weight-medium cursor-pointer"
+                  :title="`Filter by ${tag}`"
+                  @click.stop="shoppingStore.activeTagFilter = tag"
                 >
-                  <v-icon :icon="getMember(item.memberId)?.avatarIcon || 'mdi-account'" size="9" color="white" />
-                </v-avatar>
-                <span class="text-darkText font-weight-medium">{{ getMemberName(item.memberId) }}</span>
-              </span>
-            </div>
+                  {{ tag }}
+                </v-chip>
+              </template>
 
-            <!-- Product Tags -->
-            <div v-if="item.tags && item.tags.length > 0" class="d-flex align-center gap-1 mt-1.5 flex-wrap">
+              <!-- Price & Quantity -->
               <v-chip
-                v-for="tag in item.tags"
-                :key="tag"
                 size="x-small"
                 variant="tonal"
                 color="primary"
-                label
                 rounded="md"
-                class="font-weight-medium cursor-pointer"
-                title="Filter by this tag"
-                @click.stop="shoppingStore.activeTagFilter = tag"
+                class="font-weight-medium font-mono"
               >
-                <v-icon icon="mdi-tag" size="10" class="mr-1" />
-                {{ tag }}
+                Qty: {{ item.quantity }} • ₹{{ ((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(0) }}
               </v-chip>
+
+              <!-- Member Attribution -->
+              <span v-if="item.memberId && getMember(item.memberId)" class="text-caption text-lightText d-flex align-center">
+                <v-avatar
+                  size="14"
+                  variant="flat"
+                  :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }"
+                  class="mr-1"
+                >
+                  <v-icon :icon="getMember(item.memberId)?.avatarIcon || 'mdi-account'" size="9" color="white" />
+                </v-avatar>
+                {{ getMemberName(item.memberId) }}
+              </span>
+
+              <!-- Created Date with calendar clock icon -->
+              <span v-if="item.createdAt" class="app-date-text text-lightText d-flex align-center">
+                <v-icon icon="mdi-calendar-clock" size="12" class="mr-1 text-lightText" />
+                {{ formatDate(item.createdAt) }}
+              </span>
             </div>
 
-            <!-- Notes -->
-            <div v-if="item.notes" class="text-caption text-lightText mt-1 text-truncate">
+            <!-- Optional notes -->
+            <div v-if="item.notes" class="text-caption text-lightText mt-1 text-truncate" style="font-size: 0.72rem;">
               {{ item.notes }}
             </div>
           </div>
 
-          <!-- Total Cost and Actions -->
-          <div class="text-right ml-3 flex-shrink-0">
-            <div
-              class="text-subtitle-1 font-weight-bold font-mono"
-              :class="item.isPurchased ? 'text-success' : 'text-primary'"
-            >
-              ₹{{ ((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(2) }}
-            </div>
-
-            <div class="d-flex align-center justify-end mt-1">
-              <v-btn
-                icon="mdi-pencil-outline"
-                size="x-small"
-                variant="text"
-                color="primary"
-                title="Edit Product"
-                @click="openEditModal(item)"
-              />
-              <v-btn
-                icon="mdi-trash-can-outline"
-                size="x-small"
-                variant="text"
-                color="error"
-                title="Delete Product"
-                @click="confirmDeleteItem(item)"
-              />
-            </div>
+          <!-- Actions: Checkbox circle / Edit / Delete -->
+          <div class="d-flex align-center ml-2 flex-shrink-0">
+            <v-btn
+              :icon="item.isPurchased ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
+              :color="item.isPurchased ? 'success' : 'grey'"
+              variant="text"
+              size="small"
+              title="Toggle Purchased"
+              @click.stop="shoppingStore.togglePurchased(item.id)"
+            />
+            <v-btn
+              icon="mdi-pencil-outline"
+              color="primary"
+              variant="text"
+              size="small"
+              title="Edit Product"
+              @click.stop="openEditModal(item)"
+            />
+            <v-btn
+              icon="mdi-trash-can-outline"
+              color="error"
+              variant="text"
+              size="small"
+              title="Delete Product"
+              @click.stop="confirmDeleteItem(item)"
+            />
           </div>
         </div>
       </v-card>
@@ -582,65 +576,111 @@
           :key="item.id"
           variant="outlined"
           elevation="0"
-          class="mb-2.5 pa-3 rounded-lg bg-surface card-hover-border shopping-item-card"
-          :class="{ 'shopping-item-purchased': item.isPurchased }"
+          class="mb-2 rounded-xl bg-surface card-hover-border shopping-item-card"
+          :class="{ 'opacity-60': item.isPurchased }"
         >
-          <div class="d-flex align-center">
-            <div class="mr-3 flex-shrink-0">
-              <v-btn
-                :icon="item.isPurchased ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline'"
-                variant="text"
-                size="small"
-                :color="item.isPurchased ? 'success' : 'lightText'"
-                @click.stop="shoppingStore.togglePurchased(item.id)"
-              />
-            </div>
+          <div class="d-flex align-center pa-3 px-4">
+            <!-- Title and Info -->
+            <div class="flex-grow-1 cursor-pointer" style="min-width: 0;" @click="shoppingStore.togglePurchased(item.id)">
+              <div
+                class="text-body-2 font-weight-medium text-truncate text-darkText"
+                :class="{ 'text-decoration-line-through text-medium-emphasis': item.isPurchased }"
+                :title="item.productName"
+              >
+                {{ item.productName }}
+              </div>
 
-            <div class="flex-grow-1" style="min-width: 0;">
-              <div class="d-flex align-center justify-space-between flex-wrap gap-1">
-                <span
-                  class="text-subtitle-2 font-weight-bold text-truncate"
-                  :class="{ 'text-decoration-line-through text-lightText': item.isPurchased }"
-                >
-                  {{ item.productName }}
-                </span>
+              <div class="d-flex align-center gap-2 mt-1 flex-wrap">
+                <!-- Priority badge (solid color pill) -->
                 <v-chip
                   size="x-small"
                   :color="getPriorityColor(item.priority)"
-                  variant="tonal"
-                  class="font-weight-bold flex-shrink-0"
+                  variant="flat"
+                  rounded="md"
+                  class="text-capitalize font-weight-medium"
                 >
-                  {{ item.priority.toUpperCase() }}
+                  {{ item.priority }}
                 </v-chip>
+
+                <!-- Category / Tags (tonal light pills) -->
+                <template v-if="item.tags && item.tags.length > 0">
+                  <v-chip
+                    v-for="tag in item.tags"
+                    :key="tag"
+                    size="x-small"
+                    variant="tonal"
+                    rounded="md"
+                    class="font-weight-medium cursor-pointer"
+                    :title="`Filter by ${tag}`"
+                    @click.stop="shoppingStore.activeTagFilter = tag"
+                  >
+                    {{ tag }}
+                  </v-chip>
+                </template>
+
+                <!-- Price & Quantity -->
+                <v-chip
+                  size="x-small"
+                  variant="tonal"
+                  color="primary"
+                  rounded="md"
+                  class="font-weight-medium font-mono"
+                >
+                  Qty: {{ item.quantity }} • ₹{{ ((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(0) }}
+                </v-chip>
+
+                <!-- Member Attribution -->
+                <span v-if="item.memberId && getMember(item.memberId)" class="text-caption text-lightText d-flex align-center">
+                  <v-avatar
+                    size="14"
+                    variant="flat"
+                    :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }"
+                    class="mr-1"
+                  >
+                    <v-icon :icon="getMember(item.memberId)?.avatarIcon || 'mdi-account'" size="9" color="white" />
+                  </v-avatar>
+                  {{ getMemberName(item.memberId) }}
+                </span>
+
+                <!-- Created Date with calendar clock icon -->
+                <span v-if="item.createdAt" class="app-date-text text-lightText d-flex align-center">
+                  <v-icon icon="mdi-calendar-clock" size="12" class="mr-1 text-lightText" />
+                  {{ formatDate(item.createdAt) }}
+                </span>
               </div>
 
-              <div class="d-flex align-center gap-2 mt-1 text-caption text-lightText flex-wrap">
-                <span class="font-weight-bold text-darkText">Qty: {{ item.quantity }}</span>
-                <span>•</span>
-                <span>₹{{ Number(item.price).toFixed(2) }} / unit</span>
+              <!-- Optional notes -->
+              <div v-if="item.notes" class="text-caption text-lightText mt-1 text-truncate" style="font-size: 0.72rem;">
+                {{ item.notes }}
               </div>
             </div>
 
-            <div class="text-right ml-3 flex-shrink-0">
-              <div class="text-subtitle-2 font-weight-bold font-mono text-primary">
-                ₹{{ ((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(2) }}
-              </div>
-              <div class="d-flex align-center justify-end">
-                <v-btn
-                  icon="mdi-pencil-outline"
-                  size="x-small"
-                  variant="text"
-                  color="primary"
-                  @click="openEditModal(item)"
-                />
-                <v-btn
-                  icon="mdi-trash-can-outline"
-                  size="x-small"
-                  variant="text"
-                  color="error"
-                  @click="confirmDeleteItem(item)"
-                />
-              </div>
+            <!-- Actions: Checkbox circle / Edit / Delete -->
+            <div class="d-flex align-center ml-2 flex-shrink-0">
+              <v-btn
+                :icon="item.isPurchased ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
+                :color="item.isPurchased ? 'success' : 'grey'"
+                variant="text"
+                size="small"
+                title="Toggle Purchased"
+                @click.stop="shoppingStore.togglePurchased(item.id)"
+              />
+              <v-btn
+                icon="mdi-pencil-outline"
+                color="primary"
+                variant="text"
+                size="small"
+                title="Edit Product"
+                @click.stop="openEditModal(item)"
+              />
+              <v-btn
+                icon="mdi-trash-can-outline"
+                color="error"
+                variant="text"
+                size="small"
+                title="Delete Product"
+                @click.stop="confirmDeleteItem(item)"
+              />
             </div>
           </div>
         </v-card>
@@ -668,21 +708,33 @@
     <!-- ================================================================= -->
     <!-- ADD / EDIT PRODUCT DIALOG (With Autocomplete & DB Auto-Save)      -->
     <!-- ================================================================= -->
-    <v-dialog v-model="dialogOpen" max-width="500" persistent>
-      <v-card class="rounded-lg pa-2">
-        <v-card-title class="d-flex align-center justify-space-between pt-4 px-4">
+    <v-dialog v-model="dialogOpen" max-width="540" persistent scrollable>
+      <v-card class="rounded-xl overflow-hidden">
+        <!-- Dialog Header -->
+        <v-card-title class="pa-4 bg-primary text-white d-flex align-center justify-space-between">
           <div class="d-flex align-center">
-            <v-avatar color="primary" variant="tonal" size="32" rounded="lg" class="mr-2">
-              <v-icon :icon="isEditing ? 'mdi-pencil' : 'mdi-cart-plus'" size="18" />
+            <v-avatar color="white" variant="tonal" size="34" class="mr-3">
+              <v-icon :icon="isEditing ? 'mdi-pencil' : 'mdi-cart-plus'" size="20" color="white" />
             </v-avatar>
-            <span class="font-weight-bold text-darkText">
-              Add/Edit Product
-            </span>
+            <div>
+              <div class="text-subtitle-1 font-weight-bold line-height-1">
+                {{ isEditing ? 'Edit Product Details' : 'Add New Product' }}
+              </div>
+            </div>
           </div>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="closeDialog" />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            color="white"
+            @click="closeDialog"
+          />
         </v-card-title>
 
-        <v-card-text class="pt-2 px-4 pb-0">
+        <v-divider />
+
+        <!-- Form Body -->
+        <v-card-text class="pa-4" style="max-height: 75vh;">
           <v-form ref="formRef" @submit.prevent="submitProduct">
             <!-- 1. PRODUCT NAME WITH AUTOCOMPLETE (Saved from DB) -->
             <div class="mb-3">
@@ -865,16 +917,26 @@
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="px-4 pb-3 pt-0">
-          <v-spacer />
-          <v-btn variant="text" rounded="md" @click="closeDialog">
+        <v-divider />
+
+        <!-- Dialog Footer Actions -->
+        <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
+          <v-btn
+            variant="outlined"
+            rounded="lg"
+            color="secondary"
+            class="text-capitalize"
+            @click="closeDialog"
+          >
             Cancel
           </v-btn>
+
           <v-btn
             color="primary"
             variant="flat"
-            rounded="md"
-            class="px-4 font-weight-bold"
+            rounded="lg"
+            class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save"
             @click="submitProduct"
           >
             {{ isEditing ? 'Save Changes' : 'Add to List' }}
@@ -1117,7 +1179,26 @@ const currentSortLabel = computed(() => {
 })
 
 function getPriorityColor(priority: string) {
-  return getShoppingPriorityColor(priority)
+  switch (priority?.toLowerCase()) {
+    case 'urgent':
+    case 'high':
+      return 'error'
+    case 'medium':
+      return 'warning'
+    case 'low':
+      return 'info'
+    default:
+      return 'grey'
+  }
+}
+
+function formatDate(dateStr?: string) {
+  if (!dateStr) return ''
+  try {
+    return dateStr.split('T')[0]
+  } catch {
+    return dateStr
+  }
 }
 
 function getPriorityIcon(priority: string) {
