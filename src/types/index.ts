@@ -113,3 +113,21 @@ export interface ShoppingItem {
   createdAt?: string
   updatedAt?: string
 }
+
+export interface AppUser {
+  id: string
+  email: string
+  name: string
+  mobile?: string
+  role?: string
+  avatarColor?: string
+  avatarIcon?: string
+  familyMemberId?: string
+  createdAt?: string
+}
+
+export interface AuthState {
+  user: AppUser | null
+  isAuthenticated: boolean
+  isLoading: boolean
+}

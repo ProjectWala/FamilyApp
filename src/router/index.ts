@@ -61,6 +61,21 @@ const router = createRouter({
       component: Index,
     },
     {
+      path: '/login',
+      name: 'login',
+      component: Index,
+    },
+    {
+      path: '/signup',
+      name: 'signup',
+      component: Index,
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: Index,
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/dashboard',
     },

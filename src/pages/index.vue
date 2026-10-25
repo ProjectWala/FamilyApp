@@ -238,8 +238,58 @@
         <v-divider class="my-2" />
 
         <v-list-subheader class="text-uppercase text-caption font-weight-bold text-lightText tracking-wider" style="font-size: 0.68rem;">
-          Quick Settings
+          Account &amp; Settings
         </v-list-subheader>
+
+        <!-- User Profile item if logged in -->
+        <v-list-item
+          v-if="authStore.isAuthenticated"
+          rounded="lg"
+          class="mb-1"
+          @click="openProfileModal"
+        >
+          <template #prepend>
+            <v-avatar
+              size="24"
+              class="mr-2 text-white"
+              :style="{ backgroundColor: authStore.userAvatarColor || '#1677ff' }"
+            >
+              <span style="font-size: 0.65rem; font-weight: 700;">{{ authStore.userInitials }}</span>
+            </v-avatar>
+          </template>
+          <v-list-item-title class="text-body-2 font-weight-bold text-truncate">
+            {{ authStore.displayName }}
+          </v-list-item-title>
+          <v-list-item-subtitle class="text-caption text-truncate">
+            {{ authStore.user?.email || 'My Profile' }}
+          </v-list-item-subtitle>
+        </v-list-item>
+
+        <!-- Sign In item if not logged in -->
+        <v-list-item
+          v-else
+          rounded="lg"
+          class="mb-1"
+          @click="openAuthModal('signin')"
+        >
+          <template #prepend>
+            <v-icon icon="mdi-login" class="mr-2 text-primary" size="20" />
+          </template>
+          <v-list-item-title class="text-body-2 font-weight-bold text-primary">
+            Sign In / Register
+          </v-list-item-title>
+          <v-list-item-subtitle class="text-caption">
+            Sync cloud household data
+          </v-list-item-subtitle>
+        </v-list-item>
+
+        <v-list-item rounded="lg" class="mb-1" @click="openProfileSwitcher">
+          <template #prepend>
+            <v-icon icon="mdi-account-switch-outline" class="mr-2" size="20" />
+          </template>
+          <v-list-item-title class="text-body-2 font-weight-medium">Switch Acting Persona</v-list-item-title>
+          <v-list-item-subtitle class="text-caption">Acting as {{ familyStore.activeMember.name }}</v-list-item-subtitle>
+        </v-list-item>
 
         <v-list-item rounded="lg" class="mb-1" @click="toggleTheme">
           <template #prepend>
@@ -259,12 +309,22 @@
           </template>
         </v-list-item>
 
-        <v-list-item rounded="lg" class="mb-1" @click="openProfileSwitcher">
+        <!-- Logout button in drawer if logged in -->
+        <v-list-item
+          v-if="authStore.isAuthenticated"
+          rounded="lg"
+          class="mb-1 text-error"
+          @click="handleLogout"
+        >
           <template #prepend>
-            <v-icon icon="mdi-account-switch-outline" class="mr-2" size="20" />
+            <v-icon icon="mdi-logout" class="mr-2 text-error" size="20" />
           </template>
-          <v-list-item-title class="text-body-2 font-weight-medium">Switch Profile</v-list-item-title>
-          <v-list-item-subtitle class="text-caption">Change active member</v-list-item-subtitle>
+          <v-list-item-title class="text-body-2 font-weight-bold text-error">
+            Log Out
+          </v-list-item-title>
+          <v-list-item-subtitle class="text-caption text-error opacity-80">
+            Sign out of account
+          </v-list-item-subtitle>
         </v-list-item>
       </v-list>
 
@@ -330,7 +390,7 @@
           </div>
         </div>
 
-        <!-- Right Side: Active Profile Impersonation Chip & Dark Mode -->
+        <!-- Right Side: Active Persona & Logged In User Profile Menu -->
         <div class="d-flex align-center flex-shrink-0 ml-2">
           <!-- Supabase Cloud Sync Badge -->
           <v-chip
@@ -344,13 +404,13 @@
             Cloud
           </v-chip>
 
-          <!-- Impersonate Profile Chip -->
+          <!-- Acting Persona Chip -->
           <v-chip
             size="small"
             variant="tonal"
             color="primary"
             class="mr-1 font-weight-medium cursor-pointer px-2 border-primary-subtle"
-            title="Click to switch impersonated family member profile"
+            title="Click to switch acting family member persona"
             @click="profileSwitcherOpen = true"
           >
             <v-avatar
@@ -366,13 +426,108 @@
             <v-icon icon="mdi-chevron-down" size="14" class="ml-1 text-lightText" />
           </v-chip>
 
+          <!-- Profile Button (displays who logged in + dropdown menu with logout option) -->
+          <v-menu
+            v-if="authStore.isAuthenticated"
+            location="bottom end"
+            transition="slide-y-transition"
+          >
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                variant="tonal"
+                color="primary"
+                size="small"
+                class="ml-1 px-2 rounded-lg user-profile-top-btn font-weight-medium"
+                title="Account Menu & Profile"
+              >
+                <v-avatar
+                  size="22"
+                  class="mr-1 text-white elevation-1 flex-shrink-0"
+                  :style="{ backgroundColor: authStore.userAvatarColor || '#1677ff' }"
+                >
+                  <span style="font-size: 0.65rem; font-weight: 700;">{{ authStore.userInitials }}</span>
+                </v-avatar>
+                <span class="d-none d-sm-inline-block text-truncate text-darkText font-weight-bold" style="max-width: 90px; font-size: 0.78rem;">
+                  {{ authStore.displayName.split(' ')[0] }}
+                </span>
+                <v-icon icon="mdi-chevron-down" size="14" class="ml-1 text-lightText" />
+              </v-btn>
+            </template>
+
+            <v-card min-width="260" class="rounded-xl pa-0 bg-surface shadow-md" elevation="10">
+              <!-- Menu Header: Displays who is logged in -->
+              <div class="pa-3 bg-containerBg border-b">
+                <div class="d-flex align-center">
+                  <v-avatar
+                    size="40"
+                    class="mr-2.5 text-white font-weight-bold flex-shrink-0"
+                    :style="{ backgroundColor: authStore.userAvatarColor || '#1677ff' }"
+                  >
+                    <span>{{ authStore.userInitials }}</span>
+                  </v-avatar>
+                  <div style="min-width: 0;">
+                    <div class="text-subtitle-2 font-weight-bold text-darkText text-truncate line-height-1 mb-0.5">
+                      {{ authStore.displayName }}
+                    </div>
+                    <div class="text-caption text-lightText text-truncate" style="font-size: 0.7rem;">
+                      {{ authStore.user?.email }}
+                    </div>
+                    <v-chip size="x-small" color="primary" variant="flat" class="mt-1 font-weight-bold">
+                      {{ authStore.user?.role || 'Member' }}
+                    </v-chip>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Menu Actions -->
+              <v-list density="compact" nav class="pa-2">
+                <v-list-item
+                  prepend-icon="mdi-account-circle-outline"
+                  title="My Profile"
+                  subtitle="View & edit account"
+                  rounded="lg"
+                  class="mb-1"
+                  @click="openProfileModal"
+                />
+
+                <v-list-item
+                  prepend-icon="mdi-account-switch-outline"
+                  title="Acting Persona"
+                  :subtitle="'Acting as ' + familyStore.activeMember.name"
+                  rounded="lg"
+                  class="mb-1"
+                  @click="profileSwitcherOpen = true"
+                />
+
+                <v-divider class="my-1" />
+
+                <v-list-item
+                  prepend-icon="mdi-logout"
+                  title="Log Out"
+                  rounded="lg"
+                  color="error"
+                  class="text-error font-weight-bold"
+                  @click="handleLogout"
+                />
+              </v-list>
+            </v-card>
+          </v-menu>
+
+          <!-- If Not Logged In: Sign In Button -->
           <v-btn
-            :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
-            variant="text"
+            v-else
+            color="primary"
+            variant="flat"
             size="small"
-            color="darkText"
-            @click="toggleTheme"
-          />
+            rounded="lg"
+            class="ml-1 px-2.5 font-weight-bold text-capitalize"
+            prepend-icon="mdi-login"
+            title="Sign in or register"
+            @click="openAuthModal('signin')"
+          >
+            Log In
+          </v-btn>
         </div>
       </v-card>
 
@@ -483,6 +638,20 @@
 
       <!-- Global Profile Switcher Dialog -->
       <ProfileSwitcher v-model="profileSwitcherOpen" />
+
+      <!-- Global Auth Modal (Login / Signup) -->
+      <AuthModal
+        v-model="authModalOpen"
+        :default-tab="authModalTab"
+        @auth-success="onAuthSuccess"
+      />
+
+      <!-- Global User Profile Modal (Profile details & Logout) -->
+      <UserProfileModal
+        v-model="profileModalOpen"
+        @open-family-switcher="profileSwitcherOpen = true"
+        @logged-out="onLoggedOut"
+      />
     </div>
   </div>
 </template>
@@ -501,6 +670,8 @@ import ShoppingList from '@/components/ShoppingList.vue'
 import TagsManager from '@/components/TagsManager.vue'
 import ReturnGiftsManager from '@/components/ReturnGiftsManager.vue'
 import ProfileSwitcher from '@/components/ProfileSwitcher.vue'
+import AuthModal from '@/components/AuthModal.vue'
+import UserProfileModal from '@/components/UserProfileModal.vue'
 import { useAppStore } from '@/stores/app'
 import { useTodoStore } from '@/stores/todos'
 import { useFamilyStore } from '@/stores/family'
@@ -508,6 +679,7 @@ import { useExpensesStore } from '@/stores/expenses'
 import { useGuestsStore } from '@/stores/guests'
 import { useRecurringStore } from '@/stores/recurring'
 import { useShoppingStore } from '@/stores/shopping'
+import { useAuthStore } from '@/stores/auth'
 import { useModalBack } from '@/composables/useModalBack'
 
 const theme = useTheme()
@@ -518,6 +690,7 @@ const expensesStore = useExpensesStore()
 const guestsStore = useGuestsStore()
 const recurringStore = useRecurringStore()
 const shoppingStore = useShoppingStore()
+const authStore = useAuthStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -535,11 +708,64 @@ function getTabFromPath(path: string): TabModule {
 
 const currentTab = ref<TabModule>(getTabFromPath(route.path))
 const profileSwitcherOpen = ref(false)
+const authModalOpen = ref(false)
+const authModalTab = ref<'signin' | 'signup'>('signin')
+const profileModalOpen = ref(false)
+
 const drawer = toRef(appStore, 'leftDrawer')
 
-// Maintain back button history for left drawer & profile switcher modals
+// Maintain back button history for left drawer & dialogs
 useModalBack(drawer, 'mainNavDrawer')
 useModalBack(profileSwitcherOpen, 'profileSwitcherModal')
+useModalBack(authModalOpen, 'authModal')
+useModalBack(profileModalOpen, 'userProfileModal')
+
+function openAuthModal(tab: 'signin' | 'signup' = 'signin') {
+  authModalTab.value = tab
+  authModalOpen.value = true
+  drawer.value = false
+}
+
+function openProfileModal() {
+  profileModalOpen.value = true
+  drawer.value = false
+}
+
+async function handleLogout() {
+  await authStore.signOut()
+  drawer.value = false
+}
+
+function onAuthSuccess() {
+  if (route.path === '/login' || route.path === '/signup') {
+    router.push('/dashboard')
+  }
+}
+
+function onLoggedOut() {
+  if (route.path === '/profile') {
+    router.push('/dashboard')
+  }
+}
+
+// Watch routes for dedicated /login, /signup, /profile URLs
+watch(
+  () => route.path,
+  (path) => {
+    if (path === '/login') {
+      openAuthModal('signin')
+    } else if (path === '/signup') {
+      openAuthModal('signup')
+    } else if (path === '/profile') {
+      if (authStore.isAuthenticated) {
+        openProfileModal()
+      } else {
+        openAuthModal('signin')
+      }
+    }
+  },
+  { immediate: true }
+)
 
 // Synchronize currentTab when route URL changes (e.g. phone back/forward button or bookmark)
 watch(
@@ -660,6 +886,7 @@ import {
 } from '@/services/service.js'
 
 onMounted(() => {
+  authStore.init()
   window.addEventListener('touchstart', handleTouchStart, { passive: true })
   window.addEventListener('touchend', handleTouchEnd, { passive: true })
   window.addEventListener('pointerdown', handlePointerDown)
