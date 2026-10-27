@@ -1,5 +1,11 @@
 <template>
-  <div class="mobile-viewport">
+  <!-- Restrict User Access: Render LoginView component if not logged in -->
+  <LoginView
+    v-if="!authStore.isAuthenticated"
+    @login-success="onLoginSuccess"
+  />
+
+  <div v-else class="mobile-viewport">
     <!-- Left Navigation Drawer (Sidebar) -->
     <v-navigation-drawer
       v-model="drawer"
@@ -270,7 +276,7 @@
           v-else
           rounded="lg"
           class="mb-1"
-          @click="openAuthModal('signin')"
+          @click="router.push('/login')"
         >
           <template #prepend>
             <v-icon icon="mdi-login" class="mr-2 text-primary" size="20" />
@@ -524,7 +530,7 @@
             class="ml-1 px-2.5 font-weight-bold text-capitalize"
             prepend-icon="mdi-login"
             title="Sign in or register"
-            @click="openAuthModal('signin')"
+            @click="router.push('/login')"
           >
             Log In
           </v-btn>
@@ -639,13 +645,6 @@
       <!-- Global Profile Switcher Dialog -->
       <ProfileSwitcher v-model="profileSwitcherOpen" />
 
-      <!-- Global Auth Modal (Login / Signup) -->
-      <AuthModal
-        v-model="authModalOpen"
-        :default-tab="authModalTab"
-        @auth-success="onAuthSuccess"
-      />
-
       <!-- Global User Profile Modal (Profile details & Logout) -->
       <UserProfileModal
         v-model="profileModalOpen"
@@ -670,8 +669,8 @@ import ShoppingList from '@/components/ShoppingList.vue'
 import TagsManager from '@/components/TagsManager.vue'
 import ReturnGiftsManager from '@/components/ReturnGiftsManager.vue'
 import ProfileSwitcher from '@/components/ProfileSwitcher.vue'
-import AuthModal from '@/components/AuthModal.vue'
 import UserProfileModal from '@/components/UserProfileModal.vue'
+import LoginView from '@/components/LoginView.vue'
 import { useAppStore } from '@/stores/app'
 import { useTodoStore } from '@/stores/todos'
 import { useFamilyStore } from '@/stores/family'
@@ -708,8 +707,6 @@ function getTabFromPath(path: string): TabModule {
 
 const currentTab = ref<TabModule>(getTabFromPath(route.path))
 const profileSwitcherOpen = ref(false)
-const authModalOpen = ref(false)
-const authModalTab = ref<'signin' | 'signup'>('signin')
 const profileModalOpen = ref(false)
 
 const drawer = toRef(appStore, 'leftDrawer')
@@ -717,14 +714,7 @@ const drawer = toRef(appStore, 'leftDrawer')
 // Maintain back button history for left drawer & dialogs
 useModalBack(drawer, 'mainNavDrawer')
 useModalBack(profileSwitcherOpen, 'profileSwitcherModal')
-useModalBack(authModalOpen, 'authModal')
 useModalBack(profileModalOpen, 'userProfileModal')
-
-function openAuthModal(tab: 'signin' | 'signup' = 'signin') {
-  authModalTab.value = tab
-  authModalOpen.value = true
-  drawer.value = false
-}
 
 function openProfileModal() {
   profileModalOpen.value = true
@@ -733,34 +723,29 @@ function openProfileModal() {
 
 async function handleLogout() {
   await authStore.signOut()
+  profileModalOpen.value = false
   drawer.value = false
+  router.push('/login')
 }
 
-function onAuthSuccess() {
-  if (route.path === '/login' || route.path === '/signup') {
-    router.push('/dashboard')
-  }
+function onLoginSuccess() {
+  router.push('/dashboard')
 }
 
 function onLoggedOut() {
-  if (route.path === '/profile') {
-    router.push('/dashboard')
-  }
+  profileModalOpen.value = false
+  router.push('/login')
 }
 
-// Watch routes for dedicated /login, /signup, /profile URLs
+// Watch routes for dedicated /profile URL
 watch(
   () => route.path,
   (path) => {
-    if (path === '/login') {
-      openAuthModal('signin')
-    } else if (path === '/signup') {
-      openAuthModal('signup')
-    } else if (path === '/profile') {
+    if (path === '/profile') {
       if (authStore.isAuthenticated) {
         openProfileModal()
       } else {
-        openAuthModal('signin')
+        router.push('/login')
       }
     }
   },

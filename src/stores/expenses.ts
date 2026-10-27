@@ -1,62 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { ExpenseItem, ExpenseCategory } from '@/types'
-import { edgeCrud } from '@/lib/supabase'
+import { edgeCrud, getUserStorageKey } from '@/lib/supabase'
 
 const STORAGE_KEY = 'expenses_store_v3'
 
-const initialExpenses: ExpenseItem[] = [
-  {
-    id: 'e1111111-1111-4111-8111-111111111111',
-    title: 'Wedding Reception Venue Deposit',
-    amount: 1500.0,
-    category: 'Other',
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    date: new Date().toISOString().split('T')[0],
-    tags: ['Brother Marriage', 'Family Event'],
-    notes: 'Advance booking for Grand Ballroom',
-  },
-  {
-    id: 'e2222222-2222-4222-8222-222222222222',
-    title: 'Traditional Wedding Attire & Suits',
-    amount: 620.0,
-    category: 'Shopping',
-    memberId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
-    date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0],
-    tags: ['Brother Marriage'],
-    notes: 'Designer wear for the ceremony',
-  },
-  {
-    id: 'e3333333-3333-4333-8333-333333333333',
-    title: 'Catering Advance Tasting Menu',
-    amount: 350.0,
-    category: 'Dining',
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    date: new Date(Date.now() - 86400000 * 4).toISOString().split('T')[0],
-    tags: ['Brother Marriage'],
-    notes: 'Menu finalized with chef',
-  },
-  {
-    id: 'e4444444-4444-4444-8444-444444444444',
-    title: 'Supermarket Groceries',
-    amount: 84.5,
-    category: 'Groceries',
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    date: new Date().toISOString().split('T')[0],
-    tags: ['Household'],
-    notes: 'Weekly pantry refill',
-  },
-]
+const initialExpenses: ExpenseItem[] = []
 
 export const useExpensesStore = defineStore('expenses', () => {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  const expenses = ref<ExpenseItem[]>(stored ? JSON.parse(stored) : initialExpenses)
+  const stored = localStorage.getItem(getUserStorageKey(STORAGE_KEY))
+  const expenses = ref<ExpenseItem[]>(stored ? JSON.parse(stored) : [])
   const isSyncing = ref(false)
 
   watch(
     expenses,
     (newVal) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newVal))
+      localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(newVal))
     },
     { deep: true }
   )
@@ -149,7 +108,7 @@ export const useExpensesStore = defineStore('expenses', () => {
     try {
       isSyncing.value = true
       const remote = await edgeCrud.list<any>('expenses')
-      if (remote && remote.length > 0) {
+      if (Array.isArray(remote)) {
         expenses.value = remote.map((r) => ({
           id: r.id,
           title: r.title,
@@ -160,6 +119,7 @@ export const useExpensesStore = defineStore('expenses', () => {
           tags: Array.isArray(r.tags) ? r.tags : [],
           notes: r.notes || '',
         }))
+        localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(expenses.value))
       }
     } catch (e) {
       console.warn('Failed to fetch expenses from Edge Function:', e)

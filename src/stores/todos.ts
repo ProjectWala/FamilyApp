@@ -1,62 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { TodoItem, Priority } from '@/types'
-import { edgeCrud } from '@/lib/supabase'
+import { edgeCrud, getUserStorageKey } from '@/lib/supabase'
 
 const STORAGE_KEY = 'todos_store_v2'
 
-const initialTodos: TodoItem[] = [
-  {
-    id: '11111111-1111-4111-8111-111111111111',
-    title: 'Buy fresh groceries & vegetables',
-    completed: false,
-    priority: 'high',
-    category: 'Groceries',
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    dueDate: new Date().toISOString().split('T')[0],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '22222222-2222-4222-8222-222222222222',
-    title: 'Review quarterly electric & water bills',
-    completed: false,
-    priority: 'medium',
-    category: 'Utilities',
-    memberId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '33333333-3333-4333-8333-333333333333',
-    title: 'Plan weekend family dinner',
-    completed: true,
-    priority: 'low',
-    category: 'Family',
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    dueDate: new Date().toISOString().split('T')[0],
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '44444444-4444-4444-8444-444444444444',
-    title: 'Schedule dentist checkup for Leo',
-    completed: false,
-    priority: 'high',
-    category: 'Health',
-    memberId: 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33',
-    dueDate: new Date(Date.now() + 86400000 * 4).toISOString().split('T')[0],
-    createdAt: new Date().toISOString(),
-  },
-]
+const initialTodos: TodoItem[] = []
 
 export const useTodoStore = defineStore('todos', () => {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  const todos = ref<TodoItem[]>(stored ? JSON.parse(stored) : initialTodos)
+  const stored = localStorage.getItem(getUserStorageKey(STORAGE_KEY))
+  const todos = ref<TodoItem[]>(stored ? JSON.parse(stored) : [])
   const isSyncing = ref(false)
 
   watch(
     todos,
     (newVal) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newVal))
+      localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(newVal))
     },
     { deep: true }
   )
@@ -69,7 +28,7 @@ export const useTodoStore = defineStore('todos', () => {
     try {
       isSyncing.value = true
       const remote = await edgeCrud.list<any>('todos')
-      if (remote && remote.length > 0) {
+      if (Array.isArray(remote)) {
         todos.value = remote.map((r) => ({
           id: r.id,
           title: r.title,
@@ -80,6 +39,7 @@ export const useTodoStore = defineStore('todos', () => {
           memberId: r.member_id || undefined,
           createdAt: r.created_at || new Date().toISOString(),
         }))
+        localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(todos.value))
       }
     } catch (e) {
       console.warn('Failed to fetch todos from Edge Function:', e)

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { ShoppingItem, ShoppingProduct, ShoppingPriority } from '@/types'
-import { edgeCrud } from '@/lib/supabase'
+import { edgeCrud, getUserStorageKey } from '@/lib/supabase'
 
 const ITEMS_STORAGE_KEY = 'shopping_list_v1'
 const CATALOG_STORAGE_KEY = 'shopping_products_catalog_v1'
@@ -35,61 +35,12 @@ const initialCatalog: ShoppingProduct[] = [
   { name: 'Green Tea (25 bags)', defaultPrice: 180, defaultQuantity: 1, defaultTag: 'Beverages' },
 ]
 
-const initialShoppingItems: ShoppingItem[] = [
-  {
-    id: 's1111111-1111-4111-8111-111111111111',
-    productName: 'Organic Whole Milk (1L)',
-    price: 65,
-    quantity: 2,
-    tags: ['Groceries', 'Dairy'],
-    priority: 'high',
-    isPurchased: false,
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    notes: 'Low fat or whole milk',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 's2222222-2222-4222-8222-222222222222',
-    productName: 'Dishwashing Liquid (500ml)',
-    price: 110,
-    quantity: 1,
-    tags: ['Household'],
-    priority: 'urgent',
-    isPurchased: false,
-    memberId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
-    notes: 'Kitchen sink running out',
-    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-  },
-  {
-    id: 's3333333-3333-4333-8333-333333333333',
-    productName: 'Basmati Rice (5kg)',
-    price: 450,
-    quantity: 1,
-    tags: ['Pantry'],
-    priority: 'medium',
-    isPurchased: true,
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    notes: 'Bought from Supermarket',
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: 's4444444-4444-4444-8444-444444444444',
-    productName: 'Almonds (500g)',
-    price: 420,
-    quantity: 1,
-    tags: ['Snacks', 'Pantry'],
-    priority: 'low',
-    isPurchased: false,
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    notes: 'Raw unsalted',
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-  },
-]
+const initialShoppingItems: ShoppingItem[] = []
 
 export const useShoppingStore = defineStore('shopping', () => {
   // 1. Stored state
-  const storedItems = localStorage.getItem(ITEMS_STORAGE_KEY)
-  const items = ref<ShoppingItem[]>(storedItems ? JSON.parse(storedItems) : initialShoppingItems)
+  const storedItems = localStorage.getItem(getUserStorageKey(ITEMS_STORAGE_KEY))
+  const items = ref<ShoppingItem[]>(storedItems ? JSON.parse(storedItems) : [])
 
   const storedCatalog = localStorage.getItem(CATALOG_STORAGE_KEY)
   const catalogProducts = ref<ShoppingProduct[]>(storedCatalog ? JSON.parse(storedCatalog) : initialCatalog)
@@ -107,7 +58,7 @@ export const useShoppingStore = defineStore('shopping', () => {
   watch(
     items,
     (val) => {
-      localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(val))
+      localStorage.setItem(getUserStorageKey(ITEMS_STORAGE_KEY), JSON.stringify(val))
     },
     { deep: true }
   )

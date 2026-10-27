@@ -88,6 +88,36 @@ export interface GuestItem {
   updatedAt?: string
 }
 
+export type EventRsvpStatus = 'invited' | 'confirmed' | 'pending' | 'declined'
+
+export interface EventGuestInvite {
+  guestId: string
+  name: string
+  phone?: string
+  email?: string
+  group?: string
+  tags?: string[]
+  additionalGuests?: number
+  rsvpStatus: EventRsvpStatus
+  invitationSent?: boolean
+  notes?: string
+}
+
+export interface EventItem {
+  id: string
+  title: string
+  description?: string
+  date: string
+  time?: string
+  location?: string
+  category?: string
+  color?: string
+  invitedGuests: EventGuestInvite[]
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
 export type ShoppingPriority = 'urgent' | 'high' | 'medium' | 'low'
 
 export interface ShoppingProduct {

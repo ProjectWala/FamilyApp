@@ -1,7 +1,35 @@
 <template>
   <div class="guestlist-container">
-    <!-- 1. Header Card with Gradient & Quick Stats -->
-    <v-card class="mb-4 rounded-lg elevation-0 overflow-hidden bg-surface card-hover-border border">
+    <!-- Top-Level Tab Switcher: All Guests vs Event Lists -->
+    <v-card class="mb-4 rounded-lg elevation-0 bg-surface border overflow-hidden">
+      <v-tabs
+        v-model="guestSectionTab"
+        color="primary"
+        grow
+        density="comfortable"
+        class="guestlist-nav-tabs"
+      >
+        <v-tab value="all_guests" class="font-weight-bold text-capitalize py-3">
+          <v-icon icon="mdi-account-multiple-check-outline" size="18" class="mr-2" />
+          All Guests
+          <v-chip size="x-small" variant="tonal" color="primary" class="ml-2 font-weight-bold">
+            {{ guestsStore.totalGuests }}
+          </v-chip>
+        </v-tab>
+        <v-tab value="events" class="font-weight-bold text-capitalize py-3">
+          <v-icon icon="mdi-calendar-star-outline" size="18" class="mr-2" />
+          Event Lists &amp; Invites
+          <v-chip size="x-small" variant="tonal" color="secondary" class="ml-2 font-weight-bold">
+            {{ eventsStore.totalEvents }}
+          </v-chip>
+        </v-tab>
+      </v-tabs>
+    </v-card>
+
+    <!-- TAB 1: ALL GUESTS (Existing View) -->
+    <div v-show="guestSectionTab === 'all_guests'">
+      <!-- 1. Header Card with Gradient & Quick Stats -->
+      <v-card class="mb-4 rounded-lg elevation-0 overflow-hidden bg-surface card-hover-border border">
       <!-- Gradient Header Bar -->
       <div
         class="pa-4 text-white position-relative"
@@ -970,6 +998,12 @@
         </v-card>
       </div>
     </div>
+    </div>
+
+    <!-- TAB 2: EVENT LIST (Invite / Add Database Guests) -->
+    <div v-show="guestSectionTab === 'events'">
+      <EventList />
+    </div>
 
     <!-- ================================================================= -->
     <!-- 7. ADD / EDIT GUEST MODAL DIALOG                                 -->
@@ -1509,7 +1543,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import EventList from '@/components/EventList.vue'
 import { useGuestsStore } from '@/stores/guests'
+import { useEventsStore } from '@/stores/events'
 import { useModalBack } from '@/composables/useModalBack'
 import type { GuestItem, AccompanyingPerson, ReturnGift, RsvpStatus } from '@/types'
 import {
@@ -1526,6 +1562,8 @@ import {
 } from '@/services/service.js'
 
 const guestsStore = useGuestsStore()
+const eventsStore = useEventsStore()
+const guestSectionTab = ref<'all_guests' | 'events'>('all_guests')
 
 // Collapsible filter panel state & helpers (matching ShoppingList pattern)
 const showFiltersPanel = ref(false)

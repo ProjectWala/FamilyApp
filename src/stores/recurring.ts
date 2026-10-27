@@ -1,70 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { RecurringExpenseItem, Frequency, ExpenseCategory } from '@/types'
-import { edgeCrud } from '@/lib/supabase'
+import { edgeCrud, getUserStorageKey } from '@/lib/supabase'
 
 const STORAGE_KEY = 'recurring_expenses_store_v2'
 
-const initialRecurring: RecurringExpenseItem[] = [
-  {
-    id: 'f1111111-1111-4111-8111-111111111111',
-    title: 'Apartment Rent & Maintenance',
-    amount: 1100,
-    frequency: 'monthly',
-    category: 'Utilities',
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    billingDay: 1,
-    nextDueDate: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split('T')[0],
-    isActive: true,
-    notes: 'Direct auto-debit on 1st',
-  },
-  {
-    id: 'f2222222-2222-4222-8222-222222222222',
-    title: 'Streaming & Entertainment Bundle',
-    amount: 24.99,
-    frequency: 'monthly',
-    category: 'Entertainment',
-    memberId: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22',
-    billingDay: 15,
-    nextDueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 15).toISOString().split('T')[0],
-    isActive: true,
-    notes: 'Netflix + Spotify Family',
-  },
-  {
-    id: 'f3333333-3333-4333-8333-333333333333',
-    title: 'Family Health Insurance',
-    amount: 220,
-    frequency: 'monthly',
-    category: 'Health',
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    billingDay: 20,
-    nextDueDate: new Date(new Date().getFullYear(), new Date().getMonth(), 20).toISOString().split('T')[0],
-    isActive: true,
-    notes: 'Comprehensive plan',
-  },
-  {
-    id: 'f4444444-4444-4444-8444-444444444444',
-    title: 'Cloud Backup Storage',
-    amount: 35.88,
-    frequency: 'yearly',
-    category: 'Utilities',
-    memberId: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    billingDay: 10,
-    nextDueDate: '2026-11-10',
-    isActive: false,
-    notes: 'Annual renew',
-  },
-]
+const initialRecurring: RecurringExpenseItem[] = []
 
 export const useRecurringStore = defineStore('recurring', () => {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  const items = ref<RecurringExpenseItem[]>(stored ? JSON.parse(stored) : initialRecurring)
+  const stored = localStorage.getItem(getUserStorageKey(STORAGE_KEY))
+  const items = ref<RecurringExpenseItem[]>(stored ? JSON.parse(stored) : [])
   const isSyncing = ref(false)
 
   watch(
     items,
     (newVal) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newVal))
+      localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(newVal))
     },
     { deep: true }
   )
@@ -85,7 +36,7 @@ export const useRecurringStore = defineStore('recurring', () => {
     try {
       isSyncing.value = true
       const remote = await edgeCrud.list<any>('recurring_expenses')
-      if (remote && remote.length > 0) {
+      if (Array.isArray(remote)) {
         items.value = remote.map((r) => ({
           id: r.id,
           title: r.title,
@@ -99,6 +50,7 @@ export const useRecurringStore = defineStore('recurring', () => {
           tags: Array.isArray(r.tags) ? r.tags : [],
           notes: r.notes || '',
         }))
+        localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(items.value))
       }
     } catch (e) {
       console.warn('Failed to fetch recurring expenses from Edge Function:', e)

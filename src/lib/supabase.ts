@@ -15,14 +15,41 @@ export type SupportedResource =
   | 'guests'
   | 'shopping_list'
   | 'shopping_products'
+  | 'events'
 
 /**
- * Universal client helper for calling the Supabase Edge Function
+ * Returns current logged in user ID from local cached auth state
+ */
+export function getCurrentUserId(): string | null {
+  try {
+    const raw = localStorage.getItem('family_app_auth_user')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed?.id) return parsed.id
+    }
+  } catch (e) {
+    // Ignore JSON parse errors
+  }
+  return null
+}
+
+/**
+ * Scopes local storage keys by current user ID for complete multi-user data isolation
+ */
+export function getUserStorageKey(baseKey: string): string {
+  const uid = getCurrentUserId()
+  return uid ? `${baseKey}_${uid}` : baseKey
+}
+
+/**
+ * Universal client helper for calling the Supabase Edge Function with user_id data segregation
  */
 export const edgeCrud = {
-  async list<T>(resource: SupportedResource): Promise<T[]> {
+  async list<T>(resource: SupportedResource, userId?: string): Promise<T[]> {
     try {
-      const res = await fetch(`${EDGE_FUNCTION_URL}?resource=${resource}`, {
+      const uid = userId || getCurrentUserId()
+      const queryParam = uid ? `&userId=${encodeURIComponent(uid)}` : ''
+      const res = await fetch(`${EDGE_FUNCTION_URL}?resource=${resource}${queryParam}`, {
         headers: {
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -39,16 +66,20 @@ export const edgeCrud = {
     }
   },
 
-  async create<T>(resource: SupportedResource, data: Record<string, any>): Promise<T | null> {
+  async create<T>(resource: SupportedResource, data: Record<string, any>, userId?: string): Promise<T | null> {
     try {
-      const res = await fetch(`${EDGE_FUNCTION_URL}?resource=${resource}`, {
+      const uid = userId || getCurrentUserId()
+      const queryParam = uid ? `&userId=${encodeURIComponent(uid)}` : ''
+      const payload = uid && !data.user_id ? { ...data, user_id: uid } : data
+
+      const res = await fetch(`${EDGE_FUNCTION_URL}?resource=${resource}${queryParam}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           apikey: SUPABASE_ANON_KEY,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
       const json = await res.json()
       return json.success ? (json.data as T) : null
@@ -61,10 +92,14 @@ export const edgeCrud = {
   async update<T>(
     resource: SupportedResource,
     id: string,
-    data: Record<string, any>
+    data: Record<string, any>,
+    userId?: string
   ): Promise<T | null> {
     try {
-      const res = await fetch(`${EDGE_FUNCTION_URL}?resource=${resource}&id=${id}`, {
+      const uid = userId || getCurrentUserId()
+      const queryParam = uid ? `&userId=${encodeURIComponent(uid)}` : ''
+
+      const res = await fetch(`${EDGE_FUNCTION_URL}?resource=${resource}&id=${id}${queryParam}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -81,9 +116,12 @@ export const edgeCrud = {
     }
   },
 
-  async delete(resource: SupportedResource, id: string): Promise<boolean> {
+  async delete(resource: SupportedResource, id: string, userId?: string): Promise<boolean> {
     try {
-      const res = await fetch(`${EDGE_FUNCTION_URL}?resource=${resource}&id=${id}`, {
+      const uid = userId || getCurrentUserId()
+      const queryParam = uid ? `&userId=${encodeURIComponent(uid)}` : ''
+
+      const res = await fetch(`${EDGE_FUNCTION_URL}?resource=${resource}&id=${id}${queryParam}`, {
         method: 'DELETE',
         headers: {
           apikey: SUPABASE_ANON_KEY,

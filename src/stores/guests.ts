@@ -1,66 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { GuestItem, ReturnGift, AccompanyingPerson, RsvpStatus } from '@/types'
-import { edgeCrud } from '@/lib/supabase'
+import { edgeCrud, getUserStorageKey } from '@/lib/supabase'
 
 const STORAGE_KEY = 'guests_store_v1'
 const GUEST_NAMES_KEY = 'guests_catalog_names_v1'
 const GIFT_PRESETS_KEY = 'guests_gift_presets_v1'
 const GUEST_TAGS_KEY = 'guests_tags_catalog_v1'
 
-const initialGuests: GuestItem[] = [
-  {
-    id: '35b86327-1737-45a7-af2f-61582e8e0a78',
-    name: 'Vikram & Ananya Sharma',
-    phone: '+91 98765 43210',
-    email: 'vikram.sharma@example.com',
-    group: 'Family',
-    tags: ['VIP', 'Family Event'],
-    rsvpStatus: 'confirmed',
-    additionalGuests: 2,
-    accompanyingPersons: [
-      { name: 'Ananya Sharma', relation: 'Spouse' },
-      { name: 'Aarav Sharma', relation: 'Son' },
-    ],
-    returnGifts: [
-      { name: 'Silver Coin (10g)', price: 2500 },
-      { name: 'Royal Mithai Box', price: 450 },
-    ],
-    returnGiftGiven: false,
-    notes: 'Close family arriving from Delhi on Friday',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '46c97438-2848-46b8-bf3f-72693f9f1b89',
-    name: 'Priya Patel',
-    phone: '+91 98123 45678',
-    email: 'priya.patel@example.com',
-    group: 'Relatives',
-    tags: ['Outstation'],
-    rsvpStatus: 'confirmed',
-    additionalGuests: 1,
-    accompanyingPersons: [{ name: 'Kavita Patel', relation: 'Sister' }],
-    returnGifts: [{ name: 'Silk Stole & Scarf', price: 1200 }],
-    returnGiftGiven: false,
-    notes: 'Requires ground floor seating',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '57da8549-3959-47c9-ca4a-837a4a0a2c90',
-    name: 'Rahul & Meera Verma',
-    phone: '+91 97234 56789',
-    email: 'rahul.v@example.com',
-    group: 'Friends',
-    tags: ['College', 'Outstation'],
-    rsvpStatus: 'confirmed',
-    additionalGuests: 1,
-    accompanyingPersons: [{ name: 'Meera Verma', relation: 'Spouse' }],
-    returnGifts: [{ name: 'Sweets & Dry Fruits Hamper', price: 650 }],
-    returnGiftGiven: false,
-    notes: 'Staying at Hotel Novotel',
-    createdAt: new Date().toISOString(),
-  },
-]
+const initialGuests: GuestItem[] = []
 
 export const defaultGuestGroups = [
   'Family',
@@ -99,7 +47,7 @@ export const defaultGiftPresets: ReturnGift[] = [
 
 export const useGuestsStore = defineStore('guests', () => {
   // 1. Stored guests
-  const stored = localStorage.getItem(STORAGE_KEY)
+  const stored = localStorage.getItem(getUserStorageKey(STORAGE_KEY))
   let rawGuests: GuestItem[] = []
   try {
     const parsed = stored ? JSON.parse(stored) : null
@@ -123,6 +71,14 @@ export const useGuestsStore = defineStore('guests', () => {
       rsvpStatus: g.rsvpStatus || 'confirmed',
       group: g.group || 'General',
     }))
+  )
+
+  watch(
+    guests,
+    (newVal) => {
+      localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(newVal))
+    },
+    { deep: true }
   )
 
   // Persisted Return Gift presets
@@ -587,7 +543,7 @@ export const useGuestsStore = defineStore('guests', () => {
     try {
       isSyncing.value = true
       const remote = await edgeCrud.list<any>('guests')
-      if (remote && remote.length > 0) {
+      if (Array.isArray(remote)) {
         const remoteGuests: GuestItem[] = remote.map((r) => ({
           id: r.id,
           name: r.name,
@@ -606,6 +562,7 @@ export const useGuestsStore = defineStore('guests', () => {
         }))
 
         guests.value = remoteGuests
+        localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(remoteGuests))
         // Also register all remote names into catalog
         remoteGuests.forEach((g) => {
           recordGuestName(g.name)

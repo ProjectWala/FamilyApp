@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import type { FamilyMember } from '@/types'
-import { edgeCrud } from '@/lib/supabase'
+import { edgeCrud, getUserStorageKey } from '@/lib/supabase'
 
 const STORAGE_KEY = 'family_members_store_v2'
 const ACTIVE_MEMBER_KEY = 'active_family_member_id_v2'
@@ -34,7 +34,7 @@ const initialMembers: FamilyMember[] = [
 ]
 
 export const useFamilyStore = defineStore('family', () => {
-  const stored = localStorage.getItem(STORAGE_KEY)
+  const stored = localStorage.getItem(getUserStorageKey(STORAGE_KEY))
   const rawMembers: FamilyMember[] = stored ? JSON.parse(stored) : initialMembers
   const members = ref<FamilyMember[]>(
     rawMembers.map((m) => ({
@@ -45,7 +45,7 @@ export const useFamilyStore = defineStore('family', () => {
   )
   const isSyncing = ref(false)
 
-  const storedActiveId = localStorage.getItem(ACTIVE_MEMBER_KEY)
+  const storedActiveId = localStorage.getItem(getUserStorageKey(ACTIVE_MEMBER_KEY))
   const activeMemberId = ref<string>(
     storedActiveId && members.value.some((m) => m.id === storedActiveId)
       ? storedActiveId
@@ -55,7 +55,7 @@ export const useFamilyStore = defineStore('family', () => {
   watch(
     members,
     (newVal) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newVal))
+      localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(newVal))
       if (!newVal.some((m) => m.id === activeMemberId.value) && newVal.length > 0) {
         setActiveMember(newVal[0].id)
       }
@@ -76,7 +76,7 @@ export const useFamilyStore = defineStore('family', () => {
   function setActiveMember(id: string) {
     if (members.value.some((m) => m.id === id)) {
       activeMemberId.value = id
-      localStorage.setItem(ACTIVE_MEMBER_KEY, id)
+      localStorage.setItem(getUserStorageKey(ACTIVE_MEMBER_KEY), id)
     }
   }
 
@@ -84,15 +84,51 @@ export const useFamilyStore = defineStore('family', () => {
     try {
       isSyncing.value = true
       const remote = await edgeCrud.list<any>('family_members')
-      if (remote && remote.length > 0) {
-        members.value = remote.map((r) => ({
-          id: r.id,
-          name: r.name,
-          role: r.role || 'Primary',
-          avatarColor: r.avatar_color || '#6366F1',
-          avatarIcon: r.avatar_icon || 'mdi-account',
-          monthlyBudget: Number(r.monthly_budget) || 0,
-        }))
+      if (Array.isArray(remote)) {
+        if (remote.length > 0) {
+          members.value = remote.map((r) => ({
+            id: r.id,
+            name: r.name,
+            role: r.role || 'Primary',
+            avatarColor: r.avatar_color || '#6366F1',
+            avatarIcon: r.avatar_icon || 'mdi-account',
+            monthlyBudget: Number(r.monthly_budget) || 0,
+          }))
+        } else {
+          const cached = localStorage.getItem(getUserStorageKey(STORAGE_KEY))
+          if (cached) {
+            try {
+              members.value = JSON.parse(cached)
+            } catch (e) {
+              members.value = []
+            }
+          } else {
+            // New user without members: seed default primary member
+            const authUserRaw = localStorage.getItem('family_app_auth_user')
+            const userName = authUserRaw ? JSON.parse(authUserRaw).name || 'Me' : 'Me'
+            const defaultMember: FamilyMember = {
+              id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'fam-' + Date.now(),
+              name: userName,
+              role: 'Primary',
+              avatarColor: '#4F46E5',
+              avatarIcon: 'mdi-account',
+              monthlyBudget: 1500,
+            }
+            members.value = [defaultMember]
+            edgeCrud.create('family_members', {
+              id: defaultMember.id,
+              name: defaultMember.name,
+              role: defaultMember.role,
+              avatar_color: defaultMember.avatarColor,
+              avatar_icon: defaultMember.avatarIcon,
+              monthly_budget: defaultMember.monthlyBudget,
+            })
+          }
+        }
+        localStorage.setItem(getUserStorageKey(STORAGE_KEY), JSON.stringify(members.value))
+        if (!members.value.some((m) => m.id === activeMemberId.value) && members.value.length > 0) {
+          setActiveMember(members.value[0].id)
+        }
       }
     } catch (e) {
       console.warn('Failed to fetch family members from Edge Function:', e)

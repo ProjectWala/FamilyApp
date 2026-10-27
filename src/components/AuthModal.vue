@@ -96,35 +96,52 @@
           v-model="isSignInValid"
           @submit.prevent="handleSignIn"
         >
-          <v-text-field
-            v-model="signInData.email"
-            label="Email Address"
-            placeholder="e.g. member@family.com"
-            type="email"
-            prepend-inner-icon="mdi-email-outline"
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            class="mb-3"
-            autocomplete="email"
-            :rules="[rules.required, rules.email]"
-          />
+          <!-- Email Address Field with External Label -->
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-darkText mb-1.5 d-flex align-center">
+              <span>Email Address</span>
+              <span class="text-error ml-1">*</span>
+            </div>
+            <v-text-field
+              v-model="signInData.email"
+              placeholder="e.g. member@family.com"
+              type="email"
+              prepend-inner-icon="mdi-email-outline"
+              variant="outlined"
+              density="comfortable"
+              rounded="lg"
+              hide-details="auto"
+              autocomplete="email"
+              :rules="[rules.required, rules.email]"
+            />
+          </div>
 
-          <v-text-field
-            v-model="signInData.password"
-            label="Password"
-            placeholder="Enter your password"
-            :type="showPassword ? 'text' : 'password'"
-            prepend-inner-icon="mdi-lock-outline"
-            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            class="mb-1"
-            autocomplete="current-password"
-            :rules="[rules.required, rules.min6]"
-            @click:append-inner="showPassword = !showPassword"
-          />
+          <!-- Password Field with External Label -->
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-darkText mb-1.5 d-flex align-center justify-space-between">
+              <div class="d-flex align-center">
+                <span>Password</span>
+                <span class="text-error ml-1">*</span>
+              </div>
+              <span class="text-caption text-primary cursor-pointer font-weight-medium" @click="fillSampleCredentials">
+                Use test email?
+              </span>
+            </div>
+            <v-text-field
+              v-model="signInData.password"
+              placeholder="Enter your password"
+              :type="showPassword ? 'text' : 'password'"
+              prepend-inner-icon="mdi-lock-outline"
+              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              variant="outlined"
+              density="comfortable"
+              rounded="lg"
+              hide-details="auto"
+              autocomplete="current-password"
+              :rules="[rules.required, rules.min6]"
+              @click:append-inner="showPassword = !showPassword"
+            />
+          </div>
 
           <div class="d-flex align-center justify-space-between mb-4">
             <v-checkbox
@@ -135,9 +152,6 @@
               hide-details
               class="text-caption"
             />
-            <span class="text-caption text-primary cursor-pointer font-weight-medium" @click="fillSampleCredentials">
-              Use test email?
-            </span>
           </div>
 
           <v-btn
@@ -199,86 +213,108 @@
           v-model="isSignUpValid"
           @submit.prevent="handleSignUp"
         >
-          <v-text-field
-            v-model="signUpData.name"
-            label="Full Name"
-            placeholder="e.g. Aarav Sharma"
-            prepend-inner-icon="mdi-account-outline"
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            class="mb-3"
-            :rules="[rules.required]"
-          />
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-darkText mb-1.5 d-flex align-center">
+              <span>Full Name</span>
+              <span class="text-error ml-1">*</span>
+            </div>
+            <v-text-field
+              v-model="signUpData.name"
+              placeholder="e.g. Aarav Sharma"
+              prepend-inner-icon="mdi-account-outline"
+              variant="outlined"
+              density="comfortable"
+              rounded="lg"
+              hide-details="auto"
+              :rules="[rules.required]"
+            />
+          </div>
 
-          <v-text-field
-            v-model="signUpData.email"
-            label="Email Address"
-            placeholder="e.g. aarav@familyapp.io"
-            type="email"
-            prepend-inner-icon="mdi-email-outline"
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            class="mb-3"
-            autocomplete="email"
-            :rules="[rules.required, rules.email]"
-          />
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-darkText mb-1.5 d-flex align-center">
+              <span>Email Address</span>
+              <span class="text-error ml-1">*</span>
+            </div>
+            <v-text-field
+              v-model="signUpData.email"
+              placeholder="e.g. aarav@familyapp.io"
+              type="email"
+              prepend-inner-icon="mdi-email-outline"
+              variant="outlined"
+              density="comfortable"
+              rounded="lg"
+              hide-details="auto"
+              autocomplete="email"
+              :rules="[rules.required, rules.email]"
+            />
+          </div>
 
-          <v-row density="compact" class="mb-1">
+          <v-row density="compact" class="mb-3">
             <v-col cols="12" sm="6">
+              <div class="text-caption font-weight-bold text-darkText mb-1.5">Mobile Phone</div>
               <v-text-field
                 v-model="signUpData.mobile"
-                label="Mobile Phone"
                 placeholder="e.g. 9876543210"
                 prepend-inner-icon="mdi-phone-outline"
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
+                hide-details="auto"
               />
             </v-col>
             <v-col cols="12" sm="6">
+              <div class="text-caption font-weight-bold text-darkText mb-1.5">Family Role</div>
               <v-select
                 v-model="signUpData.role"
-                label="Family Role"
                 :items="familyRoles"
                 prepend-inner-icon="mdi-account-badge-outline"
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
+                hide-details="auto"
               />
             </v-col>
           </v-row>
 
-          <v-text-field
-            v-model="signUpData.password"
-            label="Password"
-            placeholder="At least 6 characters"
-            :type="showPassword ? 'text' : 'password'"
-            prepend-inner-icon="mdi-lock-outline"
-            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            class="mb-3"
-            autocomplete="new-password"
-            :rules="[rules.required, rules.min6]"
-            @click:append-inner="showPassword = !showPassword"
-          />
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-darkText mb-1.5 d-flex align-center">
+              <span>Password</span>
+              <span class="text-error ml-1">*</span>
+            </div>
+            <v-text-field
+              v-model="signUpData.password"
+              placeholder="At least 6 characters"
+              :type="showPassword ? 'text' : 'password'"
+              prepend-inner-icon="mdi-lock-outline"
+              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              variant="outlined"
+              density="comfortable"
+              rounded="lg"
+              hide-details="auto"
+              autocomplete="new-password"
+              :rules="[rules.required, rules.min6]"
+              @click:append-inner="showPassword = !showPassword"
+            />
+          </div>
 
-          <v-text-field
-            v-model="signUpData.confirmPassword"
-            label="Confirm Password"
-            placeholder="Re-enter password"
-            :type="showPassword ? 'text' : 'password'"
-            prepend-inner-icon="mdi-lock-check-outline"
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            class="mb-3"
-            autocomplete="new-password"
-            :rules="[rules.required, rules.passwordMatch]"
-          />
+          <div class="mb-3">
+            <div class="text-caption font-weight-bold text-darkText mb-1.5 d-flex align-center">
+              <span>Confirm Password</span>
+              <span class="text-error ml-1">*</span>
+            </div>
+            <v-text-field
+              v-model="signUpData.confirmPassword"
+              placeholder="Re-enter password"
+              :type="showPassword ? 'text' : 'password'"
+              prepend-inner-icon="mdi-lock-check-outline"
+              variant="outlined"
+              density="comfortable"
+              rounded="lg"
+              hide-details="auto"
+              autocomplete="new-password"
+              :rules="[rules.required, rules.passwordMatch]"
+            />
+          </div>
 
           <!-- Avatar Color Choice -->
           <div class="mb-4">
@@ -530,5 +566,19 @@ async function handleDemoLogin(demo: { name: string; email: string; role: string
 .demo-account-btn {
   font-size: 0.72rem;
   letter-spacing: 0;
+}
+
+/* Ensure browser autofill does not cause awkward background or text contrast */
+:deep(input:-webkit-autofill),
+:deep(input:-webkit-autofill:hover),
+:deep(input:-webkit-autofill:focus),
+:deep(input:-webkit-autofill:active) {
+  -webkit-box-shadow: 0 0 0 1000px #eff6ff inset !important;
+  -webkit-text-fill-color: #1e293b !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+:deep(.v-field__field) {
+  align-items: center;
 }
 </style>
