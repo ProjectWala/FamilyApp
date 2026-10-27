@@ -517,8 +517,19 @@
             </div>
           </div>
 
-          <!-- Actions: Checkbox circle / Edit / Delete -->
+          <!-- Actions: Move to Expenses / Checkbox circle / Edit / Delete -->
           <div class="d-flex align-center ml-2 flex-shrink-0">
+            <v-btn
+              v-if="canMoveToExpenses(item)"
+              icon="mdi-cash-plus"
+              color="success"
+              variant="tonal"
+              size="x-small"
+              rounded="md"
+              class="mr-1"
+              title="Move to Expenses"
+              @click.stop="confirmMoveItem(item)"
+            />
             <v-btn
               :icon="item.isPurchased ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
               :color="item.isPurchased ? 'success' : 'grey'"
@@ -655,8 +666,19 @@
               </div>
             </div>
 
-            <!-- Actions: Checkbox circle / Edit / Delete -->
+            <!-- Actions: Move to Expenses / Checkbox circle / Edit / Delete -->
             <div class="d-flex align-center ml-2 flex-shrink-0">
+              <v-btn
+                v-if="canMoveToExpenses(item)"
+                icon="mdi-cash-plus"
+                color="success"
+                variant="tonal"
+                size="x-small"
+                rounded="md"
+                class="mr-1"
+                title="Move to Expenses"
+                @click.stop="confirmMoveItem(item)"
+              />
               <v-btn
                 :icon="item.isPurchased ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
                 :color="item.isPurchased ? 'success' : 'grey'"
@@ -966,6 +988,48 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Move to Expenses Confirmation Dialog -->
+    <v-dialog v-model="moveConfirmOpen" max-width="420">
+      <v-card class="rounded-xl pa-3 bg-surface">
+        <v-card-title class="d-flex align-center text-subtitle-1 font-weight-bold text-darkText">
+          <v-avatar color="success" variant="tonal" size="32" rounded="md" class="mr-2">
+            <v-icon icon="mdi-cash-plus" size="18" color="success" />
+          </v-avatar>
+          Move to Expenses?
+        </v-card-title>
+        <v-card-text class="py-2 text-body-2 text-lightText">
+          Move <strong class="text-darkText">{{ itemToMove ? `${itemToMove.productName} x${itemToMove.quantity}` : '' }}</strong> to expenses list for
+          <strong class="text-success font-weight-bold">₹{{ itemToMove ? (Number(itemToMove.price) * Number(itemToMove.quantity)).toLocaleString() : 0 }}</strong>?
+          <div class="mt-2 text-caption text-lightText" style="font-size: 0.72rem;">
+            This will record the expense under <strong>Expenses</strong> and remove it from your shopping list.
+          </div>
+        </v-card-text>
+        <v-card-actions class="px-2 pt-2">
+          <v-spacer />
+          <v-btn variant="text" size="small" rounded="lg" @click="moveConfirmOpen = false">Cancel</v-btn>
+          <v-btn
+            color="success"
+            variant="flat"
+            size="small"
+            rounded="lg"
+            class="font-weight-bold text-capitalize"
+            @click="executeMoveToExpenses"
+          >
+            <v-icon icon="mdi-arrow-right" size="14" class="mr-1" />
+            Move to Expenses
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Move Success Snackbar -->
+    <v-snackbar v-model="moveSnackbar" color="success" rounded="lg" timeout="3000">
+      <div class="d-flex align-center">
+        <v-icon icon="mdi-check-circle" size="18" class="mr-2" />
+        <span>{{ moveSnackbarMessage }}</span>
+      </div>
+    </v-snackbar>
   </div>
 </template>
 
@@ -973,7 +1037,8 @@
 import { ref, computed, reactive, watch } from 'vue'
 import { useShoppingStore } from '@/stores/shopping'
 import { useFamilyStore } from '@/stores/family'
-import type { ShoppingItem, ShoppingPriority } from '@/types'
+import { useExpensesStore } from '@/stores/expenses'
+import type { ShoppingItem, ShoppingPriority, ExpenseCategory } from '@/types'
 import {
   getShoppingPriorityColor,
   getShoppingPriorityIcon,
@@ -981,6 +1046,7 @@ import {
 
 const shoppingStore = useShoppingStore()
 const familyStore = useFamilyStore()
+const expensesStore = useExpensesStore()
 
 const showFiltersPanel = ref(false)
 const viewGroupedByTag = ref(false)
@@ -991,6 +1057,11 @@ const formRef = ref<any>(null)
 
 const deleteConfirmOpen = ref(false)
 const itemToDelete = ref<ShoppingItem | null>(null)
+
+const moveConfirmOpen = ref(false)
+const itemToMove = ref<ShoppingItem | null>(null)
+const moveSnackbar = ref(false)
+const moveSnackbarMessage = ref('')
 
 // Form State
 const defaultForm = {
@@ -1117,6 +1188,72 @@ async function executeDeleteItem() {
     deleteConfirmOpen.value = false
     itemToDelete.value = null
   }
+}
+
+function canMoveToExpenses(item: ShoppingItem): boolean {
+  return (Number(item.price) || 0) > 0 && (Number(item.quantity) || 0) > 0
+}
+
+function confirmMoveItem(item: ShoppingItem) {
+  itemToMove.value = item
+  moveConfirmOpen.value = true
+}
+
+async function executeMoveToExpenses() {
+  if (!itemToMove.value) return
+  const item = itemToMove.value
+  const qty = Number(item.quantity) || 1
+  const price = Number(item.price) || 0
+  const expenseAmount = Math.round(price * qty * 100) / 100
+  const expenseTitle = `${item.productName.trim()} x${qty}`
+
+  // Categorize based on item tags
+  let category: ExpenseCategory = 'Shopping'
+  const validCategories: ExpenseCategory[] = [
+    'Groceries',
+    'Utilities',
+    'Dining',
+    'Shopping',
+    'Entertainment',
+    'Health',
+    'Transport',
+    'Other',
+  ]
+  if (Array.isArray(item.tags)) {
+    const matched = validCategories.find((c) =>
+      item.tags.some((t) => t.toLowerCase() === c.toLowerCase())
+    )
+    if (matched) {
+      category = matched
+    } else if (
+      item.tags.some((t) =>
+        ['produce', 'dairy', 'bakery', 'pantry', 'groceries', 'snacks', 'beverages'].includes(
+          t.toLowerCase()
+        )
+      )
+    ) {
+      category = 'Groceries'
+    }
+  }
+
+  // 1. Add expense to expensesStore
+  await expensesStore.addExpense({
+    title: expenseTitle,
+    amount: expenseAmount,
+    category,
+    memberId: item.memberId || familyStore.activeMember.id,
+    date: new Date().toISOString().split('T')[0],
+    tags: Array.isArray(item.tags) ? [...item.tags] : [],
+    notes: item.notes ? `${item.notes} (Moved from Shopping List)` : 'Moved from Shopping List',
+  })
+
+  // 2. Remove from shopping list
+  await shoppingStore.deleteShoppingItem(item.id)
+
+  moveSnackbarMessage.value = `Moved "${expenseTitle}" to Expenses (₹${expenseAmount.toLocaleString()})`
+  moveSnackbar.value = true
+  moveConfirmOpen.value = false
+  itemToMove.value = null
 }
 
 // Filter helpers
