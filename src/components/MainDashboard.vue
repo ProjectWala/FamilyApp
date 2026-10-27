@@ -95,12 +95,13 @@
           variant="outlined"
           elevation="0"
           class="card-hover-border pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between cursor-pointer"
+          style="border-left: 4px solid #1677ff !important;"
           @click="emit('select-module', 'todos')"
         >
           <div>
             <div class="d-flex justify-space-between align-center mb-2">
               <v-avatar color="primary" variant="tonal" size="36" rounded="lg">
-                <v-icon icon="mdi-checkbox-marked-circle-outline" size="20" />
+                <v-icon icon="mdi-checkbox-marked-circle-outline" size="20" color="#1677ff" />
               </v-avatar>
               <v-chip size="small" color="primary" variant="tonal" label rounded="md" class="font-weight-medium border-primary-subtle">
                 {{ todoStore.activeCount }} Left
@@ -114,9 +115,14 @@
             </div>
           </div>
 
-          <div class="d-flex align-center text-primary text-caption font-weight-medium mt-3">
-            <span>Open Tasks</span>
-            <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+          <div class="d-flex align-center justify-space-between text-caption font-weight-medium mt-3">
+            <span class="text-primary font-weight-bold">
+              {{ todoStore.completedCount }} Done
+            </span>
+            <div class="d-flex align-center text-primary">
+              <span>Open Tasks</span>
+              <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+            </div>
           </div>
         </v-card>
       </v-col>
@@ -127,12 +133,13 @@
           variant="outlined"
           elevation="0"
           class="card-hover-border pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between cursor-pointer"
+          style="border-left: 4px solid #ff4d4f !important;"
           @click="emit('select-module', 'expenses')"
         >
           <div>
             <div class="d-flex justify-space-between align-center mb-2">
               <v-avatar color="error" variant="tonal" size="36" rounded="lg">
-                <v-icon icon="mdi-cash-plus" size="20" />
+                <v-icon icon="mdi-cash-plus" size="20" color="#ff4d4f" />
               </v-avatar>
               <v-chip size="small" color="error" variant="tonal" label rounded="md" class="font-weight-medium border-error-subtle">
                 ₹{{ Math.round(expensesStore.thisMonthAmount) }}
@@ -146,9 +153,14 @@
             </div>
           </div>
 
-          <div class="d-flex align-center text-error text-caption font-weight-medium mt-3">
-            <span>Log Spend</span>
-            <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+          <div class="d-flex align-center justify-space-between text-caption font-weight-medium mt-3">
+            <span class="text-error font-weight-bold">
+              Total: ₹{{ Math.round(expensesStore.totalAmount) }}
+            </span>
+            <div class="d-flex align-center text-error">
+              <span>Log Spend</span>
+              <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+            </div>
           </div>
         </v-card>
       </v-col>
@@ -159,15 +171,16 @@
           variant="outlined"
           elevation="0"
           class="card-hover-border pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between cursor-pointer mt-1"
+          style="border-left: 4px solid #13c2c2 !important;"
           @click="emit('select-module', 'family')"
         >
           <div>
             <div class="d-flex justify-space-between align-center mb-2">
               <v-avatar color="info" variant="tonal" size="36" rounded="lg">
-                <v-icon icon="mdi-account-group-outline" size="20" />
+                <v-icon icon="mdi-account-group-outline" size="20" color="#13c2c2" />
               </v-avatar>
               <v-chip size="small" color="info" variant="tonal" label rounded="md" class="font-weight-medium border-info-subtle">
-                {{ familyStore.members.length }}
+                {{ familyStore.members.length }} Members
               </v-chip>
             </div>
             <div class="text-subtitle-2 font-weight-bold text-darkText mb-1">
@@ -178,9 +191,14 @@
             </div>
           </div>
 
-          <div class="d-flex align-center text-info text-caption font-weight-medium mt-3">
-            <span>Manage Squad</span>
-            <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+          <div class="d-flex align-center justify-space-between text-caption font-weight-medium mt-3">
+            <span class="text-info font-weight-bold">
+              Active: {{ familyStore.activeMember.name.split(' ')[0] }}
+            </span>
+            <div class="d-flex align-center text-info">
+              <span>Manage Squad</span>
+              <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+            </div>
           </div>
         </v-card>
       </v-col>
@@ -191,12 +209,13 @@
           variant="outlined"
           elevation="0"
           class="card-hover-border pa-3 rounded-lg bg-surface h-100 d-flex flex-column justify-space-between cursor-pointer mt-1"
+          style="border-left: 4px solid #52c41a !important;"
           @click="emit('select-module', 'recurring')"
         >
           <div>
             <div class="d-flex justify-space-between align-center mb-2">
               <v-avatar color="success" variant="tonal" size="36" rounded="lg">
-                <v-icon icon="mdi-repeat" size="20" />
+                <v-icon icon="mdi-repeat" size="20" color="#52c41a" />
               </v-avatar>
               <v-chip size="small" color="success" variant="tonal" label rounded="md" class="font-weight-medium border-success-subtle">
                 ₹{{ Math.round(recurringStore.activeMonthlyEstimate) }}/mo
@@ -210,9 +229,14 @@
             </div>
           </div>
 
-          <div class="d-flex align-center text-success text-caption font-weight-medium mt-3">
-            <span>View Subscriptions</span>
-            <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+          <div class="d-flex align-center justify-space-between text-caption font-weight-medium mt-3">
+            <span class="text-success font-weight-bold">
+              {{ recurringStore.items.filter(i => i.isActive).length }} Active
+            </span>
+            <div class="d-flex align-center text-success">
+              <span>View Subscriptions</span>
+              <v-icon icon="mdi-arrow-right" size="14" class="ml-1" />
+            </div>
           </div>
         </v-card>
       </v-col>

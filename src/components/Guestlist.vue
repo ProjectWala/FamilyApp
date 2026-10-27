@@ -65,11 +65,11 @@
         </div>
       </div>
 
-      <!-- Quick Stats Metric Grid (2 Rows x 4 Cols) -->
+      <!-- Quick Stats Metric Grid (2 Rows x 2 Cols) -->
       <div class="pa-3 px-4">
-        <div class="stats-overview-grid">
+        <div class="stats-overview-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
           <!-- Col 1: Attending -->
-          <div class="stat-grid-col pr-2 border-e">
+          <div class="stat-grid-col pr-3 border-e">
             <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
               <v-icon icon="mdi-account-group" size="13" class="text-primary mr-1 flex-shrink-0" />
               <span>Attending</span>
@@ -79,30 +79,8 @@
             </div>
           </div>
 
-          <!-- Col 2: Confirmed -->
-          <div class="stat-grid-col px-2 border-e">
-            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
-              <v-icon icon="mdi-check-decagram" size="13" class="text-success mr-1 flex-shrink-0" />
-              <span>Confirmed</span>
-            </div>
-            <div class="text-subtitle-2 font-weight-bold text-success text-truncate">
-              {{ guestsStore.confirmedCount }} <span class="text-caption font-weight-regular text-lightText">guests</span>
-            </div>
-          </div>
-
-          <!-- Col 3: Addon Persons -->
-          <div class="stat-grid-col px-2 border-e">
-            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
-              <v-icon icon="mdi-account-multiple-plus" size="13" class="text-secondary mr-1 flex-shrink-0" />
-              <span>Addon Persons</span>
-            </div>
-            <div class="text-subtitle-2 font-weight-bold text-secondary text-truncate">
-              +{{ totalAddonPersonsCount }} <span class="text-caption font-weight-regular text-lightText">addons</span>
-            </div>
-          </div>
-
-          <!-- Col 4: Return Gifts -->
-          <div class="stat-grid-col pl-2">
+          <!-- Col 2: Return Gifts -->
+          <div class="stat-grid-col pl-3">
             <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
               <v-icon icon="mdi-gift-outline" size="13" class="text-warning mr-1 flex-shrink-0" />
               <span>Return Gifts</span>
@@ -131,7 +109,7 @@
           </v-avatar>
           <div>
             <div class="text-subtitle-2 font-weight-bold text-darkText d-flex align-center">
-              Search, Tags &amp; Filters
+              Tags &amp; Filters
               <v-chip
                 v-if="hasActiveFilters"
                 size="x-small"
@@ -196,10 +174,10 @@
             </div>
             <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
               <v-chip
-                :color="guestsStore.selectedGroup === 'all' ? 'primary' : undefined"
+                :color="guestsStore.selectedGroup === 'all' ? 'primary' : 'secondary'"
                 :variant="guestsStore.selectedGroup === 'all' ? 'flat' : 'outlined'"
                 size="small"
-                class="font-weight-medium cursor-pointer"
+                class="font-weight-medium cursor-pointer filter-gray-chip"
                 @click="guestsStore.selectedGroup = 'all'"
               >
                 All Groups ({{ guestsStore.totalGuests }})
@@ -208,10 +186,10 @@
               <v-chip
                 v-for="grp in guestsStore.allGroups"
                 :key="grp"
-                :color="guestsStore.selectedGroup === grp ? 'primary' : undefined"
+                :color="guestsStore.selectedGroup === grp ? 'primary' : 'secondary'"
                 :variant="guestsStore.selectedGroup === grp ? 'flat' : 'outlined'"
                 size="small"
-                class="font-weight-medium cursor-pointer"
+                class="font-weight-medium cursor-pointer filter-gray-chip"
                 @click="guestsStore.selectedGroup = grp"
               >
                 <v-icon :icon="getGuestGroupIcon(grp)" size="14" class="mr-1" />
@@ -235,10 +213,10 @@
             </div>
             <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
               <v-chip
-                :color="guestsStore.selectedTags.length === 0 ? 'primary' : undefined"
+                :color="guestsStore.selectedTags.length === 0 ? 'primary' : 'secondary'"
                 :variant="guestsStore.selectedTags.length === 0 ? 'flat' : 'outlined'"
                 size="x-small"
-                class="font-weight-medium cursor-pointer"
+                class="font-weight-medium cursor-pointer filter-gray-chip"
                 @click="guestsStore.selectedTags = []; guestsStore.selectedTag = null"
               >
                 All Tags
@@ -247,10 +225,10 @@
               <v-chip
                 v-for="tag in guestsStore.allTags"
                 :key="tag"
-                :color="isTagSelected(tag) ? 'primary' : undefined"
+                :color="isTagSelected(tag) ? 'primary' : 'secondary'"
                 :variant="isTagSelected(tag) ? 'flat' : 'outlined'"
                 size="x-small"
-                class="font-weight-medium cursor-pointer"
+                class="font-weight-medium cursor-pointer filter-gray-chip"
                 @click="guestsStore.toggleTag(tag)"
               >
                 <v-icon icon="mdi-tag" size="11" class="mr-0.5" />
@@ -674,25 +652,6 @@
                   </v-chip>
                 </div>
 
-                <!-- Grouping Tags Chips -->
-                <div
-                  v-if="guest.tags && guest.tags.length > 0"
-                  class="d-flex align-center gap-1 flex-wrap mt-1"
-                >
-                  <v-chip
-                    v-for="tag in guest.tags"
-                    :key="tag"
-                    size="x-small"
-                    variant="outlined"
-                    color="primary"
-                    class="font-weight-medium cursor-pointer"
-                    @click.stop="guestsStore.toggleTag(tag)"
-                  >
-                    <v-icon icon="mdi-tag" size="10" class="mr-0.5" />
-                    #{{ tag }}
-                  </v-chip>
-                </div>
-
                 <!-- FEATURE: RETURN GIFTS SECTION (1 or more gifts same as tags) -->
                 <div class="d-flex align-center gap-1.5 flex-wrap mt-2 pt-1 border-t">
                   <span class="text-caption text-lightText font-weight-bold mr-1" style="font-size: 0.72rem;">
@@ -767,10 +726,31 @@
                   />
                 </div>
 
-                <!-- Expandable Details (Phone, Email, Notes, Full Addon Management) -->
+                <!-- Expandable Details (Tags, Phone, Email, Notes, Full Addon Management) -->
                 <v-expand-transition>
                   <div v-if="isGuestExpanded(guest.id)" class="expand-wrapper">
                     <div class="mt-2 pt-2 border-t">
+                      <!-- Grouping Tags Chips (Displayed on Click with other info) -->
+                      <div
+                        v-if="guest.tags && guest.tags.length > 0"
+                        class="d-flex align-center gap-1 flex-wrap mb-2"
+                      >
+                        <v-icon icon="mdi-tag-outline" size="14" class="text-primary flex-shrink-0" />
+                        <span class="text-caption font-weight-medium text-darkText mr-1">Tags:</span>
+                        <v-chip
+                          v-for="tag in guest.tags"
+                          :key="tag"
+                          size="x-small"
+                          variant="outlined"
+                          color="primary"
+                          class="font-weight-medium cursor-pointer"
+                          @click.stop="guestsStore.toggleTag(tag)"
+                        >
+                          <v-icon icon="mdi-tag" size="10" class="mr-0.5" />
+                          #{{ tag }}
+                        </v-chip>
+                      </div>
+
                       <!-- Phone Contact -->
                       <div v-if="guest.phone" class="d-flex align-center gap-1 text-lightText mb-1">
                         <v-icon icon="mdi-phone" size="14" class="text-primary flex-shrink-0" />
@@ -963,7 +943,8 @@
           :ripple="false"
           variant="outlined"
           elevation="0"
-          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border"
+          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border cursor-pointer"
+          @click="toggleGuestExpand(guest.id)"
         >
           <div class="d-flex align-center justify-space-between">
             <div class="d-flex align-center gap-2" style="min-width: 0;">
@@ -982,9 +963,6 @@
                   <span v-if="guest.returnGifts && guest.returnGifts.length > 0">
                     • <v-icon icon="mdi-gift" size="11" class="text-warning mr-0.5" />{{ guest.returnGifts.length }} gifts
                   </span>
-                  <span v-if="guest.tags && guest.tags.length > 0">
-                    • {{ guest.tags.map(t => '#' + t).join(', ') }}
-                  </span>
                 </div>
               </div>
             </div>
@@ -995,6 +973,58 @@
               <v-btn icon="mdi-delete-outline" variant="text" size="small" color="error" @click="confirmDeleteGuest(guest)" />
             </div>
           </div>
+
+          <!-- Expandable Details on Click (Tags, Phone, Email, Notes) -->
+          <v-expand-transition>
+            <div v-if="isGuestExpanded(guest.id)" class="expand-wrapper">
+              <div class="mt-2 pt-2 border-t">
+                <!-- Grouping Tags Chips -->
+                <div
+                  v-if="guest.tags && guest.tags.length > 0"
+                  class="d-flex align-center gap-1 flex-wrap mb-2"
+                >
+                  <v-icon icon="mdi-tag-outline" size="14" class="text-primary flex-shrink-0" />
+                  <span class="text-caption font-weight-medium text-darkText mr-1">Tags:</span>
+                  <v-chip
+                    v-for="tag in guest.tags"
+                    :key="tag"
+                    size="x-small"
+                    variant="outlined"
+                    color="primary"
+                    class="font-weight-medium cursor-pointer"
+                    @click.stop="guestsStore.toggleTag(tag)"
+                  >
+                    <v-icon icon="mdi-tag" size="10" class="mr-0.5" />
+                    #{{ tag }}
+                  </v-chip>
+                </div>
+
+                <!-- Phone Contact -->
+                <div v-if="guest.phone" class="d-flex align-center gap-1 text-lightText mb-1">
+                  <v-icon icon="mdi-phone" size="14" class="text-primary flex-shrink-0" />
+                  <span class="text-caption font-weight-medium text-darkText">Phone:</span>
+                  <a :href="`tel:${guest.phone}`" class="text-primary font-weight-bold text-caption text-decoration-none" @click.stop>
+                    {{ guest.phone }}
+                  </a>
+                </div>
+
+                <!-- Email Contact -->
+                <div v-if="guest.email" class="d-flex align-center gap-1 text-lightText mb-1">
+                  <v-icon icon="mdi-email-outline" size="14" class="text-secondary flex-shrink-0" />
+                  <span class="text-caption font-weight-medium text-darkText">Email:</span>
+                  <a :href="`mailto:${guest.email}`" class="text-darkText text-caption text-decoration-none" @click.stop>
+                    {{ guest.email }}
+                  </a>
+                </div>
+
+                <!-- Notes -->
+                <div v-if="guest.notes" class="pa-2 rounded-md bg-containerBg mt-1 text-caption text-darkText font-italic">
+                  <v-icon icon="mdi-note-text-outline" size="13" class="text-lightText mr-1" />
+                  {{ guest.notes }}
+                </div>
+              </div>
+            </div>
+          </v-expand-transition>
         </v-card>
       </div>
     </div>
@@ -1948,3 +1978,25 @@ async function executeDeleteGuest() {
   deleteConfirmDialog.value = false
 }
 </script>
+
+<style scoped>
+.filter-gray-chip.v-chip--variant-outlined {
+  border-color: #8c8c8c !important;
+  color: #595959 !important;
+}
+
+.filter-gray-chip.v-chip--variant-outlined :deep(.v-icon) {
+  color: #8c8c8c !important;
+}
+
+:root.v-theme--dark .filter-gray-chip.v-chip--variant-outlined,
+.v-theme--dark .filter-gray-chip.v-chip--variant-outlined {
+  border-color: #595959 !important;
+  color: #bfbfbf !important;
+}
+
+:root.v-theme--dark .filter-gray-chip.v-chip--variant-outlined :deep(.v-icon),
+.v-theme--dark .filter-gray-chip.v-chip--variant-outlined :deep(.v-icon) {
+  color: #bfbfbf !important;
+}
+</style>

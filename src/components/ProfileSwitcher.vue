@@ -8,7 +8,6 @@
           </v-avatar>
           <div>
             <div class="text-subtitle-1 font-weight-bold text-darkText">Switch Active Profile</div>
-            <div class="text-caption text-lightText">Use the app as this family member</div>
           </div>
         </div>
 
@@ -82,17 +81,6 @@
         </v-col>
       </v-row>
 
-      <!-- Active Profile Benefits Note -->
-      <v-alert
-        type="info"
-        variant="tonal"
-        density="compact"
-        rounded="lg"
-        class="text-caption mt-2"
-        icon="mdi-shield-account-outline"
-      >
-        <strong>Acting as {{ familyStore.activeMember.name }}:</strong> All new expenses, tasks, and budgets will automatically default to this member without requiring authentication.
-      </v-alert>
 
       <v-card-actions class="px-0 pt-3">
         <v-spacer />
@@ -128,8 +116,6 @@ const familyStore = useFamilyStore()
 
 function selectProfile(memberId: string) {
   emit('profile-changed', memberId)
-  switchProfile(familyStore, memberId, () => {
-    emit('update:modelValue', false)
-  }, 250)
+  switchProfile(familyStore, memberId)
 }
 </script>

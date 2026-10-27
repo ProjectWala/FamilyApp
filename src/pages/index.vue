@@ -396,42 +396,8 @@
           </div>
         </div>
 
-        <!-- Right Side: Active Persona & Logged In User Profile Menu -->
+        <!-- Right Side: Logged In User Profile Menu -->
         <div class="d-flex align-center flex-shrink-0 ml-2">
-          <!-- Supabase Cloud Sync Badge -->
-          <v-chip
-            size="x-small"
-            color="success"
-            variant="tonal"
-            class="mr-1 d-none d-sm-inline-flex border-success-subtle font-weight-medium"
-            title="Connected to Supabase Edge Function"
-          >
-            <v-icon icon="mdi-cloud-check" size="12" class="mr-1" />
-            Cloud
-          </v-chip>
-
-          <!-- Acting Persona Chip -->
-          <v-chip
-            size="small"
-            variant="tonal"
-            color="primary"
-            class="mr-1 font-weight-medium cursor-pointer px-2 border-primary-subtle"
-            title="Click to switch acting family member persona"
-            @click="profileSwitcherOpen = true"
-          >
-            <v-avatar
-              :color="familyStore.activeMember.avatarColor || 'primary'"
-              variant="flat"
-              size="18"
-              class="mr-1 text-white"
-              :style="{ backgroundColor: familyStore.activeMember.avatarColor || '#6366F1' }"
-            >
-              <v-icon :icon="familyStore.activeMember.avatarIcon || 'mdi-account'" size="12" color="white" />
-            </v-avatar>
-            <span class="profile-name text-truncate text-darkText">{{ familyStore.activeMember.name.split(' ')[0] }}</span>
-            <v-icon icon="mdi-chevron-down" size="14" class="ml-1 text-lightText" />
-          </v-chip>
-
           <!-- Profile Button (displays who logged in + dropdown menu with logout option) -->
           <v-menu
             v-if="authStore.isAuthenticated"
@@ -784,8 +750,10 @@ watch(currentTab, (newTab) => {
 })
 
 function openProfileSwitcher() {
-  profileSwitcherOpen.value = true
   drawer.value = false
+  setTimeout(() => {
+    profileSwitcherOpen.value = true
+  }, 100)
 }
 
 // Thumb swipe gesture recognition

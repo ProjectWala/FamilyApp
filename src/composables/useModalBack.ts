@@ -27,7 +27,7 @@ export function useModalBack(isOpenRef: Ref<boolean>, modalName: string = 'modal
   })
 
   const onPopState = () => {
-    if (isOpenRef.value) {
+    if (isOpenRef.value && hasPushed) {
       isHandlingPopState = true
       isOpenRef.value = false
       hasPushed = false

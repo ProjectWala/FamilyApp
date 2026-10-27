@@ -347,7 +347,9 @@ async function handleSaveProfile() {
 
 function openFamilySwitcher() {
   emit('update:modelValue', false)
-  emit('open-family-switcher')
+  setTimeout(() => {
+    emit('open-family-switcher')
+  }, 100)
 }
 
 async function handleLogout() {
