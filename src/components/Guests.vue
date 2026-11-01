@@ -1,51 +1,32 @@
 <template>
   <div class="guests-names-container">
     <!-- Header Card -->
-    <v-card
-      class="mb-3 pa-4 rounded-lg elevation-0 text-white"
-      style="background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);"
-    >
+    <v-card class="mb-3 pa-4 rounded-lg elevation-0 text-white"
+      style="background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);">
       <div class="d-flex justify-space-between align-center flex-wrap gap-2">
         <div class="d-flex align-center gap-2">
           <v-avatar color="white" variant="tonal" size="36" rounded="lg">
             <v-icon icon="mdi-format-list-bulleted" size="20" color="white" />
           </v-avatar>
-          <div>
-            <span class="text-caption text-white-75 text-uppercase font-weight-bold" style="letter-spacing: 0.5px; font-size: 0.7rem;">
-              Guest Directory
-            </span>
-            <div class="text-subtitle-1 font-weight-bold text-white line-height-1">
-              Guest Names ({{ totalNamesCount }})
-            </div>
+          <div class="text-subtitle-1 font-weight-bold text-white line-height-1">
+            Guest Names ({{ totalNamesCount }})
           </div>
         </div>
 
         <!-- Header CTAs -->
         <div class="d-flex align-center gap-2">
           <!-- Add Guest CTA -->
-          <v-btn
-            color="white"
-            variant="flat"
-            size="small"
-            rounded="lg"
-            class="text-primary font-weight-bold text-capitalize"
-            prepend-icon="mdi-account-plus"
-            @click="emit('add-guest')"
-          >
+          <v-btn color="white" variant="flat" size="small" rounded="lg"
+            class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-account-plus"
+            @click="emit('add-guest')">
             + Add Guest
           </v-btn>
 
           <!-- Quick Copy CTA -->
-          <v-btn
-            color="white"
-            variant="outlined"
-            size="small"
-            rounded="lg"
+          <v-btn color="white" variant="outlined" size="small" rounded="lg"
             class="font-weight-bold text-capitalize text-white"
-            :prepend-icon="copied ? 'mdi-check' : 'mdi-content-copy'"
-            :disabled="guestNamesList.length === 0"
-            @click="copyAllNames"
-          >
+            :prepend-icon="copied ? 'mdi-check' : 'mdi-content-copy'" :disabled="guestNamesList.length === 0"
+            @click="copyAllNames">
             {{ copied ? 'Copied!' : 'Copy Names' }}
           </v-btn>
         </div>
@@ -55,41 +36,20 @@
     <!-- Search & Filter Options Bar -->
     <v-card class="mb-3 pa-3 rounded-lg elevation-0 bg-surface border">
       <div class="d-flex align-center gap-2 flex-wrap">
-        <v-text-field
-          v-model="searchQuery"
-          density="compact"
-          variant="outlined"
-          placeholder="Search guest names..."
-          prepend-inner-icon="mdi-magnify"
-          hide-details
-          clearable
-          rounded="md"
-          class="flex-grow-1"
-          style="min-width: 180px;"
-        />
+        <v-text-field v-model="searchQuery" density="compact" variant="outlined" placeholder="Search guest names..."
+          prepend-inner-icon="mdi-magnify" hide-details clearable rounded="md" class="flex-grow-1"
+          style="min-width: 180px;" @click:clear="searchQuery = ''" />
 
         <!-- Sort Toggle: A-Z / Default -->
-        <v-btn
-          variant="outlined"
-          color="secondary"
-          size="small"
-          rounded="md"
-          class="text-capitalize font-weight-medium"
-          :prepend-icon="sortAlpha ? 'mdi-sort-alphabetical-ascending' : 'mdi-sort'"
-          @click="sortAlpha = !sortAlpha"
-        >
+        <v-btn variant="outlined" color="secondary" size="small" rounded="md" class="text-capitalize font-weight-medium"
+          :prepend-icon="sortAlpha ? 'mdi-sort-alphabetical-ascending' : 'mdi-sort'" @click="sortAlpha = !sortAlpha">
           {{ sortAlpha ? 'A to Z' : 'Order Added' }}
         </v-btn>
 
         <!-- Toggle Include Accompanying / Addon Names -->
-        <v-chip
-          v-if="hasAccompanyingPersons"
-          size="small"
-          :variant="includeAddons ? 'flat' : 'outlined'"
-          :color="includeAddons ? 'primary' : 'secondary'"
-          class="cursor-pointer font-weight-medium"
-          @click="includeAddons = !includeAddons"
-        >
+        <v-chip v-if="hasAccompanyingPersons" size="small" :variant="includeAddons ? 'flat' : 'outlined'"
+          :color="includeAddons ? 'primary' : 'secondary'" class="cursor-pointer font-weight-medium"
+          @click="includeAddons = !includeAddons">
           <v-icon :icon="includeAddons ? 'mdi-account-multiple' : 'mdi-account'" size="14" class="mr-1" />
           {{ includeAddons ? 'All Persons' : 'Main Guests Only' }}
         </v-chip>
@@ -113,7 +73,8 @@
           {{ searchQuery ? 'No Matching Names' : 'No Guests Yet' }}
         </div>
         <div class="text-caption">
-          {{ searchQuery ? 'Try searching for a different name.' : 'Guests added to your guest list will appear here.' }}
+          {{ searchQuery ? 'Try searching for a different name.' : 'Guests added to your guest list will appear here.'
+          }}
         </div>
       </div>
 
@@ -122,34 +83,20 @@
         <template v-for="(item, index) in filteredNames" :key="item.id || index">
           <v-list-item class="px-4 py-2 hover-bg">
             <template #prepend>
-              <div
-                class="name-index text-caption font-weight-bold text-lightText mr-3 text-center"
-                style="width: 28px; font-variant-numeric: tabular-nums;"
-              >
+              <div class="name-index text-caption font-weight-bold text-lightText mr-3 text-center"
+                style="width: 28px; font-variant-numeric: tabular-nums;">
                 {{ index + 1 }}.
               </div>
-              <v-avatar
-                size="32"
-                rounded="md"
-                variant="tonal"
-                :color="item.isAddon ? 'secondary' : 'primary'"
-                class="mr-3 font-weight-bold"
-                style="font-size: 0.75rem;"
-              >
+              <v-avatar size="32" rounded="md" variant="tonal" :color="item.isAddon ? 'secondary' : 'primary'"
+                class="mr-3 font-weight-bold" style="font-size: 0.75rem;">
                 {{ getInitials(item.name) }}
               </v-avatar>
             </template>
 
             <v-list-item-title class="text-body-1 font-weight-medium text-darkText d-flex align-center gap-1.5">
               <span>{{ item.name }}</span>
-              <v-chip
-                v-if="item.isAddon"
-                size="x-small"
-                variant="tonal"
-                color="secondary"
-                class="font-weight-medium text-caption"
-                style="font-size: 0.68rem;"
-              >
+              <v-chip v-if="item.isAddon" size="x-small" variant="tonal" color="secondary"
+                class="font-weight-medium text-caption" style="font-size: 0.68rem;">
                 {{ item.relation || 'Addon' }}
               </v-chip>
             </v-list-item-title>

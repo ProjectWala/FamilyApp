@@ -2,27 +2,39 @@
   <div class="guestlist-container">
     <!-- Top-Level Tab Switcher: Guests, Events, Invites -->
     <v-card class="mb-4 rounded-lg elevation-0 bg-surface border overflow-hidden">
-      <v-tabs v-model="guestSectionTab" color="primary" grow density="comfortable" class="guestlist-nav-tabs">
-        <v-tab value="guests" class="font-weight-bold text-capitalize py-3">
-          <v-icon icon="mdi-account-multiple-check-outline" size="18" class="mr-2" />
-          Guests
-          <v-chip size="x-small" variant="tonal" color="primary" class="ml-2 font-weight-bold">
-            {{ guestsStore.totalGuests }}
-          </v-chip>
+      <v-tabs
+        v-model="guestSectionTab"
+        color="primary"
+        grow
+        height="44"
+        class="guestlist-nav-tabs"
+      >
+        <v-tab value="guests" class="font-weight-bold text-capitalize">
+          <span class="tab-head-content">
+            <v-icon icon="mdi-account-multiple-check-outline" size="18" />
+            <span class="tab-head-label">Guests</span>
+            <v-chip size="x-small" variant="tonal" color="primary" class="font-weight-bold tab-head-chip">
+              {{ guestsStore.totalGuests }}
+            </v-chip>
+          </span>
         </v-tab>
-        <v-tab value="events" class="font-weight-bold text-capitalize py-3">
-          <v-icon icon="mdi-calendar-star-outline" size="18" class="mr-2" />
-          Events
-          <v-chip size="x-small" variant="tonal" color="secondary" class="ml-2 font-weight-bold">
-            {{ eventsStore.totalEvents }}
-          </v-chip>
+        <v-tab value="events" class="font-weight-bold text-capitalize">
+          <span class="tab-head-content">
+            <v-icon icon="mdi-calendar-star-outline" size="18" />
+            <span class="tab-head-label">Events</span>
+            <v-chip size="x-small" variant="tonal" color="secondary" class="font-weight-bold tab-head-chip">
+              {{ eventsStore.totalEvents }}
+            </v-chip>
+          </span>
         </v-tab>
-        <v-tab value="invites" class="font-weight-bold text-capitalize py-3">
-          <v-icon icon="mdi-email-send-outline" size="18" class="mr-2" />
-          Invites
-          <v-chip size="x-small" variant="tonal" color="success" class="ml-2 font-weight-bold">
-            {{ totalInvitesAcrossEvents }}
-          </v-chip>
+        <v-tab value="invites" class="font-weight-bold text-capitalize">
+          <span class="tab-head-content">
+            <v-icon icon="mdi-email-outline" size="18" />
+            <span class="tab-head-label">Invites</span>
+            <v-chip size="x-small" variant="tonal" color="success" class="font-weight-bold tab-head-chip">
+              {{ totalInvitesAcrossEvents }}
+            </v-chip>
+          </span>
         </v-tab>
       </v-tabs>
     </v-card>
@@ -42,7 +54,8 @@
       <!-- Target Event Selector & Details Banner -->
       <v-card v-if="activeEventForInvites" class="mb-3 rounded-lg elevation-0 bg-surface border overflow-hidden"
         :style="{ borderLeft: `5px solid ${activeEventForInvites.color || '#1890ff'}` }">
-        <div class="pa-3 bg-containerBg border-b">
+        <!-- Header Row: Title + actions + toggle -->
+        <div class="pa-3 bg-containerBg" :class="{ 'border-b': inviteHeaderExpanded }">
           <div class="d-flex align-center justify-space-between flex-wrap gap-2">
             <div class="d-flex align-center gap-2 flex-grow-1" style="min-width: 0;">
               <v-avatar color="primary" variant="tonal" size="32" rounded="md">
@@ -59,13 +72,13 @@
               </div>
             </div>
 
-            <!-- Event Selector & WhatsApp CTA -->
+            <!-- Right: Switch + Share + toggle -->
             <div class="d-flex align-center gap-1.5 flex-wrap">
               <v-menu location="bottom end">
                 <template #activator="{ props: menuProps }">
-                  <v-btn v-bind="menuProps" size="small" variant="outlined" color="primary" rounded="lg"
+                  <v-btn v-bind="menuProps" size="x-small" variant="outlined" color="primary" rounded="lg"
                     class="font-weight-medium text-capitalize" append-icon="mdi-chevron-down">
-                    Switch Event
+                    Switch
                   </v-btn>
                 </template>
                 <v-list density="compact" rounded="lg" elevation="4">
@@ -79,51 +92,58 @@
                     </template>
                     <template #append>
                       <v-chip size="x-small" variant="tonal" color="primary" class="font-weight-bold">
-                        {{ evt.invitedGuests?.length || 0 }} invited
+                        {{ evt.invitedGuests?.length || 0 }}
                       </v-chip>
                     </template>
                   </v-list-item>
                 </v-list>
               </v-menu>
 
-              <v-btn size="small" variant="tonal" color="success" rounded="lg" class="font-weight-bold text-capitalize"
-                prepend-icon="mdi-whatsapp" @click="shareEventWhatsApp(activeEventForInvites)">
-                Share Invite
+              <v-btn size="x-small" variant="tonal" color="success" rounded="lg"
+                class="font-weight-bold text-capitalize" prepend-icon="mdi-whatsapp"
+                @click="shareEventWhatsApp(activeEventForInvites)">
+                Share
               </v-btn>
+
+              <!-- Toggle details -->
+              <v-btn :icon="inviteHeaderExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'" variant="text" size="x-small"
+                color="lightText" @click="inviteHeaderExpanded = !inviteHeaderExpanded" />
             </div>
           </div>
         </div>
 
-        <!-- Target Event Parameters Grid: Type, Date, Venue, Time -->
-        <div class="pa-2 px-3 bg-surface border-b">
-          <div class="d-flex flex-wrap align-center justify-space-between gap-x-4 gap-y-1 text-caption">
-            <div class="d-flex align-center">
-              <span class="text-lightText mr-1">Type:</span>
-              <v-chip size="x-small" variant="flat"
-                :style="{ backgroundColor: activeEventForInvites.color || '#1890ff', color: '#fff' }"
-                class="font-weight-bold">
-                {{ activeEventForInvites.category || 'Celebration' }}
-              </v-chip>
-            </div>
-            <div class="d-flex align-center">
-              <span class="text-lightText mr-1">Date:</span>
-              <span class="font-weight-bold text-darkText">{{ formatEventDate(activeEventForInvites.date) }}</span>
-            </div>
-            <div class="d-flex align-center text-truncate" style="max-width: 220px;">
-              <span class="text-lightText mr-1">Venue:</span>
-              <span class="font-weight-medium text-darkText text-truncate">{{ activeEventForInvites.location || 'Venue TBA' }}</span>
-            </div>
-            <div class="d-flex align-center">
-              <span class="text-lightText mr-1">Time:</span>
-              <span class="font-weight-medium text-darkText">{{ activeEventForInvites.time || 'Time TBA' }}</span>
-            </div>
-            <div class="d-flex align-center">
-              <v-chip size="x-small" variant="tonal" color="primary" class="font-weight-bold">
-                {{ activeEventForInvites.invitedGuests?.length || 0 }} Invited ({{ activeEventConfirmedHeads }} Heads)
-              </v-chip>
+        <!-- Collapsible Event Details -->
+        <v-expand-transition>
+          <div v-if="inviteHeaderExpanded" class="pa-2 px-3 bg-surface">
+            <div class="d-flex flex-wrap align-center gap-x-4 gap-y-1 text-caption">
+              <div class="d-flex align-center gap-1">
+                <v-icon icon="mdi-tag-outline" size="13" class="text-lightText" />
+                <v-chip size="x-small" variant="flat"
+                  :style="{ backgroundColor: activeEventForInvites.color || '#1890ff', color: '#fff' }"
+                  class="font-weight-bold">
+                  {{ activeEventForInvites.category || 'Celebration' }}
+                </v-chip>
+              </div>
+              <div class="d-flex align-center gap-1">
+                <v-icon icon="mdi-calendar-text" size="13" class="text-primary" />
+                <span class="font-weight-bold text-darkText">{{ formatEventDate(activeEventForInvites.date) }}
+                  {{ activeEventForInvites.time || '' }}</span>
+              </div>
+              <div class="d-flex align-center gap-1" style="max-width: 220px;">
+                <v-icon icon="mdi-map-marker" size="13" class="text-error flex-shrink-0" />
+                <span class="font-weight-medium text-darkText text-truncate">
+                  {{ activeEventForInvites.location || 'Venue TBA' }}</span>
+              </div>
+              <div class="d-flex align-center gap-1">
+                <v-icon icon="mdi-account-group" size="13" class="text-primary" />
+                <v-chip size="x-small" variant="tonal" color="primary" class="font-weight-bold">
+                  {{ activeEventForInvites.invitedGuests?.length || 0 }} invited • {{ activeEventConfirmedHeads }}
+                  confirmed
+                </v-chip>
+              </div>
             </div>
           </div>
-        </div>
+        </v-expand-transition>
       </v-card>
 
       <!-- If no events exist yet -->
@@ -237,7 +257,8 @@
               <v-text-field v-model="guestsStore.searchQuery"
                 placeholder="Search by guest name, addon companion, phone, tags, gifts, notes..."
                 prepend-inner-icon="mdi-magnify" density="compact" variant="outlined" hide-details clearable
-                rounded="lg" class="mb-3" />
+                rounded="lg" class="mb-3" @click:clear="guestsStore.searchQuery = ''" />
+
 
               <!-- Group Category Chips -->
               <div class="mb-3">
@@ -509,7 +530,8 @@
           No Guests Found
         </div>
         <div class="text-caption text-lightText mb-4" style="max-width: 340px; margin: 0 auto;">
-          {{ hasActiveFilters ? 'No guests match your active filters or search criteria.' : 'Start building your event guest list with companion addon persons, group tags, and return gifts.' }}
+          {{ hasActiveFilters ? 'No guests match your active filters or search criteria.' :
+            'Start building your event guest list with companion addon persons, group tags, and return gifts.' }}
         </div>
         <div class="d-flex justify-center gap-2">
           <v-btn v-if="hasActiveFilters" variant="outlined" size="small" rounded="lg" @click="resetFilters">
@@ -601,18 +623,12 @@
                     </template>
                   </div>
 
-                  <!-- Group category & RSVP status badge -->
+                  <!-- Group category chip only (RSVP badge removed from here) -->
                   <div class="d-flex align-center gap-1.5 flex-wrap mb-1.5">
                     <v-chip size="x-small" variant="flat" color="containerBg"
                       class="font-weight-medium text-darkText border">
                       <v-icon :icon="getGuestGroupIcon(guest.group)" size="12" class="mr-1 text-primary" />
                       {{ guest.group || 'General' }}
-                    </v-chip>
-
-                    <v-chip size="x-small" variant="flat" :color="getRsvpColor(guest.rsvpStatus)"
-                      class="font-weight-bold text-capitalize">
-                      <v-icon :icon="getRsvpIcon(guest.rsvpStatus)" size="12" class="mr-1" />
-                      {{ guest.rsvpStatus }}
                     </v-chip>
                   </div>
 
@@ -965,14 +981,7 @@
                   </template>
                 </v-combobox>
 
-                <!-- Quick Chip Suggestions for 1-Tap Fill -->
-                <div v-if="recentSuggestions.length > 0" class="d-flex align-center gap-1 flex-wrap mt-1">
-                  <span class="text-caption text-lightText" style="font-size: 0.68rem;">Suggestions:</span>
-                  <v-chip v-for="name in recentSuggestions" :key="name" size="x-small" variant="tonal" color="primary"
-                    class="cursor-pointer" @click="guestForm.name = name; onGuestNameChange(name)">
-                    {{ name }}
-                  </v-chip>
-                </div>
+
               </div>
 
               <!-- SECTION 2: ADDON PERSONS (Accompanying / Companions) -->
@@ -1028,91 +1037,18 @@
                 </v-btn>
               </div>
 
-              <!-- SECTION 3: RETURN GIFTS (1 or more gifts same as tags) -->
-              <div class="mb-4 pa-3 rounded-lg bg-containerBg border">
-                <div class="d-flex align-center justify-space-between mb-2">
-                  <div class="d-flex align-center gap-1">
-                    <v-icon icon="mdi-gift-outline" size="18" class="text-warning" />
-                    <span class="text-subtitle-2 font-weight-bold text-darkText">
-                      Return Gifts ({{ guestForm.returnGifts.length }})
-                    </span>
-                  </div>
-
-                  <!-- Live Total Value Badge -->
-                  <v-chip size="x-small" color="warning" variant="flat" class="font-weight-bold">
-                    Total: ₹{{ formReturnGiftsTotal.toLocaleString() }}
-                  </v-chip>
-                </div>
-
-                <div class="text-caption text-lightText mb-2">
-                  Guest can have 1 or more return gifts (same as tags). Click presets or add custom.
-                </div>
-
-                <!-- Quick 1-Tap Preset Gifts (Just like Quick Tags!) -->
-                <div class="mb-3">
-                  <div class="text-caption font-weight-medium text-darkText mb-1" style="font-size: 0.72rem;">
-                    Quick Add Preset Gifts:
-                  </div>
-                  <div class="d-flex align-center gap-1 flex-wrap">
-                    <v-chip v-for="preset in guestsStore.defaultGiftPresets" :key="preset.name" size="x-small"
-                      variant="tonal" color="warning" class="cursor-pointer font-weight-medium"
-                      @click="addPresetGiftToForm(preset)">
-                      <v-icon icon="mdi-plus" size="10" class="mr-0.5" />
-                      {{ preset.name }} (₹{{ preset.price }})
-                    </v-chip>
-                  </div>
-                </div>
-
-                <!-- List of Added Return Gifts -->
-                <div v-for="(gift, gIdx) in guestForm.returnGifts" :key="gIdx"
-                  class="d-flex align-center gap-2 mb-2 pa-2 rounded-lg bg-surface border">
-                  <!-- Gift Name with Autocomplete from Known Gifts -->
-                  <v-combobox v-model="gift.name" :items="guestsStore.knownGiftNames" :label="`Gift #${gIdx + 1} Name`"
-                    placeholder="e.g. Silver Coin (10g)" variant="outlined" density="compact" hide-details rounded="md"
-                    class="flex-grow-1" />
-
-                  <!-- Price Field -->
-                  <v-text-field v-model.number="gift.price" label="Price (₹)" placeholder="0" type="number" min="0"
-                    step="50" variant="outlined" density="compact" hide-details rounded="md" style="max-width: 130px;"
-                    prepend-inner-icon="mdi-currency-inr" />
-
-                  <!-- Remove Gift Button -->
-                  <v-btn icon="mdi-trash-can-outline" variant="text" color="error" size="small" title="Remove gift"
-                    @click="removeGiftFromForm(gIdx)" />
-                </div>
-
-                <!-- Add Custom Gift Button -->
-                <v-btn variant="tonal" color="warning" size="small" block rounded="lg" prepend-icon="mdi-plus"
-                  class="font-weight-bold text-capitalize mt-2" @click="addBlankGiftToForm">
-                  + Add Return Gift
-                </v-btn>
-              </div>
-
-              <!-- SECTION 4: TAGGING FEATURE FOR GROUPING -->
+              <!-- SECTION 3: TAGGING FEATURE FOR GROUPING (previously section 4) -->
               <div class="mb-4">
                 <div class="text-subtitle-2 font-weight-bold text-darkText mb-2 d-flex align-center">
                   <v-icon icon="mdi-tag-multiple-outline" size="18" class="mr-1 text-primary" />
                   Group Category &amp; Tags
                 </div>
 
-                <v-row density="compact">
-                  <!-- Group Category -->
-                  <v-col cols="12" sm="6">
-                    <v-combobox v-model="guestForm.group" :items="guestsStore.allGroups" label="Group Category *"
-                      placeholder="Select or type category" variant="outlined" density="comfortable" rounded="lg"
-                      prepend-inner-icon="mdi-folder-outline" :rules="[(v) => !!v || 'Group category is required']" />
-                  </v-col>
-
-                  <!-- RSVP Status -->
-                  <v-col cols="12" sm="6">
-                    <v-select v-model="guestForm.rsvpStatus" :items="[
-                      { title: 'Confirmed', value: 'confirmed' },
-                      { title: 'Pending', value: 'pending' },
-                      { title: 'Declined', value: 'declined' },
-                    ]" item-title="title" item-value="value" label="RSVP Status *" variant="outlined"
-                      density="comfortable" rounded="lg" prepend-inner-icon="mdi-check-circle-outline" />
-                  </v-col>
-                </v-row>
+                <!-- Group Category (full width now that RSVP is removed) -->
+                <v-combobox v-model="guestForm.group" :items="guestsStore.allGroups" label="Group Category *"
+                  placeholder="Select or type category" variant="outlined" density="comfortable" rounded="lg"
+                  prepend-inner-icon="mdi-folder-outline" class="mb-3"
+                  :rules="[(v) => !!v || 'Group category is required']" />
 
                 <!-- Tags Multi-Selector (Custom Tagging feature) -->
                 <div class="mt-1">
@@ -1135,8 +1071,8 @@
                 </div>
               </div>
 
-              <!-- SECTION 5: CONTACT & NOTES (Optional) -->
-              <v-expansion-panels variant="accordion" class="mb-2">
+              <!-- SECTION 4: CONTACT & NOTES (Optional) -->
+              <v-expansion-panels variant="accordion" class="mb-4">
                 <v-expansion-panel elevation="0" class="border rounded-lg">
                   <v-expansion-panel-title class="py-2 text-caption font-weight-bold text-darkText">
                     <v-icon icon="mdi-card-account-phone-outline" size="16" class="mr-2 text-primary" />
@@ -1164,6 +1100,57 @@
                   </v-expansion-panel-text>
                 </v-expansion-panel>
               </v-expansion-panels>
+
+              <!-- SECTION 5: RETURN GIFTS (moved to bottom — 1 or more gifts same as tags) -->
+              <div class="mb-2 pa-3 rounded-lg bg-containerBg border">
+                <div class="d-flex align-center justify-space-between mb-2">
+                  <div class="d-flex align-center gap-1">
+                    <v-icon icon="mdi-gift-outline" size="18" class="text-warning" />
+                    <span class="text-subtitle-2 font-weight-bold text-darkText">
+                      Return Gifts ({{ guestForm.returnGifts.length }})
+                    </span>
+                  </div>
+
+                  <!-- Live Total Value Badge -->
+                  <v-chip size="x-small" color="warning" variant="flat" class="font-weight-bold">
+                    Total: ₹{{ formReturnGiftsTotal.toLocaleString() }}
+                  </v-chip>
+                </div>
+
+                <!-- Quick 1-Tap Preset Gifts -->
+                <div class="mb-3">
+
+                  <div class="d-flex align-center gap-1 flex-wrap">
+                    <v-chip v-for="preset in guestsStore.defaultGiftPresets" :key="preset.name" size="x-small"
+                      variant="tonal" color="warning" class="cursor-pointer font-weight-medium"
+                      @click="addPresetGiftToForm(preset)">
+                      <v-icon icon="mdi-plus" size="10" class="mr-0.5" />
+                      {{ preset.name }} (₹{{ preset.price }})
+                    </v-chip>
+                  </div>
+                </div>
+
+                <!-- List of Added Return Gifts -->
+                <div v-for="(gift, gIdx) in guestForm.returnGifts" :key="gIdx"
+                  class="d-flex align-center gap-2 mb-2 pa-2 rounded-lg bg-surface border">
+                  <v-combobox v-model="gift.name" :items="guestsStore.knownGiftNames" :label="`Gift #${gIdx + 1} Name`"
+                    placeholder="e.g. Silver Coin (10g)" variant="outlined" density="compact" hide-details rounded="md"
+                    class="flex-grow-1" />
+
+                  <v-text-field v-model.number="gift.price" label="Price (₹)" placeholder="0" type="number" min="0"
+                    step="50" variant="outlined" density="compact" hide-details rounded="md" style="max-width: 130px;"
+                    prepend-inner-icon="mdi-currency-inr" />
+
+                  <v-btn icon="mdi-trash-can-outline" variant="text" color="error" size="small" title="Remove gift"
+                    @click="removeGiftFromForm(gIdx)" />
+                </div>
+
+                <!-- Add Custom Gift Button -->
+                <v-btn variant="tonal" color="warning" size="small" block rounded="lg" prepend-icon="mdi-plus"
+                  class="font-weight-bold text-capitalize mt-2" @click="addBlankGiftToForm">
+                  + Add Return Gift
+                </v-btn>
+              </div>
             </v-form>
           </v-card-text>
 
@@ -1302,6 +1289,7 @@ import {
 const guestsStore = useGuestsStore()
 const eventsStore = useEventsStore()
 const guestSectionTab = ref<'guests' | 'events' | 'invites'>('guests')
+const inviteHeaderExpanded = ref(false)
 const selectedEventForInvites = ref<string | null>(eventsStore.events[0]?.id || null)
 
 watch(
@@ -1905,6 +1893,56 @@ async function executeDeleteGuest() {
 </script>
 
 <style scoped>
+.guestlist-nav-tabs {
+  height: 44px !important;
+  min-height: 44px !important;
+}
+
+.guestlist-nav-tabs :deep(.v-slide-group__container),
+.guestlist-nav-tabs :deep(.v-slide-group__content) {
+  height: 44px !important;
+  align-items: center !important;
+}
+
+.guestlist-nav-tabs :deep(.v-tab) {
+  height: 44px !important;
+  min-height: 44px !important;
+  padding: 0 8px !important;
+}
+
+.guestlist-nav-tabs :deep(.v-tab .v-btn__content) {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  line-height: 1 !important;
+}
+
+.tab-head-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.tab-head-label {
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tab-head-chip {
+  height: 18px !important;
+  min-height: 18px !important;
+  padding: 0 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
+}
+
 .filter-gray-chip.v-chip--variant-outlined {
   border-color: #8c8c8c !important;
   color: #595959 !important;

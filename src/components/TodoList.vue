@@ -278,95 +278,68 @@
                   Assign To:
                 </span>
                 <span class="text-caption text-secondary font-weight-medium" v-if="!form.memberId">
-                  (Anyone can do this later)
+                  (Anyone can do this)
                 </span>
                 <span class="text-caption text-primary font-weight-medium" v-else>
-                  Assigned: {{ getMemberName(form.memberId) }}
+                  {{ getMemberName(form.memberId) }}
                 </span>
               </div>
 
-              <!-- List of Assignable Options -->
-              <div class="d-flex flex-column gap-2 assignee-container">
-                <!-- 1. 'Unassigned' Option (Anyone can do later) -->
-                <v-card
-                  variant="outlined"
-                  elevation="0"
-                  class="pa-2 px-3 rounded-lg cursor-pointer transition-all assignee-card"
-                  :class="{
-                    'assignee-selected border-primary': !form.memberId,
-                    'card-hover-border': !!form.memberId
-                  }"
+              <!-- Compact chip-row assignee picker -->
+              <div class="d-flex align-center gap-2 flex-wrap">
+                <!-- Unassigned chip -->
+                <div
+                  class="assignee-chip cursor-pointer d-flex flex-column align-center"
+                  style="gap: 4px;"
                   @click="form.memberId = ''"
                 >
-                  <div class="d-flex align-center justify-space-between">
-                    <div class="d-flex align-center">
-                      <v-avatar color="grey-lighten-3" variant="flat" size="34" rounded="lg" class="mr-3">
-                        <v-icon icon="mdi-account-question-outline" size="20" color="grey-darken-2" />
-                      </v-avatar>
-                      <div>
-                        <div class="text-subtitle-2 font-weight-bold text-darkText d-flex align-center">
-                          Unassigned
-                          <v-chip size="x-small" color="secondary" variant="tonal" label rounded="md" class="ml-2 font-weight-medium">
-                            Open for all
-                          </v-chip>
-                        </div>
-                        <div class="text-caption text-lightText" style="font-size: 0.7rem !important;">
-                          Anyone in the family can complete this task later
-                        </div>
-                      </div>
-                    </div>
+                  <v-avatar
+                    :color="!form.memberId ? 'primary' : 'grey-lighten-2'"
+                    variant="flat"
+                    size="36"
+                    rounded="lg"
+                    :style="!form.memberId ? 'outline: 2px solid var(--v-theme-primary); outline-offset: 2px;' : ''"
+                  >
                     <v-icon
-                      :icon="!form.memberId ? 'mdi-check-circle' : 'mdi-circle-outline'"
-                      :color="!form.memberId ? 'primary' : 'grey'"
-                      size="20"
+                      icon="mdi-account-question-outline"
+                      size="18"
+                      :color="!form.memberId ? 'white' : 'grey-darken-1'"
                     />
-                  </div>
-                </v-card>
+                  </v-avatar>
+                  <span
+                    class="text-caption font-weight-medium"
+                    style="font-size: 0.65rem; max-width: 52px; text-align: center; line-height: 1.2;"
+                    :class="!form.memberId ? 'text-primary' : 'text-lightText'"
+                  >
+                    Anyone
+                  </span>
+                </div>
 
-                <!-- 2. Family Members List -->
-                <v-card
+                <!-- Family Member chips -->
+                <div
                   v-for="member in familyStore.members"
                   :key="member.id"
-                  variant="outlined"
-                  elevation="0"
-                  class="pa-2 px-3 rounded-lg cursor-pointer transition-all assignee-card"
-                  :class="{
-                    'assignee-selected border-primary': form.memberId === member.id,
-                    'card-hover-border': form.memberId !== member.id
-                  }"
+                  class="assignee-chip cursor-pointer d-flex flex-column align-center"
+                  style="gap: 4px;"
                   @click="form.memberId = member.id"
                 >
-                  <div class="d-flex align-center justify-space-between">
-                    <div class="d-flex align-center">
-                      <v-avatar
-                        :color="member.avatarColor || 'primary'"
-                        variant="flat"
-                        size="34"
-                        rounded="lg"
-                        class="mr-3 text-white font-weight-bold"
-                        :style="{ backgroundColor: member.avatarColor || '#6366F1' }"
-                      >
-                        <v-icon :icon="member.avatarIcon || 'mdi-account'" size="18" color="white" />
-                      </v-avatar>
-                      <div>
-                        <div class="text-subtitle-2 font-weight-bold text-darkText d-flex align-center">
-                          {{ member.name }}
-                          <span v-if="member.id === familyStore.activeMemberId" class="text-caption text-primary font-weight-regular ml-1">
-                            (Active)
-                          </span>
-                        </div>
-                        <div class="text-caption text-lightText" style="font-size: 0.7rem !important;">
-                          {{ member.role }}
-                        </div>
-                      </div>
-                    </div>
-                    <v-icon
-                      :icon="form.memberId === member.id ? 'mdi-check-circle' : 'mdi-circle-outline'"
-                      :color="form.memberId === member.id ? 'primary' : 'grey'"
-                      size="20"
-                    />
-                  </div>
-                </v-card>
+                  <v-avatar
+                    :color="member.avatarColor || 'primary'"
+                    variant="flat"
+                    size="36"
+                    rounded="lg"
+                    :style="form.memberId === member.id ? 'outline: 2px solid var(--v-theme-primary); outline-offset: 2px;' : 'opacity: 0.7;'"
+                  >
+                    <v-icon :icon="member.avatarIcon || 'mdi-account'" size="18" color="white" />
+                  </v-avatar>
+                  <span
+                    class="text-caption font-weight-medium"
+                    style="font-size: 0.65rem; max-width: 52px; text-align: center; line-height: 1.2;"
+                    :class="form.memberId === member.id ? 'text-primary font-weight-bold' : 'text-lightText'"
+                  >
+                    {{ member.name.split(' ')[0] }}
+                  </span>
+                </div>
               </div>
             </div>
           </v-form>
