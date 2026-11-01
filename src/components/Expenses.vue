@@ -1,7 +1,50 @@
 <template>
   <div class="expenses-component">
-    <!-- Summary Header Cards (Mantis Style) -->
-    <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white" style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
+    <!-- MODULE TABS: Expenses & Incomes -->
+    <v-card variant="flat" color="containerBg" class="mb-4 pa-1.5 rounded-xl border">
+      <div class="d-flex align-center justify-space-between px-2 pt-1 pb-1.5">
+        <div class="d-flex align-center gap-1">
+          <v-icon icon="mdi-scale-balance" size="16" color="primary" />
+          <span class="text-caption font-weight-bold text-lightText text-uppercase" style="letter-spacing: 0.5px;">
+            Cash Flow &amp; Budget
+          </span>
+        </div>
+        <div class="text-caption font-weight-bold" :class="netCashFlow >= 0 ? 'text-success' : 'text-error'">
+          Net: {{ netCashFlow >= 0 ? '+' : '' }}₹{{ netCashFlow.toFixed(2) }}
+        </div>
+      </div>
+
+      <v-tabs
+        v-model="activeModuleTab"
+        density="comfortable"
+        grow
+        color="primary"
+        class="finance-module-tabs rounded-lg bg-surface"
+      >
+        <v-tab value="expenses" class="font-weight-bold text-capitalize text-body-2 rounded-lg">
+          <v-icon icon="mdi-cash-minus" class="mr-1 text-error" size="18" />
+          Expenses
+          <v-chip size="x-small" color="error" variant="tonal" class="ml-1.5 font-weight-bold">
+            -₹{{ Math.round(expensesStore.totalAmount) }}
+          </v-chip>
+        </v-tab>
+        <v-tab value="incomes" class="font-weight-bold text-capitalize text-body-2 rounded-lg">
+          <v-icon icon="mdi-cash-plus" class="mr-1 text-success" size="18" />
+          Incomes
+          <v-chip size="x-small" color="success" variant="tonal" class="ml-1.5 font-weight-bold">
+            +₹{{ Math.round(incomesStore.totalAmount) }}
+          </v-chip>
+        </v-tab>
+      </v-tabs>
+    </v-card>
+
+    <!-- CONTENT TABS -->
+    <v-fade-transition mode="out-in">
+      <Incomes v-if="activeModuleTab === 'incomes'" />
+
+      <div v-else>
+        <!-- Summary Header Cards (Mantis Style) -->
+        <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white" style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
       <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
         <div class="d-flex align-center gap-2">
           <v-avatar color="white" variant="tonal" size="38" rounded="lg">
@@ -534,14 +577,18 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+      </div>
+    </v-fade-transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useExpensesStore } from '@/stores/expenses'
+import { useIncomesStore } from '@/stores/incomes'
 import { useFamilyStore } from '@/stores/family'
 import { useModalBack } from '@/composables/useModalBack'
+import Incomes from '@/components/Incomes.vue'
 import type { ExpenseItem, ExpenseCategory } from '@/types'
 import {
   getCategoryIcon as serviceGetCategoryIcon,
@@ -552,10 +599,36 @@ import {
   createDefaultExpenseForm,
   cleanExpenseTags,
   addTagToExpenseForm,
+  calculateNetCashFlow,
 } from '@/services/service.js'
 
+const props = withDefaults(
+  defineProps<{
+    initialTab?: 'expenses' | 'incomes'
+  }>(),
+  {
+    initialTab: 'expenses',
+  }
+)
+
 const expensesStore = useExpensesStore()
+const incomesStore = useIncomesStore()
 const familyStore = useFamilyStore()
+
+const activeModuleTab = ref<'expenses' | 'incomes'>(props.initialTab)
+
+watch(
+  () => props.initialTab,
+  (newTab) => {
+    if (newTab && (newTab === 'expenses' || newTab === 'incomes')) {
+      activeModuleTab.value = newTab
+    }
+  }
+)
+
+const netCashFlow = computed(() =>
+  calculateNetCashFlow(incomesStore.totalAmount, expensesStore.totalAmount)
+)
 
 const dialogOpen = ref(false)
 const isEditing = ref(false)

@@ -594,6 +594,175 @@ export function addTagToExpenseForm(formTags, tag) {
 }
 
 // ============================================================================
+// 4B. INCOMES & INFLOW FUNCTIONS
+// ============================================================================
+
+/**
+ * Returns MDI icon string for an income category.
+ * @param {string} category
+ * @returns {string}
+ */
+export function getIncomeCategoryIcon(category) {
+  switch (category) {
+    case 'Salary':
+      return 'mdi-briefcase-outline'
+    case 'Business':
+      return 'mdi-domain'
+    case 'Freelance':
+      return 'mdi-laptop'
+    case 'Investments':
+      return 'mdi-chart-line'
+    case 'Gift/Shagun':
+      return 'mdi-hand-coin-outline'
+    case 'Rental':
+      return 'mdi-home-city-outline'
+    case 'Refund':
+      return 'mdi-cash-refund'
+    default:
+      return 'mdi-cash-plus'
+  }
+}
+
+/**
+ * Returns color string for an income category.
+ * @param {string} category
+ * @returns {string}
+ */
+export function getIncomeCategoryColor(category) {
+  switch (category) {
+    case 'Salary':
+      return 'teal-darken-1'
+    case 'Business':
+      return 'primary'
+    case 'Freelance':
+      return 'cyan-darken-1'
+    case 'Investments':
+      return 'green-darken-1'
+    case 'Gift/Shagun':
+      return 'pink-darken-1'
+    case 'Rental':
+      return 'orange-darken-2'
+    case 'Refund':
+      return 'blue-darken-1'
+    default:
+      return 'success'
+  }
+}
+
+/**
+ * Builds descriptive summary text for active income filters.
+ * @param {string|null} activeTagFilter
+ * @param {string} selectedCategory
+ * @returns {string}
+ */
+export function getActiveIncomeFilterSummary(activeTagFilter, selectedCategory) {
+  if (activeTagFilter && selectedCategory !== 'All') {
+    return `Tag: "${activeTagFilter}" • Cat: ${selectedCategory}`
+  }
+  if (activeTagFilter) {
+    return `Tag: "${activeTagFilter}"`
+  }
+  if (selectedCategory !== 'All') {
+    return `Category: ${selectedCategory}`
+  }
+  return 'Tap to browse & toggle tags or category'
+}
+
+/**
+ * Filters income items by active tag filter and category filter.
+ * @param {Array<{tags?: string[], category?: string}>} incomes
+ * @param {string|null} activeTagFilter
+ * @param {string} selectedCategory
+ * @returns {Array<any>}
+ */
+export function filterIncomes(incomes = [], activeTagFilter = null, selectedCategory = 'All') {
+  if (!Array.isArray(incomes)) return []
+  let list = incomes
+  if (activeTagFilter) {
+    list = list.filter((inc) => Array.isArray(inc.tags) && inc.tags.includes(activeTagFilter))
+  }
+  if (selectedCategory && selectedCategory !== 'All') {
+    list = list.filter((inc) => inc.category === selectedCategory)
+  }
+  return list
+}
+
+/**
+ * Aggregates earner/contributor totals for a specific event tag or general incomes.
+ * @param {Array<{tags?: string[], memberId: string, amount: number|string}>} incomes
+ * @param {string|null} activeTagFilter
+ * @param {(id: string) => string} getMemberNameFn
+ * @returns {Array<{name: string, amount: number}>}
+ */
+export function calculateIncomeContributors(incomes = [], activeTagFilter = null, getMemberNameFn) {
+  if (!Array.isArray(incomes)) return []
+  const map = new Map()
+
+  const list = activeTagFilter
+    ? incomes.filter((inc) => Array.isArray(inc.tags) && inc.tags.includes(activeTagFilter))
+    : incomes
+
+  list.forEach((inc) => {
+    const name = typeof getMemberNameFn === 'function' ? getMemberNameFn(inc.memberId) : inc.memberId
+    map.set(name, (map.get(name) || 0) + Number(inc.amount || 0))
+  })
+
+  return Array.from(map.entries()).map(([name, amount]) => ({ name, amount }))
+}
+
+/**
+ * Factory for creating a blank income form.
+ * @param {string} activeMemberId
+ * @param {string|null} activeTagFilter
+ * @returns {any}
+ */
+export function createDefaultIncomeForm(activeMemberId = '', activeTagFilter = null) {
+  return {
+    title: '',
+    amount: '',
+    category: 'Salary',
+    memberId: activeMemberId,
+    tags: activeTagFilter ? [activeTagFilter] : [],
+    date: new Date().toISOString().split('T')[0],
+    notes: '',
+  }
+}
+
+/**
+ * Trims and sanitizes an array of income tags.
+ * @param {Array<string>} tags
+ * @returns {Array<string>}
+ */
+export function cleanIncomeTags(tags = []) {
+  if (!Array.isArray(tags)) return []
+  return tags
+    .map((t) => (typeof t === 'string' ? t.trim() : ''))
+    .filter(Boolean)
+}
+
+/**
+ * Appends a tag to the tags array if not already present.
+ * @param {Array<string>} formTags
+ * @param {string} tag
+ */
+export function addTagToIncomeForm(formTags, tag) {
+  if (!Array.isArray(formTags) || !tag) return
+  if (!formTags.includes(tag)) {
+    formTags.push(tag)
+  }
+}
+
+/**
+ * Calculates net cashflow (Total Incomes - Total Expenses).
+ * @param {number} totalIncomes
+ * @param {number} totalExpenses
+ * @returns {number}
+ */
+export function calculateNetCashFlow(totalIncomes = 0, totalExpenses = 0) {
+  return Number(totalIncomes || 0) - Number(totalExpenses || 0)
+}
+
+// ============================================================================
 // 5. RECURRING EXPENSES FUNCTIONS
 // ============================================================================
 
@@ -859,7 +1028,9 @@ export function getTitleForTab(tab) {
     case 'todos':
       return 'To Do List'
     case 'expenses':
-      return 'Update Expenses'
+      return 'Expenses & Incomes'
+    case 'incomes':
+      return 'Incomes Tracker'
     case 'family':
       return 'Family Members'
     case 'recurring':
@@ -887,7 +1058,9 @@ export function getSubtitleForTab(tab) {
     case 'todos':
       return 'Task manager with Mark as Done'
     case 'expenses':
-      return 'Event tags & spending tracker'
+      return 'Spending, inflows & cashflow tracker'
+    case 'incomes':
+      return 'Earnings, shagun & inflow tracker'
     case 'family':
       return 'Add, update & impersonate'
     case 'recurring':
@@ -1068,10 +1241,10 @@ export function calculateGuestGiftsTotal(returnGifts = []) {
  * @returns {string}
  */
 export function formatGuestPartyDisplay(guest) {
-  if (!guest) return 'Solo (1 person)'
+  if (!guest) return 'Solo (1)'
   const extra = Number(guest.additionalGuests) || 0
-  if (extra === 0) return 'Solo (1 person)'
-  return `+${extra} (${extra + 1} persons)`
+  if (extra === 0) return 'Solo (1)'
+  return `Persons : ${(extra + 1) + extra}`
 }
 
 /**
@@ -1258,6 +1431,17 @@ export default {
   createDefaultExpenseForm,
   cleanExpenseTags,
   addTagToExpenseForm,
+
+  // Incomes
+  getIncomeCategoryIcon,
+  getIncomeCategoryColor,
+  getActiveIncomeFilterSummary,
+  filterIncomes,
+  calculateIncomeContributors,
+  createDefaultIncomeForm,
+  cleanIncomeTags,
+  addTagToIncomeForm,
+  calculateNetCashFlow,
 
   // Recurring
   getRecurringCategoryIcon,

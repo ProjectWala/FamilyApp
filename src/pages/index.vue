@@ -137,6 +137,25 @@
         </v-list-item>
 
         <v-list-item
+          :active="currentTab === 'incomes'"
+          rounded="lg"
+          class="mb-1"
+          color="success"
+          @click="selectTab('incomes')"
+        >
+          <template #prepend>
+            <v-icon icon="mdi-cash-check" class="mr-2 text-success" size="20" />
+          </template>
+          <v-list-item-title class="font-weight-medium text-body-2">Incomes</v-list-item-title>
+          <v-list-item-subtitle class="text-caption">Inflows, salary &amp; Shagun</v-list-item-subtitle>
+          <template #append v-if="incomesStore.incomes.length > 0">
+            <v-chip size="x-small" variant="tonal" color="success">
+              +₹{{ Math.round(incomesStore.thisMonthAmount) }}
+            </v-chip>
+          </template>
+        </v-list-item>
+
+        <v-list-item
           :active="currentTab === 'guests'"
           rounded="lg"
           class="mb-1"
@@ -515,6 +534,11 @@
           />
           <Expenses
             v-else-if="currentTab === 'expenses'"
+            initial-tab="expenses"
+          />
+          <Expenses
+            v-else-if="currentTab === 'incomes'"
+            initial-tab="incomes"
           />
           <Guestlist
             v-else-if="currentTab === 'guests'"
@@ -641,6 +665,7 @@ import { useAppStore } from '@/stores/app'
 import { useTodoStore } from '@/stores/todos'
 import { useFamilyStore } from '@/stores/family'
 import { useExpensesStore } from '@/stores/expenses'
+import { useIncomesStore } from '@/stores/incomes'
 import { useGuestsStore } from '@/stores/guests'
 import { useRecurringStore } from '@/stores/recurring'
 import { useShoppingStore } from '@/stores/shopping'
@@ -652,6 +677,7 @@ const appStore = useAppStore()
 const todoStore = useTodoStore()
 const familyStore = useFamilyStore()
 const expensesStore = useExpensesStore()
+const incomesStore = useIncomesStore()
 const guestsStore = useGuestsStore()
 const recurringStore = useRecurringStore()
 const shoppingStore = useShoppingStore()
@@ -660,8 +686,8 @@ const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 
-type TabModule = 'dashboard' | 'todos' | 'expenses' | 'guests' | 'family' | 'recurring' | 'shopping' | 'tags' | 'gifts'
-const VALID_TABS: TabModule[] = ['dashboard', 'todos', 'expenses', 'guests', 'family', 'recurring', 'shopping', 'tags', 'gifts']
+type TabModule = 'dashboard' | 'todos' | 'expenses' | 'incomes' | 'guests' | 'family' | 'recurring' | 'shopping' | 'tags' | 'gifts'
+const VALID_TABS: TabModule[] = ['dashboard', 'todos', 'expenses', 'incomes', 'guests', 'family', 'recurring', 'shopping', 'tags', 'gifts']
 
 function getTabFromPath(path: string): TabModule {
   const segment = (path || '').replace(/^\//, '').split('/')[0].toLowerCase()

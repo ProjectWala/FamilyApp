@@ -41,6 +41,27 @@ export interface ExpenseItem {
   notes?: string
 }
 
+export type IncomeCategory =
+  | 'Salary'
+  | 'Business'
+  | 'Freelance'
+  | 'Investments'
+  | 'Gift/Shagun'
+  | 'Rental'
+  | 'Refund'
+  | 'Other'
+
+export interface IncomeItem {
+  id: string
+  title: string
+  amount: number
+  category: IncomeCategory
+  memberId: string
+  date: string
+  tags?: string[]
+  notes?: string
+}
+
 export type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 export interface RecurringExpenseItem {

@@ -11,6 +11,7 @@ export type SupportedResource =
   | 'family_members'
   | 'todos'
   | 'expenses'
+  | 'incomes'
   | 'recurring_expenses'
   | 'guests'
   | 'shopping_list'

@@ -2,6 +2,8 @@ import type {
   FamilyMember,
   ExpenseItem,
   ExpenseCategory,
+  IncomeItem,
+  IncomeCategory,
   Priority,
   Frequency,
   RecurringExpenseItem,
@@ -94,6 +96,35 @@ export function createDefaultExpenseForm(
 }
 export function cleanExpenseTags(tags?: any[]): string[]
 export function addTagToExpenseForm(formTags: string[], tag: string): void
+
+export function getIncomeCategoryIcon(category: IncomeCategory | string): string
+export function getIncomeCategoryColor(category: IncomeCategory | string): string
+export function getActiveIncomeFilterSummary(activeTagFilter: string | null, selectedCategory: string): string
+export function filterIncomes(
+  incomes?: IncomeItem[],
+  activeTagFilter?: string | null,
+  selectedCategory?: string
+): IncomeItem[]
+export function calculateIncomeContributors(
+  incomes?: IncomeItem[],
+  activeTagFilter?: string | null,
+  getMemberNameFn?: (id: string) => string
+): Array<{ name: string; amount: number }>
+export function createDefaultIncomeForm(
+  activeMemberId?: string,
+  activeTagFilter?: string | null
+): {
+  title: string
+  amount: string | number
+  category: IncomeCategory
+  memberId: string
+  tags: string[]
+  date: string
+  notes: string
+}
+export function cleanIncomeTags(tags?: any[]): string[]
+export function addTagToIncomeForm(formTags: string[], tag: string): void
+export function calculateNetCashFlow(totalIncomes?: number, totalExpenses?: number): number
 
 export function getRecurringCategoryIcon(category: ExpenseCategory | string): string
 export function getRecurringCategoryColor(category: ExpenseCategory | string): string
@@ -243,6 +274,15 @@ declare const service: {
   createDefaultExpenseForm: typeof createDefaultExpenseForm
   cleanExpenseTags: typeof cleanExpenseTags
   addTagToExpenseForm: typeof addTagToExpenseForm
+  getIncomeCategoryIcon: typeof getIncomeCategoryIcon
+  getIncomeCategoryColor: typeof getIncomeCategoryColor
+  getActiveIncomeFilterSummary: typeof getActiveIncomeFilterSummary
+  filterIncomes: typeof filterIncomes
+  calculateIncomeContributors: typeof calculateIncomeContributors
+  createDefaultIncomeForm: typeof createDefaultIncomeForm
+  cleanIncomeTags: typeof cleanIncomeTags
+  addTagToIncomeForm: typeof addTagToIncomeForm
+  calculateNetCashFlow: typeof calculateNetCashFlow
   getRecurringCategoryIcon: typeof getRecurringCategoryIcon
   getRecurringCategoryColor: typeof getRecurringCategoryColor
   filterRecurringItems: typeof filterRecurringItems

@@ -31,6 +31,11 @@ const router = createRouter({
       component: Index,
     },
     {
+      path: '/incomes',
+      name: 'incomes',
+      component: Index,
+    },
+    {
       path: '/family',
       name: 'family',
       component: Index,
