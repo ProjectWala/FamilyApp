@@ -48,9 +48,8 @@
               </v-list>
             </v-menu>
 
-            <v-btn size="x-small" variant="tonal" color="success" rounded="lg"
-              class="font-weight-bold text-capitalize" prepend-icon="mdi-whatsapp"
-              @click="shareEventWhatsApp(activeEventForInvites)">
+            <v-btn size="x-small" variant="tonal" color="success" rounded="lg" class="font-weight-bold text-capitalize"
+              prepend-icon="mdi-whatsapp" @click="shareEventWhatsApp(activeEventForInvites)">
               Share
             </v-btn>
 
@@ -128,7 +127,7 @@
           <v-btn color="white" variant="flat" size="small" rounded="lg"
             class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-account-plus"
             @click="openAddGuestDialog">
-            + Add
+            Add
           </v-btn>
         </div>
       </div>
@@ -205,8 +204,8 @@
             <!-- Search Input -->
             <v-text-field v-model="guestsStore.searchQuery"
               placeholder="Search by guest name, addon companion, phone, tags, gifts, notes..."
-              prepend-inner-icon="mdi-magnify" density="compact" variant="outlined" hide-details clearable
-              rounded="lg" class="mb-3" @click:clear="guestsStore.searchQuery = ''" />
+              prepend-inner-icon="mdi-magnify" density="compact" variant="outlined" hide-details clearable rounded="lg"
+              class="mb-3" @click:clear="guestsStore.searchQuery = ''" />
 
             <!-- Group Category Chips -->
             <div class="mb-3">
@@ -216,8 +215,7 @@
               <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
                 <v-chip :color="guestsStore.selectedGroup === 'all' ? 'primary' : 'secondary'"
                   :variant="guestsStore.selectedGroup === 'all' ? 'flat' : 'outlined'" size="small"
-                  class="font-weight-medium cursor-pointer filter-gray-chip"
-                  @click="guestsStore.selectedGroup = 'all'">
+                  class="font-weight-medium cursor-pointer filter-gray-chip" @click="guestsStore.selectedGroup = 'all'">
                   All Groups ({{ guestsStore.totalGuests }})
                 </v-chip>
 
@@ -296,8 +294,8 @@
                 </v-chip>
 
                 <!-- Specific gift presets filters -->
-                <v-chip v-for="item in guestsStore.returnGiftsDistribution.slice(0, 4)" :key="item.name"
-                  size="x-small" :color="guestsStore.selectedGiftName === item.name ? 'warning' : undefined"
+                <v-chip v-for="item in guestsStore.returnGiftsDistribution.slice(0, 4)" :key="item.name" size="x-small"
+                  :color="guestsStore.selectedGiftName === item.name ? 'warning' : undefined"
                   :variant="guestsStore.selectedGiftName === item.name ? 'flat' : 'outlined'"
                   class="cursor-pointer font-weight-medium" @click="guestsStore.toggleGiftNameFilter(item.name)">
                   {{ item.name }} ({{ item.count }})
@@ -311,8 +309,8 @@
                 RSVP Status:
               </div>
               <div class="d-flex align-center gap-1.5 flex-wrap">
-                <v-chip size="x-small" :variant="guestsStore.selectedRsvp === 'all' ? 'flat' : 'tonal'"
-                  color="primary" class="cursor-pointer font-weight-medium" @click="guestsStore.selectedRsvp = 'all'">
+                <v-chip size="x-small" :variant="guestsStore.selectedRsvp === 'all' ? 'flat' : 'tonal'" color="primary"
+                  class="cursor-pointer font-weight-medium" @click="guestsStore.selectedRsvp = 'all'">
                   All RSVPs ({{ guestsStore.totalGuests }})
                 </v-chip>
                 <v-chip size="x-small" :variant="guestsStore.selectedRsvp === 'confirmed' ? 'flat' : 'tonal'"
@@ -408,9 +406,8 @@
 
         <!-- Toggle Expand All Details Button -->
         <v-btn size="x-small" :variant="showAllDetails ? 'flat' : 'outlined'"
-          :color="showAllDetails ? 'primary' : 'secondary'" rounded="lg"
-          class="text-capitalize font-weight-medium px-2" title="Toggle details for all guests"
-          @click="showAllDetails = !showAllDetails">
+          :color="showAllDetails ? 'primary' : 'secondary'" rounded="lg" class="text-capitalize font-weight-medium px-2"
+          title="Toggle details for all guests" @click="showAllDetails = !showAllDetails">
           <v-icon :icon="showAllDetails ? 'mdi-eye-check-outline' : 'mdi-eye-outline'" size="13" class="mr-1" />
           {{ showAllDetails ? 'Hide Details' : 'Show Details' }}
         </v-btn>
@@ -531,8 +528,8 @@
                           <v-chip v-bind="rsvpProps" size="x-small" variant="flat"
                             :color="getEventRsvpColor(getGuestActiveEventInvite(guest.id)?.rsvpStatus)"
                             class="font-weight-bold text-capitalize cursor-pointer ml-1" @click.stop>
-                            <v-icon :icon="getEventRsvpIcon(getGuestActiveEventInvite(guest.id)?.rsvpStatus)"
-                              size="11" class="mr-0.5" />
+                            <v-icon :icon="getEventRsvpIcon(getGuestActiveEventInvite(guest.id)?.rsvpStatus)" size="11"
+                              class="mr-0.5" />
                             {{ getGuestActiveEventInvite(guest.id)?.rsvpStatus || 'Invited' }}
                             <v-icon icon="mdi-chevron-down" size="10" class="ml-0.5" />
                           </v-chip>
@@ -558,8 +555,7 @@
                         @click.stop="sendWhatsAppInviteToGuestForEvent(guest)" />
 
                       <v-btn icon="mdi-close" variant="text" size="x-small" color="lightText"
-                        title="Remove from this event"
-                        @click.stop="removeGuestFromActiveEvent(guest.id, guest.name)" />
+                        title="Remove from this event" @click.stop="removeGuestFromActiveEvent(guest.id, guest.name)" />
                     </template>
 
                     <!-- Not Invited Yet: show + Invite to Event button -->
@@ -586,8 +582,8 @@
                   <span class="text-caption text-lightText font-weight-medium mr-1" style="font-size: 0.72rem;">
                     Addons:
                   </span>
-                  <v-chip v-for="(person, pIdx) in guest.accompanyingPersons" :key="pIdx" size="x-small"
-                    variant="tonal" color="secondary" class="font-weight-medium">
+                  <v-chip v-for="(person, pIdx) in guest.accompanyingPersons" :key="pIdx" size="x-small" variant="tonal"
+                    color="secondary" class="font-weight-medium">
                     <v-icon icon="mdi-account" size="10" class="mr-1" />
                     <span>{{ person.name }}</span>
                     <span v-if="person.relation" class="ml-1 opacity-70">({{ person.relation }})</span>
@@ -608,7 +604,7 @@
                     <v-icon icon="mdi-gift" size="11" class="mr-1 text-warning" />
                     <span>{{ gift.name }}</span>
                     <span class="ml-1 font-weight-bold text-darkText">(₹{{ Number(gift.price || 0).toLocaleString()
-                    }})</span>
+                      }})</span>
                     <v-btn icon="mdi-close" variant="text" size="x-small" density="compact"
                       class="ml-1 text-lightText hover-error" title="Remove this return gift"
                       @click.stop="removeGuestGift(guest.id, gIdx)" />
@@ -634,8 +630,8 @@
                       {{ guest.returnGiftGiven ? 'Return Gift Handed Over ✓' : 'Mark Return Gift Handed Over' }}
                     </span>
                   </div>
-                  <v-switch :model-value="Boolean(guest.returnGiftGiven)" color="success" density="compact"
-                    hide-details @click.stop @update:model-value="guestsStore.toggleReturnGiftGiven(guest.id)" />
+                  <v-switch :model-value="Boolean(guest.returnGiftGiven)" color="success" density="compact" hide-details
+                    @click.stop @update:model-value="guestsStore.toggleReturnGiftGiven(guest.id)" />
                 </div>
 
                 <!-- Expandable Details (Tags, Phone, Email, Notes, Full Addon Management) -->
@@ -643,8 +639,7 @@
                   <div v-if="isGuestExpanded(guest.id)" class="expand-wrapper">
                     <div class="mt-2 pt-2 border-t">
                       <!-- Grouping Tags Chips -->
-                      <div v-if="guest.tags && guest.tags.length > 0"
-                        class="d-flex align-center gap-1 flex-wrap mb-2">
+                      <div v-if="guest.tags && guest.tags.length > 0" class="d-flex align-center gap-1 flex-wrap mb-2">
                         <v-icon icon="mdi-tag-outline" size="14" class="text-primary flex-shrink-0" />
                         <span class="text-caption font-weight-medium text-darkText mr-1">Tags:</span>
                         <v-chip v-for="tag in guest.tags" :key="tag" size="x-small" variant="outlined" color="primary"
@@ -805,8 +800,7 @@
 
         <!-- Category Guest Cards -->
         <v-card v-for="guest in catGroup.guests" :key="guest.id" :ripple="false" variant="outlined" elevation="0"
-          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border cursor-pointer"
-          @click="toggleGuestExpand(guest.id)">
+          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border cursor-pointer" @click="toggleGuestExpand(guest.id)">
           <div class="d-flex align-center justify-space-between">
             <div class="d-flex align-center gap-2" style="min-width: 0;">
               <v-avatar color="secondary" variant="tonal" size="28" rounded="md" class="font-weight-bold"
@@ -965,8 +959,8 @@
                 <!-- Relation Selector -->
                 <v-combobox v-model="person.relation"
                   :items="['Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Partner', 'Relative', 'Colleague']"
-                  label="Relation" placeholder="Relation" variant="outlined" density="compact" hide-details
-                  rounded="md" style="max-width: 140px;" />
+                  label="Relation" placeholder="Relation" variant="outlined" density="compact" hide-details rounded="md"
+                  style="max-width: 140px;" />
 
                 <!-- Remove Row Button -->
                 <v-btn icon="mdi-trash-can-outline" variant="text" color="error" size="small"
@@ -1030,8 +1024,7 @@
 
                     <v-col cols="12" sm="6">
                       <v-text-field v-model="guestForm.email" label="Email Address" placeholder="guest@example.com"
-                        variant="outlined" density="comfortable" rounded="lg"
-                        prepend-inner-icon="mdi-email-outline" />
+                        variant="outlined" density="comfortable" rounded="lg" prepend-inner-icon="mdi-email-outline" />
                     </v-col>
 
                     <v-col cols="12">
@@ -1100,8 +1093,7 @@
 
         <!-- Dialog Footer Actions -->
         <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
-          <v-btn variant="outlined" rounded="lg" color="secondary" class="text-capitalize"
-            @click="guestDialog = false">
+          <v-btn variant="outlined" rounded="lg" color="secondary" class="text-capitalize" @click="guestDialog = false">
             Cancel
           </v-btn>
 

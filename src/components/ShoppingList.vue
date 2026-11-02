@@ -1,10 +1,8 @@
 <template>
   <div class="shopping-component">
     <!-- Summary Header Cards (Mantis Style - Matching Expenses Theme) -->
-    <v-card
-      class="mb-4 pa-4 rounded-lg elevation-0 text-white"
-      style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));"
-    >
+    <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white"
+      style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
       <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
         <div class="d-flex align-center gap-2">
           <v-avatar color="white" variant="tonal" size="38" rounded="lg">
@@ -21,16 +19,9 @@
         </div>
 
         <!-- Add Product Primary CTA -->
-        <v-btn
-          color="white"
-          variant="flat"
-          size="small"
-          rounded="lg"
-          class="text-primary font-weight-bold text-capitalize"
-          prepend-icon="mdi-plus"
-          @click="openAddModal"
-        >
-          + Add
+        <v-btn color="white" variant="flat" size="small" rounded="lg"
+          class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-plus" @click="openAddModal">
+          Add
         </v-btn>
       </div>
 
@@ -56,80 +47,58 @@
     <!-- TAG GROUP BANNER (When Tag Filter is Active - Identical to Expenses Theme) -->
     <v-expand-transition>
       <div v-if="shoppingStore.activeTagFilter" class="expand-wrapper">
-        <v-card
-          variant="outlined"
-          elevation="0"
-          class="mb-4 pa-4 rounded-lg bg-surface card-hover-border"
-        >
-        <div class="d-flex justify-space-between align-start">
-          <div class="d-flex align-center">
-            <v-avatar color="primary" variant="tonal" size="38" rounded="lg" class="mr-3">
-              <v-icon icon="mdi-tag-heart" size="20" />
-            </v-avatar>
+        <v-card variant="outlined" elevation="0" class="mb-4 pa-4 rounded-lg bg-surface card-hover-border">
+          <div class="d-flex justify-space-between align-start">
+            <div class="d-flex align-center">
+              <v-avatar color="primary" variant="tonal" size="38" rounded="lg" class="mr-3">
+                <v-icon icon="mdi-tag-heart" size="20" />
+              </v-avatar>
+              <div>
+                <div class="text-label-small text-lightText text-uppercase font-weight-medium">
+                  Grouped Category Products
+                </div>
+                <div class="text-h6 font-weight-bold text-truncate text-darkText">
+                  {{ shoppingStore.activeTagFilter }}
+                </div>
+              </div>
+            </div>
+
+            <v-btn size="small" variant="tonal" color="primary" icon="mdi-close" rounded="lg" title="Clear Tag Filter"
+              @click="shoppingStore.activeTagFilter = null" />
+          </div>
+
+          <div class="d-flex align-center justify-space-between mt-3 pt-2 border-t">
             <div>
-              <div class="text-label-small text-lightText text-uppercase font-weight-medium">
-                Grouped Category Products
-              </div>
-              <div class="text-h6 font-weight-bold text-truncate text-darkText">
-                {{ shoppingStore.activeTagFilter }}
+              <div class="text-caption text-lightText">Category Total</div>
+              <div class="text-h5 font-weight-bold text-primary">
+                ₹{{ shoppingStore.getTagTotal(shoppingStore.activeTagFilter).toFixed(2) }}
               </div>
             </div>
-          </div>
-
-          <v-btn
-            size="small"
-            variant="tonal"
-            color="primary"
-            icon="mdi-close"
-            rounded="lg"
-            title="Clear Tag Filter"
-            @click="shoppingStore.activeTagFilter = null"
-          />
-        </div>
-
-        <div class="d-flex align-center justify-space-between mt-3 pt-2 border-t">
-          <div>
-            <div class="text-caption text-lightText">Category Total</div>
-            <div class="text-h5 font-weight-bold text-primary">
-              ₹{{ shoppingStore.getTagTotal(shoppingStore.activeTagFilter).toFixed(2) }}
+            <div class="text-right">
+              <div class="text-caption text-lightText">Products Count</div>
+              <div class="text-subtitle-1 font-weight-bold text-darkText">
+                {{ shoppingStore.getTagItemsCount(shoppingStore.activeTagFilter) }} items
+              </div>
             </div>
           </div>
-          <div class="text-right">
-            <div class="text-caption text-lightText">Products Count</div>
-            <div class="text-subtitle-1 font-weight-bold text-darkText">
-              {{ shoppingStore.getTagItemsCount(shoppingStore.activeTagFilter) }} items
-            </div>
-          </div>
-        </div>
 
-        <!-- Quick filter actions -->
-        <div class="mt-2 pt-2 border-t d-flex align-center justify-space-between text-caption text-lightText">
-          <span>Filtered view active for this group</span>
-          <v-btn
-            size="x-small"
-            variant="text"
-            color="primary"
-            class="px-1 text-capitalize font-weight-bold"
-            @click="shoppingStore.activeTagFilter = null"
-          >
-            Show All Products
-          </v-btn>
-        </div>
-      </v-card>
-    </div>
-  </v-expand-transition>
+          <!-- Quick filter actions -->
+          <div class="mt-2 pt-2 border-t d-flex align-center justify-space-between text-caption text-lightText">
+            <span>Filtered view active for this group</span>
+            <v-btn size="x-small" variant="text" color="primary" class="px-1 text-capitalize font-weight-bold"
+              @click="shoppingStore.activeTagFilter = null">
+              Show All Products
+            </v-btn>
+          </div>
+        </v-card>
+      </div>
+    </v-expand-transition>
 
 
     <!-- COLLAPSIBLE TAGS & FILTERS PANEL (Mantis Style) -->
-    <v-card
-      variant="outlined"
-      elevation="0"
-      class="mb-3 rounded-lg bg-surface card-hover-border overflow-hidden"
-    >
-      <div
-        class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none filter-header-bar"
-        @click="showFiltersPanel = !showFiltersPanel"
-      >
+    <v-card variant="outlined" elevation="0" class="mb-3 rounded-lg bg-surface card-hover-border overflow-hidden">
+      <div class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none filter-header-bar"
+        @click="showFiltersPanel = !showFiltersPanel">
         <div class="d-flex align-center flex-wrap gap-2" style="min-width: 0;">
           <v-avatar color="primary" variant="tonal" size="28" rounded="md">
             <v-icon icon="mdi-filter-variant" size="16" />
@@ -137,14 +106,8 @@
           <div>
             <div class="text-subtitle-2 font-weight-bold text-darkText d-flex align-center">
               Tags, Priority &amp; Filters
-              <v-chip
-                v-if="hasActiveFilters"
-                size="x-small"
-                color="primary"
-                variant="flat"
-                rounded="pill"
-                class="ml-2 font-weight-bold px-2"
-              >
+              <v-chip v-if="hasActiveFilters" size="x-small" color="primary" variant="flat" rounded="pill"
+                class="ml-2 font-weight-bold px-2">
                 Filtered
               </v-chip>
             </div>
@@ -155,23 +118,12 @@
         </div>
 
         <div class="d-flex align-center">
-          <v-btn
-            v-if="hasActiveFilters"
-            variant="text"
-            size="x-small"
-            color="error"
-            class="mr-1 text-capitalize px-2 font-weight-bold"
-            @click.stop="resetFilters"
-          >
+          <v-btn v-if="hasActiveFilters" variant="text" size="x-small" color="error"
+            class="mr-1 text-capitalize px-2 font-weight-bold" @click.stop="resetFilters">
             Reset
           </v-btn>
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            color="lightText"
-            :aria-label="showFiltersPanel ? 'Collapse Filters' : 'Expand Filters'"
-          >
+          <v-btn icon variant="text" size="small" color="lightText"
+            :aria-label="showFiltersPanel ? 'Collapse Filters' : 'Expand Filters'">
             <v-icon :icon="showFiltersPanel ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="20" />
           </v-btn>
         </div>
@@ -181,159 +133,110 @@
       <v-expand-transition>
         <div v-if="showFiltersPanel" class="expand-wrapper">
           <div class="px-3 pb-3 pt-1 border-t">
-          <!-- Search input -->
-          <v-text-field
-            v-model="shoppingStore.searchQuery"
-            placeholder="Search products by name, tag, or notes..."
-            prepend-inner-icon="mdi-magnify"
-            density="compact"
-            variant="outlined"
-            rounded="lg"
-            hide-details
-            clearable
-            class="mb-3"
-          />
+            <!-- Search input -->
+            <v-text-field v-model="shoppingStore.searchQuery" placeholder="Search products by name, tag, or notes..."
+              prepend-inner-icon="mdi-magnify" density="compact" variant="outlined" rounded="lg" hide-details clearable
+              class="mb-3" />
 
-          <!-- 1. Priority Filter Chips -->
-          <div class="mb-3">
-            <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
-              Priority Filter:
-            </div>
-            <div class="d-flex flex-wrap gap-1.5">
-              <v-chip
-                size="small"
-                :variant="shoppingStore.selectedPriority === 'all' ? 'flat' : 'outlined'"
-                :color="shoppingStore.selectedPriority === 'all' ? 'primary' : undefined"
-                class="font-weight-medium cursor-pointer"
-                @click="shoppingStore.selectedPriority = 'all'"
-              >
-                All Priorities
-              </v-chip>
-              <v-chip
-                size="small"
-                :variant="shoppingStore.selectedPriority === 'urgent' ? 'flat' : 'tonal'"
-                color="error"
-                class="font-weight-medium cursor-pointer"
-                @click="shoppingStore.selectedPriority = 'urgent'"
-              >
-                <v-icon icon="mdi-alert-octagon" size="14" class="mr-1" />
-                Urgent
-              </v-chip>
-              <v-chip
-                size="small"
-                :variant="shoppingStore.selectedPriority === 'high' ? 'flat' : 'tonal'"
-                color="warning"
-                class="font-weight-medium cursor-pointer"
-                @click="shoppingStore.selectedPriority = 'high'"
-              >
-                <v-icon icon="mdi-alert-circle" size="14" class="mr-1" />
-                High
-              </v-chip>
-              <v-chip
-                size="small"
-                :variant="shoppingStore.selectedPriority === 'medium' ? 'flat' : 'tonal'"
-                color="primary"
-                class="font-weight-medium cursor-pointer"
-                @click="shoppingStore.selectedPriority = 'medium'"
-              >
-                <v-icon icon="mdi-arrow-up-circle-outline" size="14" class="mr-1" />
-                Medium
-              </v-chip>
-              <v-chip
-                size="small"
-                :variant="shoppingStore.selectedPriority === 'low' ? 'flat' : 'tonal'"
-                color="success"
-                class="font-weight-medium cursor-pointer"
-                @click="shoppingStore.selectedPriority = 'low'"
-              >
-                <v-icon icon="mdi-arrow-down-circle-outline" size="14" class="mr-1" />
-                Low
-              </v-chip>
-            </div>
-          </div>
-
-          <!-- 2. Status Filter (Pending / Bought) -->
-          <div class="mb-3">
-            <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
-              Status Filter:
-            </div>
-            <div class="d-flex flex-wrap gap-1.5">
-              <v-chip
-                size="small"
-                :variant="shoppingStore.selectedStatus === 'all' ? 'flat' : 'outlined'"
-                :color="shoppingStore.selectedStatus === 'all' ? 'primary' : undefined"
-                class="font-weight-medium cursor-pointer"
-                @click="shoppingStore.selectedStatus = 'all'"
-              >
-                All Status
-              </v-chip>
-              <v-chip
-                size="small"
-                :variant="shoppingStore.selectedStatus === 'pending' ? 'flat' : 'tonal'"
-                color="warning"
-                class="font-weight-medium cursor-pointer"
-                @click="shoppingStore.selectedStatus = 'pending'"
-              >
-                <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
-                To Buy ({{ shoppingStore.pendingCount }})
-              </v-chip>
-              <v-chip
-                size="small"
-                :variant="shoppingStore.selectedStatus === 'purchased' ? 'flat' : 'tonal'"
-                color="success"
-                class="font-weight-medium cursor-pointer"
-                @click="shoppingStore.selectedStatus = 'purchased'"
-              >
-                <v-icon icon="mdi-check-circle-outline" size="14" class="mr-1" />
-                Purchased ({{ shoppingStore.purchasedCount }})
-              </v-chip>
-            </div>
-          </div>
-
-          <!-- 3. Togglable Group Tags Section (Matching Expenses theme) -->
-          <div>
-            <div class="d-flex align-center justify-space-between mb-1">
-              <span class="text-caption font-weight-bold text-lightText text-uppercase">
-                Product Group Tags ({{ shoppingStore.allTags.length }}):
-              </span>
-              <span class="text-caption text-lightText" style="font-size: 0.68rem !important;">
-                Tap tag to filter
-              </span>
+            <!-- 1. Priority Filter Chips -->
+            <div class="mb-3">
+              <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+                Priority Filter:
+              </div>
+              <div class="d-flex flex-wrap gap-1.5">
+                <v-chip size="small" :variant="shoppingStore.selectedPriority === 'all' ? 'flat' : 'outlined'"
+                  :color="shoppingStore.selectedPriority === 'all' ? 'primary' : undefined"
+                  class="font-weight-medium cursor-pointer" @click="shoppingStore.selectedPriority = 'all'">
+                  All Priorities
+                </v-chip>
+                <v-chip size="small" :variant="shoppingStore.selectedPriority === 'urgent' ? 'flat' : 'tonal'"
+                  color="error" class="font-weight-medium cursor-pointer"
+                  @click="shoppingStore.selectedPriority = 'urgent'">
+                  <v-icon icon="mdi-alert-octagon" size="14" class="mr-1" />
+                  Urgent
+                </v-chip>
+                <v-chip size="small" :variant="shoppingStore.selectedPriority === 'high' ? 'flat' : 'tonal'"
+                  color="warning" class="font-weight-medium cursor-pointer"
+                  @click="shoppingStore.selectedPriority = 'high'">
+                  <v-icon icon="mdi-alert-circle" size="14" class="mr-1" />
+                  High
+                </v-chip>
+                <v-chip size="small" :variant="shoppingStore.selectedPriority === 'medium' ? 'flat' : 'tonal'"
+                  color="primary" class="font-weight-medium cursor-pointer"
+                  @click="shoppingStore.selectedPriority = 'medium'">
+                  <v-icon icon="mdi-arrow-up-circle-outline" size="14" class="mr-1" />
+                  Medium
+                </v-chip>
+                <v-chip size="small" :variant="shoppingStore.selectedPriority === 'low' ? 'flat' : 'tonal'"
+                  color="success" class="font-weight-medium cursor-pointer"
+                  @click="shoppingStore.selectedPriority = 'low'">
+                  <v-icon icon="mdi-arrow-down-circle-outline" size="14" class="mr-1" />
+                  Low
+                </v-chip>
+              </div>
             </div>
 
-            <div class="d-flex flex-wrap gap-1.5">
-              <v-chip
-                size="small"
-                class="filter-tag-chip px-2.5 font-weight-medium cursor-pointer"
-                :variant="!shoppingStore.activeTagFilter ? 'flat' : 'outlined'"
-                :color="!shoppingStore.activeTagFilter ? 'primary' : undefined"
-                rounded="lg"
-                @click="shoppingStore.activeTagFilter = null"
-              >
-                All Tags
-              </v-chip>
+            <!-- 2. Status Filter (Pending / Bought) -->
+            <div class="mb-3">
+              <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+                Status Filter:
+              </div>
+              <div class="d-flex flex-wrap gap-1.5">
+                <v-chip size="small" :variant="shoppingStore.selectedStatus === 'all' ? 'flat' : 'outlined'"
+                  :color="shoppingStore.selectedStatus === 'all' ? 'primary' : undefined"
+                  class="font-weight-medium cursor-pointer" @click="shoppingStore.selectedStatus = 'all'">
+                  All Status
+                </v-chip>
+                <v-chip size="small" :variant="shoppingStore.selectedStatus === 'pending' ? 'flat' : 'tonal'"
+                  color="warning" class="font-weight-medium cursor-pointer"
+                  @click="shoppingStore.selectedStatus = 'pending'">
+                  <v-icon icon="mdi-clock-outline" size="14" class="mr-1" />
+                  To Buy ({{ shoppingStore.pendingCount }})
+                </v-chip>
+                <v-chip size="small" :variant="shoppingStore.selectedStatus === 'purchased' ? 'flat' : 'tonal'"
+                  color="success" class="font-weight-medium cursor-pointer"
+                  @click="shoppingStore.selectedStatus = 'purchased'">
+                  <v-icon icon="mdi-check-circle-outline" size="14" class="mr-1" />
+                  Purchased ({{ shoppingStore.purchasedCount }})
+                </v-chip>
+              </div>
+            </div>
 
-              <v-chip
-                v-for="tag in shoppingStore.allTags"
-                :key="tag"
-                size="small"
-                class="filter-tag-chip px-2.5 font-weight-medium cursor-pointer"
-                rounded="lg"
-                :color="shoppingStore.activeTagFilter === tag ? 'primary' : undefined"
-                :variant="shoppingStore.activeTagFilter === tag ? 'flat' : 'tonal'"
-                @click="shoppingStore.activeTagFilter = shoppingStore.activeTagFilter === tag ? null : tag"
-              >
-                <v-icon icon="mdi-tag-outline" size="13" class="mr-1" />
-                {{ tag }}
-                <span v-if="shoppingStore.tagCountMap[tag]" class="ml-1 opacity-70">
-                  ({{ shoppingStore.tagCountMap[tag] }})
+            <!-- 3. Togglable Group Tags Section (Matching Expenses theme) -->
+            <div>
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-caption font-weight-bold text-lightText text-uppercase">
+                  Product Group Tags ({{ shoppingStore.allTags.length }}):
                 </span>
-              </v-chip>
+                <span class="text-caption text-lightText" style="font-size: 0.68rem !important;">
+                  Tap tag to filter
+                </span>
+              </div>
+
+              <div class="d-flex flex-wrap gap-1.5">
+                <v-chip size="small" class="filter-tag-chip px-2.5 font-weight-medium cursor-pointer"
+                  :variant="!shoppingStore.activeTagFilter ? 'flat' : 'outlined'"
+                  :color="!shoppingStore.activeTagFilter ? 'primary' : undefined" rounded="lg"
+                  @click="shoppingStore.activeTagFilter = null">
+                  All Tags
+                </v-chip>
+
+                <v-chip v-for="tag in shoppingStore.allTags" :key="tag" size="small"
+                  class="filter-tag-chip px-2.5 font-weight-medium cursor-pointer" rounded="lg"
+                  :color="shoppingStore.activeTagFilter === tag ? 'primary' : undefined"
+                  :variant="shoppingStore.activeTagFilter === tag ? 'flat' : 'tonal'"
+                  @click="shoppingStore.activeTagFilter = shoppingStore.activeTagFilter === tag ? null : tag">
+                  <v-icon icon="mdi-tag-outline" size="13" class="mr-1" />
+                  {{ tag }}
+                  <span v-if="shoppingStore.tagCountMap[tag]" class="ml-1 opacity-70">
+                    ({{ shoppingStore.tagCountMap[tag] }})
+                  </span>
+                </v-chip>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </v-expand-transition>
+      </v-expand-transition>
     </v-card>
 
     <!-- Toolbar: Sort, Grouping & Items Count -->
@@ -347,62 +250,35 @@
         <!-- Sort By Menu -->
         <v-menu location="bottom end">
           <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              size="x-small"
-              variant="outlined"
-              color="primary"
-              rounded="lg"
-              prepend-icon="mdi-sort-variant"
-              class="text-capitalize"
-            >
+            <v-btn v-bind="props" size="x-small" variant="outlined" color="primary" rounded="lg"
+              prepend-icon="mdi-sort-variant" class="text-capitalize">
               {{ currentSortLabel }}
             </v-btn>
           </template>
           <v-list density="compact" class="py-1">
-            <v-list-item
-              :active="shoppingStore.sortBy === 'priority'"
-              @click="shoppingStore.sortBy = 'priority'"
-            >
+            <v-list-item :active="shoppingStore.sortBy === 'priority'" @click="shoppingStore.sortBy = 'priority'">
               <v-list-item-title class="text-caption">Priority (Urgent first)</v-list-item-title>
             </v-list-item>
-            <v-list-item
-              :active="shoppingStore.sortBy === 'price-desc'"
-              @click="shoppingStore.sortBy = 'price-desc'"
-            >
+            <v-list-item :active="shoppingStore.sortBy === 'price-desc'" @click="shoppingStore.sortBy = 'price-desc'">
               <v-list-item-title class="text-caption">Price: High to Low</v-list-item-title>
             </v-list-item>
-            <v-list-item
-              :active="shoppingStore.sortBy === 'price-asc'"
-              @click="shoppingStore.sortBy = 'price-asc'"
-            >
+            <v-list-item :active="shoppingStore.sortBy === 'price-asc'" @click="shoppingStore.sortBy = 'price-asc'">
               <v-list-item-title class="text-caption">Price: Low to High</v-list-item-title>
             </v-list-item>
-            <v-list-item
-              :active="shoppingStore.sortBy === 'name'"
-              @click="shoppingStore.sortBy = 'name'"
-            >
+            <v-list-item :active="shoppingStore.sortBy === 'name'" @click="shoppingStore.sortBy = 'name'">
               <v-list-item-title class="text-caption">Product Name (A-Z)</v-list-item-title>
             </v-list-item>
-            <v-list-item
-              :active="shoppingStore.sortBy === 'newest'"
-              @click="shoppingStore.sortBy = 'newest'"
-            >
+            <v-list-item :active="shoppingStore.sortBy === 'newest'" @click="shoppingStore.sortBy = 'newest'">
               <v-list-item-title class="text-caption">Newest Added</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
 
         <!-- View Mode Toggle: Flat vs Grouped by Tag -->
-        <v-btn
-          size="x-small"
-          :variant="viewGroupedByTag ? 'flat' : 'outlined'"
-          :color="viewGroupedByTag ? 'primary' : 'secondary'"
-          rounded="lg"
-          icon="mdi-shape-outline"
+        <v-btn size="x-small" :variant="viewGroupedByTag ? 'flat' : 'outlined'"
+          :color="viewGroupedByTag ? 'primary' : 'secondary'" rounded="lg" icon="mdi-shape-outline"
           :title="viewGroupedByTag ? 'Switch to flat list' : 'Group products by tag'"
-          @click="viewGroupedByTag = !viewGroupedByTag"
-        />
+          @click="viewGroupedByTag = !viewGroupedByTag" />
 
         <span class="text-caption text-lightText font-weight-medium">
           {{ shoppingStore.filteredItems.length }} items
@@ -417,88 +293,54 @@
       </v-avatar>
       <div class="text-subtitle-1 font-weight-medium text-darkText">No products found</div>
       <div class="text-body-2 text-lightText">
-        {{ hasActiveFilters ? 'No products match your active filters or search.' : 'Tap the button above to add a product to your shopping list!' }}
+        {{ hasActiveFilters ? 'No products match' : "Tap the button above to add a product!" }}
       </div>
-      <v-btn
-        v-if="hasActiveFilters"
-        variant="tonal"
-        size="small"
-        color="primary"
-        class="mt-3 text-capitalize rounded-lg"
-        @click="resetFilters"
-      >
+      <v-btn v-if="hasActiveFilters" variant="tonal" size="small" color="primary"
+        class="mt-3 text-capitalize rounded-lg" @click="resetFilters">
         Clear Filters
       </v-btn>
     </div>
 
     <!-- VIEW A: Flat List of Products -->
     <v-slide-y-transition v-if="!viewGroupedByTag" group>
-      <v-card
-        v-for="item in shoppingStore.filteredItems"
-        :key="item.id"
-        variant="outlined"
-        elevation="0"
+      <v-card v-for="item in shoppingStore.filteredItems" :key="item.id" variant="outlined" elevation="0"
         class="mb-2 rounded-xl bg-surface card-hover-border shopping-item-card"
-        :class="{ 'opacity-60': item.isPurchased }"
-      >
+        :class="{ 'opacity-60': item.isPurchased }">
         <div class="d-flex align-center pa-3 px-4">
           <!-- Title and Info -->
           <div class="flex-grow-1 cursor-pointer" style="min-width: 0;" @click="shoppingStore.togglePurchased(item.id)">
-            <div
-              class="text-body-2 font-weight-medium text-truncate text-darkText"
+            <div class="text-body-2 font-weight-medium text-truncate text-darkText"
               :class="{ 'text-decoration-line-through text-medium-emphasis': item.isPurchased }"
-              :title="item.productName"
-            >
+              :title="item.productName">
               {{ item.productName }}
             </div>
 
             <div class="d-flex align-center gap-2 mt-1 flex-wrap">
               <!-- Priority badge (solid color pill) -->
-              <v-chip
-                size="x-small"
-                :color="getPriorityColor(item.priority)"
-                variant="flat"
-                rounded="md"
-                class="text-capitalize font-weight-medium"
-              >
+              <v-chip size="x-small" :color="getPriorityColor(item.priority)" variant="flat" rounded="md"
+                class="text-capitalize font-weight-medium">
                 {{ item.priority }}
               </v-chip>
 
               <!-- Category / Tags (tonal light pills) -->
               <template v-if="item.tags && item.tags.length > 0">
-                <v-chip
-                  v-for="tag in item.tags"
-                  :key="tag"
-                  size="x-small"
-                  variant="tonal"
-                  rounded="md"
-                  class="font-weight-medium cursor-pointer"
-                  :title="`Filter by ${tag}`"
-                  @click.stop="shoppingStore.activeTagFilter = tag"
-                >
+                <v-chip v-for="tag in item.tags" :key="tag" size="x-small" variant="tonal" rounded="md"
+                  class="font-weight-medium cursor-pointer" :title="`Filter by ${tag}`"
+                  @click.stop="shoppingStore.activeTagFilter = tag">
                   {{ tag }}
                 </v-chip>
               </template>
 
               <!-- Price & Quantity -->
-              <v-chip
-                size="x-small"
-                variant="tonal"
-                color="primary"
-                rounded="md"
-                class="font-weight-medium font-mono"
-              >
+              <v-chip size="x-small" variant="tonal" color="primary" rounded="md" class="font-weight-medium font-mono">
                 Qty: {{ item.quantity }} • ₹{{ ((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(0) }}
               </v-chip>
 
               <!-- Member Attribution -->
-              <span v-if="item.memberId && getMember(item.memberId)" class="text-caption text-lightText d-flex align-center">
-                <v-avatar
-                  size="14"
-                  variant="flat"
-                  :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }"
-                  class="mr-1"
-                >
+              <span v-if="item.memberId && getMember(item.memberId)"
+                class="text-caption text-lightText d-flex align-center">
+                <v-avatar size="14" variant="flat"
+                  :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }" class="mr-1">
                   <v-icon :icon="getMember(item.memberId)?.avatarIcon || 'mdi-account'" size="9" color="white" />
                 </v-avatar>
                 {{ getMemberName(item.memberId) }}
@@ -519,41 +361,15 @@
 
           <!-- Actions: Move to Expenses / Checkbox circle / Edit / Delete -->
           <div class="d-flex align-center ml-2 flex-shrink-0">
-            <v-btn
-              v-if="canMoveToExpenses(item)"
-              icon="mdi-cash-plus"
-              color="success"
-              variant="tonal"
-              size="x-small"
-              rounded="md"
-              class="mr-1"
-              title="Move to Expenses"
-              @click.stop="confirmMoveItem(item)"
-            />
-            <v-btn
-              :icon="item.isPurchased ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
-              :color="item.isPurchased ? 'success' : 'grey'"
-              variant="text"
-              size="small"
-              title="Toggle Purchased"
-              @click.stop="shoppingStore.togglePurchased(item.id)"
-            />
-            <v-btn
-              icon="mdi-pencil-outline"
-              color="primary"
-              variant="text"
-              size="small"
-              title="Edit Product"
-              @click.stop="openEditModal(item)"
-            />
-            <v-btn
-              icon="mdi-trash-can-outline"
-              color="error"
-              variant="text"
-              size="small"
-              title="Delete Product"
-              @click.stop="confirmDeleteItem(item)"
-            />
+            <v-btn v-if="canMoveToExpenses(item)" icon="mdi-cash-plus" color="success" variant="tonal" size="x-small"
+              rounded="md" class="mr-1" title="Move to Expenses" @click.stop="confirmMoveItem(item)" />
+            <v-btn :icon="item.isPurchased ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
+              :color="item.isPurchased ? 'success' : 'grey'" variant="text" size="small" title="Toggle Purchased"
+              @click.stop="shoppingStore.togglePurchased(item.id)" />
+            <v-btn icon="mdi-pencil-outline" color="primary" variant="text" size="small" title="Edit Product"
+              @click.stop="openEditModal(item)" />
+            <v-btn icon="mdi-trash-can-outline" color="error" variant="text" size="small" title="Delete Product"
+              @click.stop="confirmDeleteItem(item)" />
           </div>
         </div>
       </v-card>
@@ -561,11 +377,7 @@
 
     <!-- VIEW B: Grouped by Tag Cards -->
     <div v-else>
-      <div
-        v-for="(groupItems, tagName) in shoppingStore.groupedByTag"
-        :key="tagName"
-        class="mb-4"
-      >
+      <div v-for="(groupItems, tagName) in shoppingStore.groupedByTag" :key="tagName" class="mb-4">
         <div class="d-flex align-center justify-space-between mb-2 px-1">
           <div class="d-flex align-center gap-1.5">
             <v-chip size="small" color="primary" variant="flat" class="font-weight-bold">
@@ -578,76 +390,51 @@
           </div>
 
           <span class="text-caption font-weight-bold text-darkText font-mono">
-            ₹{{ groupItems.reduce((acc, i) => acc + (Number(i.price) || 0) * (Number(i.quantity) || 1), 0).toFixed(2) }}
+            ₹{{groupItems.reduce((acc, i) => acc + (Number(i.price) || 0) * (Number(i.quantity) || 1), 0).toFixed(2)}}
           </span>
         </div>
 
-        <v-card
-          v-for="item in groupItems"
-          :key="item.id"
-          variant="outlined"
-          elevation="0"
+        <v-card v-for="item in groupItems" :key="item.id" variant="outlined" elevation="0"
           class="mb-2 rounded-xl bg-surface card-hover-border shopping-item-card"
-          :class="{ 'opacity-60': item.isPurchased }"
-        >
+          :class="{ 'opacity-60': item.isPurchased }">
           <div class="d-flex align-center pa-3 px-4">
             <!-- Title and Info -->
-            <div class="flex-grow-1 cursor-pointer" style="min-width: 0;" @click="shoppingStore.togglePurchased(item.id)">
-              <div
-                class="text-body-2 font-weight-medium text-truncate text-darkText"
+            <div class="flex-grow-1 cursor-pointer" style="min-width: 0;"
+              @click="shoppingStore.togglePurchased(item.id)">
+              <div class="text-body-2 font-weight-medium text-truncate text-darkText"
                 :class="{ 'text-decoration-line-through text-medium-emphasis': item.isPurchased }"
-                :title="item.productName"
-              >
+                :title="item.productName">
                 {{ item.productName }}
               </div>
 
               <div class="d-flex align-center gap-2 mt-1 flex-wrap">
                 <!-- Priority badge (solid color pill) -->
-                <v-chip
-                  size="x-small"
-                  :color="getPriorityColor(item.priority)"
-                  variant="flat"
-                  rounded="md"
-                  class="text-capitalize font-weight-medium"
-                >
+                <v-chip size="x-small" :color="getPriorityColor(item.priority)" variant="flat" rounded="md"
+                  class="text-capitalize font-weight-medium">
                   {{ item.priority }}
                 </v-chip>
 
                 <!-- Category / Tags (tonal light pills) -->
                 <template v-if="item.tags && item.tags.length > 0">
-                  <v-chip
-                    v-for="tag in item.tags"
-                    :key="tag"
-                    size="x-small"
-                    variant="tonal"
-                    rounded="md"
-                    class="font-weight-medium cursor-pointer"
-                    :title="`Filter by ${tag}`"
-                    @click.stop="shoppingStore.activeTagFilter = tag"
-                  >
+                  <v-chip v-for="tag in item.tags" :key="tag" size="x-small" variant="tonal" rounded="md"
+                    class="font-weight-medium cursor-pointer" :title="`Filter by ${tag}`"
+                    @click.stop="shoppingStore.activeTagFilter = tag">
                     {{ tag }}
                   </v-chip>
                 </template>
 
                 <!-- Price & Quantity -->
-                <v-chip
-                  size="x-small"
-                  variant="tonal"
-                  color="primary"
-                  rounded="md"
-                  class="font-weight-medium font-mono"
-                >
-                  Qty: {{ item.quantity }} • ₹{{ ((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(0) }}
+                <v-chip size="x-small" variant="tonal" color="primary" rounded="md"
+                  class="font-weight-medium font-mono">
+                  Qty: {{ item.quantity }} • ₹{{ ((Number(item.price) || 0) * (Number(item.quantity) || 1)).toFixed(0)
+                  }}
                 </v-chip>
 
                 <!-- Member Attribution -->
-                <span v-if="item.memberId && getMember(item.memberId)" class="text-caption text-lightText d-flex align-center">
-                  <v-avatar
-                    size="14"
-                    variant="flat"
-                    :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }"
-                    class="mr-1"
-                  >
+                <span v-if="item.memberId && getMember(item.memberId)"
+                  class="text-caption text-lightText d-flex align-center">
+                  <v-avatar size="14" variant="flat"
+                    :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }" class="mr-1">
                     <v-icon :icon="getMember(item.memberId)?.avatarIcon || 'mdi-account'" size="9" color="white" />
                   </v-avatar>
                   {{ getMemberName(item.memberId) }}
@@ -668,41 +455,15 @@
 
             <!-- Actions: Move to Expenses / Checkbox circle / Edit / Delete -->
             <div class="d-flex align-center ml-2 flex-shrink-0">
-              <v-btn
-                v-if="canMoveToExpenses(item)"
-                icon="mdi-cash-plus"
-                color="success"
-                variant="tonal"
-                size="x-small"
-                rounded="md"
-                class="mr-1"
-                title="Move to Expenses"
-                @click.stop="confirmMoveItem(item)"
-              />
-              <v-btn
-                :icon="item.isPurchased ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
-                :color="item.isPurchased ? 'success' : 'grey'"
-                variant="text"
-                size="small"
-                title="Toggle Purchased"
-                @click.stop="shoppingStore.togglePurchased(item.id)"
-              />
-              <v-btn
-                icon="mdi-pencil-outline"
-                color="primary"
-                variant="text"
-                size="small"
-                title="Edit Product"
-                @click.stop="openEditModal(item)"
-              />
-              <v-btn
-                icon="mdi-trash-can-outline"
-                color="error"
-                variant="text"
-                size="small"
-                title="Delete Product"
-                @click.stop="confirmDeleteItem(item)"
-              />
+              <v-btn v-if="canMoveToExpenses(item)" icon="mdi-cash-plus" color="success" variant="tonal" size="x-small"
+                rounded="md" class="mr-1" title="Move to Expenses" @click.stop="confirmMoveItem(item)" />
+              <v-btn :icon="item.isPurchased ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
+                :color="item.isPurchased ? 'success' : 'grey'" variant="text" size="small" title="Toggle Purchased"
+                @click.stop="shoppingStore.togglePurchased(item.id)" />
+              <v-btn icon="mdi-pencil-outline" color="primary" variant="text" size="small" title="Edit Product"
+                @click.stop="openEditModal(item)" />
+              <v-btn icon="mdi-trash-can-outline" color="error" variant="text" size="small" title="Delete Product"
+                @click.stop="confirmDeleteItem(item)" />
             </div>
           </div>
         </v-card>
@@ -710,19 +471,9 @@
     </div>
 
     <!-- Quick Batch Actions: Clear Completed -->
-    <div
-      v-if="shoppingStore.purchasedCount > 0"
-      class="mt-4 pt-2 text-center"
-    >
-      <v-btn
-        variant="tonal"
-        color="secondary"
-        size="small"
-        prepend-icon="mdi-check-all"
-        rounded="lg"
-        class="text-capitalize font-weight-medium"
-        @click="shoppingStore.clearPurchased()"
-      >
+    <div v-if="shoppingStore.purchasedCount > 0" class="mt-4 pt-2 text-center">
+      <v-btn variant="tonal" color="secondary" size="small" prepend-icon="mdi-check-all" rounded="lg"
+        class="text-capitalize font-weight-medium" @click="shoppingStore.clearPurchased()">
         Clear {{ shoppingStore.purchasedCount }} Purchased Items
       </v-btn>
     </div>
@@ -744,13 +495,7 @@
               </div>
             </div>
           </div>
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            color="white"
-            @click="closeDialog"
-          />
+          <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="closeDialog" />
         </v-card-title>
 
         <v-divider />
@@ -760,19 +505,10 @@
           <v-form ref="formRef" @submit.prevent="submitProduct">
             <!-- 1. PRODUCT NAME WITH AUTOCOMPLETE (Saved from DB) -->
             <div class="mb-3">
-              <v-combobox
-                v-model="form.productName"
-                :items="shoppingStore.catalogProductNames"
-                label="Product Name *"
-                placeholder="Choose or type new product name (e.g. Olive Oil 1L)"
-                variant="outlined"
-                density="comfortable"
-                rounded="md"
-                prepend-inner-icon="mdi-cart-outline"
-                clearable
-                :rules="[(v) => !!v || 'Product name is required']"
-                @update:model-value="onProductNameChange"
-              >
+              <v-combobox v-model="form.productName" :items="shoppingStore.catalogProductNames" label="Product Name *"
+                placeholder="Choose or type new product name (e.g. Olive Oil 1L)" variant="outlined"
+                density="comfortable" rounded="md" prepend-inner-icon="mdi-cart-outline" clearable
+                :rules="[(v) => !!v || 'Product name is required']" @update:model-value="onProductNameChange">
                 <template #prepend-item>
                   <div class="px-3 py-1 text-caption text-lightText font-weight-bold border-b bg-containerBg">
                     Saved Products (Autocomplete)
@@ -784,34 +520,15 @@
             <!-- 2. PRICE & QUANTITY INPUTS -->
             <v-row density="compact" class="mb-1">
               <v-col cols="6">
-                <v-text-field
-                  v-model.number="form.price"
-                  label="Price (₹) *"
-                  placeholder="0.00"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="md"
+                <v-text-field v-model.number="form.price" label="Price (₹) *" placeholder="0.00" type="number"
+                  step="0.01" min="0" variant="outlined" density="comfortable" rounded="md"
                   prepend-inner-icon="mdi-currency-inr"
-                  :rules="[(v) => (v !== null && v >= 0) || 'Enter valid price']"
-                />
+                  :rules="[(v) => (v !== null && v >= 0) || 'Enter valid price']" />
               </v-col>
               <v-col cols="6">
-                <v-text-field
-                  v-model.number="form.quantity"
-                  label="Quantity *"
-                  placeholder="1"
-                  type="number"
-                  step="1"
-                  min="1"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="md"
-                  prepend-inner-icon="mdi-numeric"
-                  :rules="[(v) => (v !== null && v > 0) || 'Quantity must be at least 1']"
-                />
+                <v-text-field v-model.number="form.quantity" label="Quantity *" placeholder="1" type="number" step="1"
+                  min="1" variant="outlined" density="comfortable" rounded="md" prepend-inner-icon="mdi-numeric"
+                  :rules="[(v) => (v !== null && v > 0) || 'Quantity must be at least 1']" />
               </v-col>
             </v-row>
 
@@ -828,47 +545,25 @@
               <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1.5">
                 Priority Flag:
               </div>
-              <v-btn-toggle
-                v-model="form.priority"
-                mandatory
-                density="compact"
-                color="primary"
-                rounded="lg"
-                class="w-100 d-flex priority-toggle-group"
-              >
-                <v-btn
-                  value="urgent"
-                  size="x-small"
-                  class="flex-grow-1 font-weight-bold px-1"
-                  :color="form.priority === 'urgent' ? 'error' : undefined"
-                >
+              <v-btn-toggle v-model="form.priority" mandatory density="compact" color="primary" rounded="lg"
+                class="w-100 d-flex priority-toggle-group">
+                <v-btn value="urgent" size="x-small" class="flex-grow-1 font-weight-bold px-1"
+                  :color="form.priority === 'urgent' ? 'error' : undefined">
                   <v-icon icon="mdi-alert-octagon" size="13" class="mr-0.5" />
                   Urgent
                 </v-btn>
-                <v-btn
-                  value="high"
-                  size="x-small"
-                  class="flex-grow-1 font-weight-bold px-1"
-                  :color="form.priority === 'high' ? 'warning' : undefined"
-                >
+                <v-btn value="high" size="x-small" class="flex-grow-1 font-weight-bold px-1"
+                  :color="form.priority === 'high' ? 'warning' : undefined">
                   <v-icon icon="mdi-alert-circle" size="13" class="mr-0.5" />
                   High
                 </v-btn>
-                <v-btn
-                  value="medium"
-                  size="x-small"
-                  class="flex-grow-1 font-weight-bold px-1"
-                  :color="form.priority === 'medium' ? 'primary' : undefined"
-                >
+                <v-btn value="medium" size="x-small" class="flex-grow-1 font-weight-bold px-1"
+                  :color="form.priority === 'medium' ? 'primary' : undefined">
                   <v-icon icon="mdi-arrow-up-circle-outline" size="13" class="mr-0.5" />
                   Medium
                 </v-btn>
-                <v-btn
-                  value="low"
-                  size="x-small"
-                  class="flex-grow-1 font-weight-bold px-1"
-                  :color="form.priority === 'low' ? 'success' : undefined"
-                >
+                <v-btn value="low" size="x-small" class="flex-grow-1 font-weight-bold px-1"
+                  :color="form.priority === 'low' ? 'success' : undefined">
                   <v-icon icon="mdi-arrow-down-circle-outline" size="13" class="mr-0.5" />
                   Low
                 </v-btn>
@@ -877,65 +572,30 @@
 
             <!-- 4. TAGGING FEATURE (To group products - matching Expenses theme) -->
             <div class="mb-3">
-              <v-combobox
-                v-model="form.tags"
-                :items="shoppingStore.allTags"
-                label="Product Tags / Category Group"
-                placeholder="Type tag & press enter (e.g. Groceries, Dairy)"
-                multiple
-                chips
-                closable-chips
-                variant="outlined"
-                density="comfortable"
-                rounded="lg"
-                prepend-inner-icon="mdi-tag-multiple-outline"
-                persistent-hint
-              />
+              <v-combobox v-model="form.tags" :items="shoppingStore.allTags" label="Product Tags / Category Group"
+                placeholder="Type tag & press enter (e.g. Groceries, Dairy)" multiple chips closable-chips
+                variant="outlined" density="comfortable" rounded="lg" prepend-inner-icon="mdi-tag-multiple-outline"
+                persistent-hint />
 
               <!-- Quick Tag Suggestions -->
               <div class="d-flex align-center gap-1 mt-2 flex-wrap text-caption">
                 <span class="text-medium-emphasis">Tags:</span>
-                <v-chip
-                  v-for="sug in suggestedQuickTags"
-                  :key="sug"
-                  size="x-small"
-                  variant="outlined"
-                  color="primary"
-                  class="cursor-pointer"
-                  @click="addSuggestedTag(sug)"
-                >
+                <v-chip v-for="sug in suggestedQuickTags" :key="sug" size="x-small" variant="outlined" color="primary"
+                  class="cursor-pointer" @click="addSuggestedTag(sug)">
                   + {{ sug }}
                 </v-chip>
               </div>
             </div>
 
             <!-- 5. ASSIGNED MEMBER -->
-            <v-select
-              v-model="form.memberId"
-              :items="familyOptions"
-              item-title="name"
-              item-value="id"
-              label="Assigned To / Added By"
-              variant="outlined"
-              density="comfortable"
-              rounded="md"
-              prepend-inner-icon="mdi-account"
-              class="mb-3"
-            />
+            <v-select v-model="form.memberId" :items="familyOptions" item-title="name" item-value="id"
+              label="Assigned To / Added By" variant="outlined" density="comfortable" rounded="md"
+              prepend-inner-icon="mdi-account" class="mb-3" />
 
             <!-- 6. OPTIONAL NOTES -->
-            <v-textarea
-              v-model="form.notes"
-              label="Notes (Optional)"
-              placeholder="e.g. Preferred brand, aisle number, or size"
-              rows="2"
-              variant="outlined"
-              density="comfortable"
-              rounded="md"
-              auto-grow
-              hide-details="auto"
-              class="mb-1"
-            />
+            <v-textarea v-model="form.notes" label="Notes (Optional)"
+              placeholder="e.g. Preferred brand, aisle number, or size" rows="2" variant="outlined"
+              density="comfortable" rounded="md" auto-grow hide-details="auto" class="mb-1" />
           </v-form>
         </v-card-text>
 
@@ -943,24 +603,12 @@
 
         <!-- Dialog Footer Actions -->
         <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            color="secondary"
-            class="text-capitalize"
-            @click="closeDialog"
-          >
+          <v-btn variant="outlined" rounded="lg" color="secondary" class="text-capitalize" @click="closeDialog">
             Cancel
           </v-btn>
 
-          <v-btn
-            color="primary"
-            variant="flat"
-            rounded="lg"
-            class="text-capitalize font-weight-bold px-4"
-            prepend-icon="mdi-content-save"
-            @click="submitProduct"
-          >
+          <v-btn color="primary" variant="flat" rounded="lg" class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save" @click="submitProduct">
             {{ isEditing ? 'Save Changes' : 'Add to List' }}
           </v-btn>
         </v-card-actions>
@@ -999,8 +647,10 @@
           Move to Expenses?
         </v-card-title>
         <v-card-text class="py-2 text-body-2 text-lightText">
-          Move <strong class="text-darkText">{{ itemToMove ? `${itemToMove.productName} x${itemToMove.quantity}` : '' }}</strong> to expenses list for
-          <strong class="text-success font-weight-bold">₹{{ itemToMove ? (Number(itemToMove.price) * Number(itemToMove.quantity)).toLocaleString() : 0 }}</strong>?
+          Move <strong class="text-darkText">{{ itemToMove ? `${itemToMove.productName} x${itemToMove.quantity}` : ''
+          }}</strong> to expenses list for
+          <strong class="text-success font-weight-bold">₹{{ itemToMove ? (Number(itemToMove.price) *
+            Number(itemToMove.quantity)).toLocaleString() : 0 }}</strong>?
           <div class="mt-2 text-caption text-lightText" style="font-size: 0.72rem;">
             This will record the expense under <strong>Expenses</strong> and remove it from your shopping list.
           </div>
@@ -1008,14 +658,8 @@
         <v-card-actions class="px-2 pt-2">
           <v-spacer />
           <v-btn variant="text" size="small" rounded="lg" @click="moveConfirmOpen = false">Cancel</v-btn>
-          <v-btn
-            color="success"
-            variant="flat"
-            size="small"
-            rounded="lg"
-            class="font-weight-bold text-capitalize"
-            @click="executeMoveToExpenses"
-          >
+          <v-btn color="success" variant="flat" size="small" rounded="lg" class="font-weight-bold text-capitalize"
+            @click="executeMoveToExpenses">
             <v-icon icon="mdi-arrow-right" size="14" class="mr-1" />
             Move to Expenses
           </v-btn>

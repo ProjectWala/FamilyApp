@@ -1,7 +1,8 @@
 <template>
   <div class="recurring-component">
     <!-- Header Summary Card (Mantis Style) -->
-    <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white" style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
+    <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white"
+      style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
       <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
         <div class="d-flex align-center gap-2">
           <v-avatar color="white" variant="tonal" size="38" rounded="lg">
@@ -9,25 +10,19 @@
           </v-avatar>
           <div>
             <span class="text-caption text-white-75 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
-              Recurring Commitments
+              Recurring Expanses
             </span>
             <div class="text-h6 font-weight-bold text-white line-height-1">
-              ₹{{ recurringStore.activeMonthlyEstimate.toFixed(0) }} <span class="text-caption text-white-75 font-weight-regular">/ month</span>
+              ₹{{ recurringStore.activeMonthlyEstimate.toFixed(0) }} <span
+                class="text-caption text-white-75 font-weight-regular">/ month</span>
             </div>
           </div>
         </div>
 
         <!-- Add Recurring Primary CTA -->
-        <v-btn
-          color="white"
-          variant="flat"
-          size="small"
-          rounded="lg"
-          class="text-primary font-weight-bold text-capitalize"
-          prepend-icon="mdi-plus"
-          @click="openAddDialog"
-        >
-          + Add
+        <v-btn color="white" variant="flat" size="small" rounded="lg"
+          class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-plus" @click="openAddDialog">
+          Add
         </v-btn>
       </div>
 
@@ -65,14 +60,8 @@
 
     <!-- Recurring Items List -->
     <v-slide-y-transition group>
-      <v-card
-        v-for="item in filteredItems"
-        :key="item.id"
-        variant="outlined"
-        elevation="0"
-        class="mb-3 pa-3 rounded-lg bg-surface card-hover-border"
-        :class="{ 'opacity-60': !item.isActive }"
-      >
+      <v-card v-for="item in filteredItems" :key="item.id" variant="outlined" elevation="0"
+        class="mb-3 pa-3 rounded-lg bg-surface card-hover-border" :class="{ 'opacity-60': !item.isActive }">
         <div class="d-flex align-start justify-space-between">
           <div class="d-flex align-center flex-grow-1" style="min-width: 0;">
             <!-- Category Icon (No Background Box) -->
@@ -83,8 +72,10 @@
             <!-- Details -->
             <div class="flex-grow-1" style="min-width: 0;">
               <div class="d-flex align-center gap-2">
-                <span class="text-subtitle-2 font-weight-bold text-truncate expense-title-light-red">{{ item.title }}</span>
-                <v-chip size="x-small" :color="item.isActive ? 'primary' : 'grey'" variant="tonal" label rounded="md" class="font-weight-medium">
+                <span class="text-subtitle-2 font-weight-bold text-truncate expense-title-light-red">{{ item.title
+                }}</span>
+                <v-chip size="x-small" :color="item.isActive ? 'primary' : 'grey'" variant="tonal" label rounded="md"
+                  class="font-weight-medium">
                   {{ item.frequency }}
                 </v-chip>
               </div>
@@ -93,13 +84,8 @@
                 <span class="app-date-text">Due: <strong>Day {{ item.billingDay }}</strong></span>
                 <span class="date-sep">•</span>
                 <span class="d-inline-flex align-center app-member-text text-darkText font-weight-medium">
-                  <v-avatar
-                    v-if="getMember(item.memberId)"
-                    size="14"
-                    variant="flat"
-                    :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }"
-                    class="mr-1"
-                  >
+                  <v-avatar v-if="getMember(item.memberId)" size="14" variant="flat"
+                    :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }" class="mr-1">
                     <v-icon :icon="getMember(item.memberId)?.avatarIcon || 'mdi-account'" size="9" color="white" />
                   </v-avatar>
                   <v-icon v-else icon="mdi-account" size="11" class="mr-1 text-lightText" />
@@ -114,14 +100,8 @@
             <div class="text-subtitle-1 font-weight-bold text-primary">
               ₹{{ Number(item.amount).toFixed(2) }}
             </div>
-            <v-switch
-              :model-value="item.isActive"
-              color="teal"
-              density="compact"
-              hide-details
-              class="d-inline-flex"
-              @update:model-value="recurringStore.toggleActive(item.id)"
-            />
+            <v-switch :model-value="item.isActive" color="teal" density="compact" hide-details class="d-inline-flex"
+              @update:model-value="recurringStore.toggleActive(item.id)" />
           </div>
         </div>
 
@@ -135,22 +115,12 @@
           </span>
 
           <div class="d-flex gap-1">
-            <v-btn
-              size="small"
-              variant="text"
-              color="primary"
-              prepend-icon="mdi-pencil-outline"
-              @click="openEditDialog(item)"
-            >
+            <v-btn size="small" variant="text" color="primary" prepend-icon="mdi-pencil-outline"
+              @click="openEditDialog(item)">
               Edit
             </v-btn>
-            <v-btn
-              size="small"
-              variant="text"
-              color="error"
-              icon="mdi-trash-can-outline"
-              @click="confirmDelete(item)"
-            />
+            <v-btn size="small" variant="text" color="error" icon="mdi-trash-can-outline"
+              @click="confirmDelete(item)" />
           </div>
         </div>
       </v-card>
@@ -171,13 +141,7 @@
               </div>
             </div>
           </div>
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            color="white"
-            @click="closeDialog"
-          />
+          <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="closeDialog" />
         </v-card-title>
 
         <v-divider />
@@ -185,100 +149,40 @@
         <!-- Form Body -->
         <v-card-text class="pa-4" style="max-height: 75vh;">
           <v-form @submit.prevent="saveItem">
-            <v-text-field
-              v-model="form.title"
-              label="Service / Expense Title *"
-              placeholder="e.g. Netflix, Wifi, Gym"
-              variant="outlined"
-              density="comfortable"
-              rounded="lg"
-              class="mb-3"
-              :rules="[(v) => !!v || 'Title is required']"
-            />
+            <v-text-field v-model="form.title" label="Service / Expense Title *" placeholder="e.g. Netflix, Wifi, Gym"
+              variant="outlined" density="comfortable" rounded="lg" class="mb-3"
+              :rules="[(v) => !!v || 'Title is required']" />
 
             <v-row density="compact">
               <v-col cols="6">
-                <v-text-field
-                  v-model.number="form.amount"
-                  label="Amount (₹) *"
-                  placeholder="0.00"
-                  type="number"
-                  step="0.01"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="md"
-                  class="mb-3"
-                  prepend-inner-icon="mdi-currency-inr"
-                />
+                <v-text-field v-model.number="form.amount" label="Amount (₹) *" placeholder="0.00" type="number"
+                  step="0.01" variant="outlined" density="comfortable" rounded="md" class="mb-3"
+                  prepend-inner-icon="mdi-currency-inr" />
               </v-col>
               <v-col cols="6">
-                <v-select
-                  v-model="form.frequency"
-                  :items="frequencyOptions"
-                  label="Frequency *"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="md"
-                  class="mb-3"
-                />
+                <v-select v-model="form.frequency" :items="frequencyOptions" label="Frequency *" variant="outlined"
+                  density="comfortable" rounded="md" class="mb-3" />
               </v-col>
             </v-row>
 
             <v-row density="compact">
               <v-col cols="6">
-                <v-select
-                  v-model="form.category"
-                  :items="categoryList"
-                  label="Category *"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="md"
-                  class="mb-3"
-                />
+                <v-select v-model="form.category" :items="categoryList" label="Category *" variant="outlined"
+                  density="comfortable" rounded="md" class="mb-3" />
               </v-col>
               <v-col cols="6">
-                <v-text-field
-                  v-model.number="form.billingDay"
-                  label="Day of Month (1-31)"
-                  type="number"
-                  min="1"
-                  max="31"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="md"
-                  class="mb-3"
-                />
+                <v-text-field v-model.number="form.billingDay" label="Day of Month (1-31)" type="number" min="1"
+                  max="31" variant="outlined" density="comfortable" rounded="md" class="mb-3" />
               </v-col>
             </v-row>
 
-            <v-select
-              v-model="form.memberId"
-              :items="familyOptions"
-              item-title="name"
-              item-value="id"
-              label="Assigned Member"
-              variant="outlined"
-              density="comfortable"
-              rounded="md"
-              class="mb-3"
-            />
+            <v-select v-model="form.memberId" :items="familyOptions" item-title="name" item-value="id"
+              label="Assigned Member" variant="outlined" density="comfortable" rounded="md" class="mb-3" />
 
-            <v-textarea
-              v-model="form.notes"
-              label="Optional Notes"
-              rows="2"
-              variant="outlined"
-              density="comfortable"
-              rounded="md"
-              class="mb-2"
-            />
+            <v-textarea v-model="form.notes" label="Optional Notes" rows="2" variant="outlined" density="comfortable"
+              rounded="md" class="mb-2" />
 
-            <v-switch
-              v-model="form.isActive"
-              color="primary"
-              label="Active Subscription"
-              hide-details
-            />
+            <v-switch v-model="form.isActive" color="primary" label="Active Subscription" hide-details />
           </v-form>
         </v-card-text>
 
@@ -286,24 +190,12 @@
 
         <!-- Dialog Footer Actions -->
         <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            color="secondary"
-            class="text-capitalize"
-            @click="closeDialog"
-          >
+          <v-btn variant="outlined" rounded="lg" color="secondary" class="text-capitalize" @click="closeDialog">
             Cancel
           </v-btn>
 
-          <v-btn
-            color="primary"
-            variant="flat"
-            rounded="lg"
-            class="text-capitalize font-weight-bold px-4"
-            prepend-icon="mdi-content-save"
-            @click="saveItem"
-          >
+          <v-btn color="primary" variant="flat" rounded="lg" class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save" @click="saveItem">
             {{ isEditing ? 'Save Changes' : 'Add Recurring' }}
           </v-btn>
         </v-card-actions>

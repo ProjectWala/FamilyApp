@@ -19,7 +19,7 @@
           <v-btn color="white" variant="flat" size="small" rounded="lg"
             class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-account-plus"
             @click="emit('add-guest')">
-            + Add Guest
+            Add
           </v-btn>
 
           <!-- Quick Copy CTA -->

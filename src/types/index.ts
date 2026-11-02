@@ -133,6 +133,7 @@ export interface EventItem {
   location?: string
   category?: string
   color?: string
+  tags?: string[]
   invitedGuests: EventGuestInvite[]
   notes?: string
   createdAt?: string

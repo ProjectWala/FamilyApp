@@ -18,16 +18,9 @@
         </div>
 
         <!-- Add Income Primary CTA -->
-        <v-btn
-          color="white"
-          variant="flat"
-          size="small"
-          rounded="lg"
-          class="text-success font-weight-bold text-capitalize"
-          prepend-icon="mdi-plus"
-          @click="openAddModal"
-        >
-          + Add Income
+        <v-btn color="white" variant="flat" size="small" rounded="lg"
+          class="text-success font-weight-bold text-capitalize" prepend-icon="mdi-plus" @click="openAddModal">
+          Add Income
         </v-btn>
       </div>
 
@@ -42,11 +35,7 @@
     <!-- EVENT GROUP BANNER (When Tag Filter is Active) -->
     <v-expand-transition>
       <div v-if="activeTagFilter" class="expand-wrapper">
-        <v-card
-          variant="outlined"
-          elevation="0"
-          class="mb-4 pa-4 rounded-lg bg-surface card-hover-border"
-        >
+        <v-card variant="outlined" elevation="0" class="mb-4 pa-4 rounded-lg bg-surface card-hover-border">
           <div class="d-flex justify-space-between align-start">
             <div class="d-flex align-center">
               <v-avatar color="success" variant="tonal" size="38" rounded="lg" class="mr-3">
@@ -62,14 +51,8 @@
               </div>
             </div>
 
-            <v-btn
-              size="small"
-              variant="tonal"
-              color="success"
-              icon="mdi-close"
-              rounded="lg"
-              @click="activeTagFilter = null"
-            />
+            <v-btn size="small" variant="tonal" color="success" icon="mdi-close" rounded="lg"
+              @click="activeTagFilter = null" />
           </div>
 
           <div class="d-flex align-center justify-space-between mt-3 pt-2 border-t">
@@ -90,16 +73,8 @@
           <!-- Breakdown by family contributor/earner for this event -->
           <div class="mt-2 pt-2 border-t text-caption text-lightText d-flex align-center flex-wrap gap-2">
             <span>Earners / Receivers:</span>
-            <v-chip
-              v-for="contrib in eventContributors"
-              :key="contrib.name"
-              size="x-small"
-              variant="tonal"
-              color="success"
-              label
-              rounded="md"
-              class="font-weight-medium"
-            >
+            <v-chip v-for="contrib in eventContributors" :key="contrib.name" size="x-small" variant="tonal"
+              color="success" label rounded="md" class="font-weight-medium">
               {{ contrib.name }}: +₹{{ contrib.amount.toFixed(0) }}
             </v-chip>
           </div>
@@ -108,15 +83,9 @@
     </v-expand-transition>
 
     <!-- COLLAPSIBLE TAGS & FILTERS PANEL -->
-    <v-card
-      variant="outlined"
-      elevation="0"
-      class="mb-3 rounded-lg bg-surface card-hover-border overflow-hidden"
-    >
-      <div
-        class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none filter-header-bar"
-        @click="showTagFilters = !showTagFilters"
-      >
+    <v-card variant="outlined" elevation="0" class="mb-3 rounded-lg bg-surface card-hover-border overflow-hidden">
+      <div class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none filter-header-bar"
+        @click="showTagFilters = !showTagFilters">
         <div class="d-flex align-center flex-wrap gap-2" style="min-width: 0;">
           <v-avatar color="success" variant="tonal" size="28" rounded="md">
             <v-icon icon="mdi-filter-variant" size="16" />
@@ -124,14 +93,8 @@
           <div>
             <div class="text-subtitle-2 font-weight-bold text-darkText d-flex align-center">
               Tags &amp; Filters
-              <v-chip
-                v-if="activeTagFilter || selectedCategory !== 'All'"
-                size="x-small"
-                color="success"
-                variant="flat"
-                rounded="pill"
-                class="ml-2 font-weight-bold px-2"
-              >
+              <v-chip v-if="activeTagFilter || selectedCategory !== 'All'" size="x-small" color="success" variant="flat"
+                rounded="pill" class="ml-2 font-weight-bold px-2">
                 Filtered
               </v-chip>
             </div>
@@ -142,23 +105,12 @@
         </div>
 
         <div class="d-flex align-center">
-          <v-btn
-            v-if="activeTagFilter || selectedCategory !== 'All'"
-            variant="text"
-            size="x-small"
-            color="error"
-            class="mr-1 text-capitalize px-2 font-weight-bold"
-            @click.stop="clearAllFilters"
-          >
+          <v-btn v-if="activeTagFilter || selectedCategory !== 'All'" variant="text" size="x-small" color="error"
+            class="mr-1 text-capitalize px-2 font-weight-bold" @click.stop="clearAllFilters">
             Reset
           </v-btn>
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            color="lightText"
-            :aria-label="showTagFilters ? 'Collapse Filters' : 'Expand Filters'"
-          >
+          <v-btn icon variant="text" size="small" color="lightText"
+            :aria-label="showTagFilters ? 'Collapse Filters' : 'Expand Filters'">
             <v-icon :icon="showTagFilters ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="20" />
           </v-btn>
         </div>
@@ -169,17 +121,12 @@
         <div v-if="showTagFilters" class="expand-wrapper">
           <div class="px-3 pb-3 pt-1 border-t">
             <!-- Active Filter Pill if set -->
-            <div v-if="activeTagFilter" class="mb-2 d-flex align-center justify-space-between bg-containerBg pa-2 rounded-md">
+            <div v-if="activeTagFilter"
+              class="mb-2 d-flex align-center justify-space-between bg-containerBg pa-2 rounded-md">
               <span class="text-caption font-weight-medium text-success">
                 Active Tag: <strong>{{ activeTagFilter }}</strong>
               </span>
-              <v-btn
-                icon="mdi-close"
-                size="x-small"
-                variant="text"
-                color="success"
-                @click="activeTagFilter = null"
-              />
+              <v-btn icon="mdi-close" size="x-small" variant="text" color="success" @click="activeTagFilter = null" />
             </div>
 
             <!-- 1. Togglable Tags Section -->
@@ -194,29 +141,17 @@
               </div>
 
               <div class="d-flex flex-wrap gap-2">
-                <v-chip
-                  size="default"
-                  class="filter-tag-chip px-3 font-weight-medium cursor-pointer"
-                  :variant="!activeTagFilter ? 'flat' : 'outlined'"
-                  :color="!activeTagFilter ? 'success' : undefined"
-                  rounded="lg"
-                  filter
-                  @click="activeTagFilter = null"
-                >
+                <v-chip size="default" class="filter-tag-chip px-3 font-weight-medium cursor-pointer"
+                  :variant="!activeTagFilter ? 'flat' : 'outlined'" :color="!activeTagFilter ? 'success' : undefined"
+                  rounded="lg" filter @click="activeTagFilter = null">
                   All Tags
                 </v-chip>
 
-                <v-chip
-                  v-for="tag in incomesStore.allTags"
-                  :key="tag"
-                  size="default"
-                  class="filter-tag-chip px-3 font-weight-medium cursor-pointer"
-                  rounded="lg"
+                <v-chip v-for="tag in incomesStore.allTags" :key="tag" size="default"
+                  class="filter-tag-chip px-3 font-weight-medium cursor-pointer" rounded="lg"
                   :color="activeTagFilter === tag ? 'success' : undefined"
-                  :variant="activeTagFilter === tag ? 'flat' : 'tonal'"
-                  filter
-                  @click="activeTagFilter = activeTagFilter === tag ? null : tag"
-                >
+                  :variant="activeTagFilter === tag ? 'flat' : 'tonal'" filter
+                  @click="activeTagFilter = activeTagFilter === tag ? null : tag">
                   <v-icon icon="mdi-tag-outline" size="14" class="mr-1" />
                   {{ tag }}
                 </v-chip>
@@ -228,15 +163,8 @@
               <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
                 Filter by Category:
               </div>
-              <v-select
-                v-model="selectedCategory"
-                :items="['All', ...categoryList]"
-                label="Select Category"
-                density="comfortable"
-                variant="outlined"
-                rounded="lg"
-                hide-details
-              />
+              <v-select v-model="selectedCategory" :items="['All', ...categoryList]" label="Select Category"
+                density="comfortable" variant="outlined" rounded="lg" hide-details />
             </div>
           </div>
         </div>
@@ -247,7 +175,8 @@
     <div class="d-flex align-center justify-space-between mb-3 px-1">
       <div class="text-subtitle-1 font-weight-bold d-flex align-center text-darkText">
         <v-icon icon="mdi-history" class="mr-2 text-success" size="20" />
-        {{ activeTagFilter ? `Incomes in "${activeTagFilter}"` : (selectedCategory !== 'All' ? `${selectedCategory} Incomes` : 'Recent Incomes') }}
+        {{ activeTagFilter ? `Incomes in "${activeTagFilter}"` : (selectedCategory !== 'All' ? `${selectedCategory}
+        Incomes` : 'Recent Incomes') }}
       </div>
 
       <span class="text-caption text-lightText font-weight-medium">
@@ -262,19 +191,14 @@
       </v-avatar>
       <div class="text-subtitle-1 font-weight-medium text-darkText">No incomes recorded</div>
       <div class="text-body-2 text-lightText">
-        {{ activeTagFilter ? `No incomes tagged under "${activeTagFilter}".` : 'Tap the button above to add an income entry!' }}
+        {{ activeTagFilter ? `No incomes tagged under "${activeTagFilter}".` : 'Tap the button to add an income!' }}
       </div>
     </div>
 
     <!-- Incomes List -->
     <v-slide-y-transition group>
-      <v-card
-        v-for="income in filteredIncomes"
-        :key="income.id"
-        variant="outlined"
-        elevation="0"
-        class="mb-3 pa-3 rounded-lg bg-surface card-hover-border"
-      >
+      <v-card v-for="income in filteredIncomes" :key="income.id" variant="outlined" elevation="0"
+        class="mb-3 pa-3 rounded-lg bg-surface card-hover-border">
         <div class="d-flex align-center">
           <!-- Category Icon -->
           <div class="mr-3 flex-shrink-0 d-flex align-center justify-center category-icon-wrap">
@@ -292,13 +216,8 @@
               <span class="date-sep">•</span>
               <!-- Member attribution -->
               <span class="d-inline-flex align-center font-weight-medium text-darkText app-member-text">
-                <v-avatar
-                  v-if="getMember(income.memberId)"
-                  size="14"
-                  variant="flat"
-                  :style="{ backgroundColor: getMember(income.memberId)?.avatarColor || '#6366F1' }"
-                  class="mr-1"
-                >
+                <v-avatar v-if="getMember(income.memberId)" size="14" variant="flat"
+                  :style="{ backgroundColor: getMember(income.memberId)?.avatarColor || '#6366F1' }" class="mr-1">
                   <v-icon :icon="getMember(income.memberId)?.avatarIcon || 'mdi-account'" size="9" color="white" />
                 </v-avatar>
                 <v-icon v-else icon="mdi-account" size="11" class="mr-1 text-lightText" />
@@ -308,17 +227,8 @@
 
             <!-- Tags Chips -->
             <div v-if="income.tags && income.tags.length > 0" class="d-flex align-center gap-1 mt-1 flex-wrap">
-              <v-chip
-                v-for="tag in income.tags"
-                :key="tag"
-                size="x-small"
-                variant="tonal"
-                color="success"
-                label
-                rounded="md"
-                class="font-weight-medium cursor-pointer"
-                @click.stop="activeTagFilter = tag"
-              >
+              <v-chip v-for="tag in income.tags" :key="tag" size="x-small" variant="tonal" color="success" label
+                rounded="md" class="font-weight-medium cursor-pointer" @click.stop="activeTagFilter = tag">
                 <v-icon icon="mdi-tag" size="10" class="mr-1" />
                 {{ tag }}
               </v-chip>
@@ -335,22 +245,10 @@
               +₹{{ Number(income.amount).toFixed(2) }}
             </div>
             <div class="d-flex align-center justify-end">
-              <v-btn
-                icon="mdi-pencil-outline"
-                size="x-small"
-                variant="text"
-                color="primary"
-                title="Edit Income"
-                @click.stop="openEditModal(income)"
-              />
-              <v-btn
-                icon="mdi-trash-can-outline"
-                size="x-small"
-                variant="text"
-                color="error"
-                title="Delete Income"
-                @click.stop="incomesStore.deleteIncome(income.id)"
-              />
+              <v-btn icon="mdi-pencil-outline" size="x-small" variant="text" color="primary" title="Edit Income"
+                @click.stop="openEditModal(income)" />
+              <v-btn icon="mdi-trash-can-outline" size="x-small" variant="text" color="error" title="Delete Income"
+                @click.stop="incomesStore.deleteIncome(income.id)" />
             </div>
           </div>
         </div>
@@ -372,13 +270,7 @@
               </div>
             </div>
           </div>
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            color="white"
-            @click="closeDialog"
-          />
+          <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="closeDialog" />
         </v-card-title>
 
         <v-divider />
@@ -386,123 +278,53 @@
         <!-- Form Body -->
         <v-card-text class="pa-4" style="max-height: 75vh;">
           <!-- Active impersonated user banner -->
-          <v-alert
-            density="compact"
-            variant="tonal"
-            color="success"
-            rounded="md"
-            class="text-caption mb-3 d-flex align-center"
-            icon="mdi-account-check"
-          >
+          <v-alert density="compact" variant="tonal" color="success" rounded="md"
+            class="text-caption mb-3 d-flex align-center" icon="mdi-account-check">
             Logging as <strong>{{ familyStore.activeMember.name }}</strong> (Auto-selected)
           </v-alert>
 
           <v-form ref="formRef" @submit.prevent="submitIncome">
-            <v-text-field
-              v-model="form.title"
-              label="Income Title *"
-              placeholder="e.g. Monthly Salary, Shagun Gift, Bonus"
-              variant="outlined"
-              density="comfortable"
-              rounded="md"
-              class="mb-3"
-              :rules="[(v) => !!v || 'Title is required']"
-            />
+            <v-text-field v-model="form.title" label="Income Title *"
+              placeholder="e.g. Monthly Salary, Shagun Gift, Bonus" variant="outlined" density="comfortable"
+              rounded="md" class="mb-3" :rules="[(v) => !!v || 'Title is required']" />
 
-            <v-text-field
-              v-model.number="form.amount"
-              label="Amount (₹) *"
-              placeholder="0.00"
-              type="number"
-              step="0.01"
-              variant="outlined"
-              density="comfortable"
-              rounded="md"
-              class="mb-3"
-              prepend-inner-icon="mdi-currency-inr"
-              :rules="[(v) => (v !== null && v > 0) || 'Enter a valid amount']"
-            />
+            <v-text-field v-model.number="form.amount" label="Amount (₹) *" placeholder="0.00" type="number" step="0.01"
+              variant="outlined" density="comfortable" rounded="md" class="mb-3" prepend-inner-icon="mdi-currency-inr"
+              :rules="[(v) => (v !== null && v > 0) || 'Enter a valid amount']" />
 
             <v-row density="compact">
               <v-col cols="6">
-                <v-select
-                  v-model="form.category"
-                  :items="categoryList"
-                  label="Category *"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="md"
-                  class="mb-3"
-                />
+                <v-select v-model="form.category" :items="categoryList" label="Category *" variant="outlined"
+                  density="comfortable" rounded="md" class="mb-3" />
               </v-col>
               <v-col cols="6">
-                <v-select
-                  v-model="form.memberId"
-                  :items="familyOptions"
-                  item-title="name"
-                  item-value="id"
-                  label="Received By *"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="md"
-                  class="mb-3"
-                />
+                <v-select v-model="form.memberId" :items="familyOptions" item-title="name" item-value="id"
+                  label="Received By *" variant="outlined" density="comfortable" rounded="md" class="mb-3" />
               </v-col>
             </v-row>
 
             <!-- TAGGING / EVENT GROUP SYSTEM -->
             <div class="mb-3">
-              <v-combobox
-                v-model="form.tags"
-                :items="incomesStore.allTags"
-                label="Tags / Event Group"
-                placeholder="Type tag & press enter (e.g. Brother Marriage, Salary)"
-                multiple
-                chips
-                closable-chips
-                variant="outlined"
-                density="comfortable"
-                rounded="lg"
-                prepend-inner-icon="mdi-tag-multiple-outline"
-                hint="Group incomes by source or event like 'Brother Marriage' or 'Freelance'"
-                persistent-hint
-              />
+              <v-combobox v-model="form.tags" :items="incomesStore.allTags" label="Tags / Event Group"
+                placeholder="Type tag & press enter (e.g. Brother Marriage, Salary)" multiple chips closable-chips
+                variant="outlined" density="comfortable" rounded="lg" prepend-inner-icon="mdi-tag-multiple-outline"
+                hint="Group incomes by source or event like 'Brother Marriage' or 'Freelance'" persistent-hint />
 
               <!-- Quick Tag Suggestions -->
               <div class="d-flex align-center gap-1 mt-2 flex-wrap text-caption">
                 <span class="text-medium-emphasis">Popular:</span>
-                <v-chip
-                  v-for="sug in suggestedQuickTags"
-                  :key="sug"
-                  size="x-small"
-                  variant="outlined"
-                  color="success"
-                  class="cursor-pointer"
-                  @click="addTagToForm(sug)"
-                >
+                <v-chip v-for="sug in suggestedQuickTags" :key="sug" size="x-small" variant="outlined" color="success"
+                  class="cursor-pointer" @click="addTagToForm(sug)">
                   + {{ sug }}
                 </v-chip>
               </div>
             </div>
 
-            <v-text-field
-              v-model="form.date"
-              label="Date"
-              type="date"
-              variant="outlined"
-              density="comfortable"
-              rounded="md"
-              class="mb-3"
-            />
+            <v-text-field v-model="form.date" label="Date" type="date" variant="outlined" density="comfortable"
+              rounded="md" class="mb-3" />
 
-            <v-textarea
-              v-model="form.notes"
-              label="Optional Notes"
-              rows="2"
-              variant="outlined"
-              density="comfortable"
-              rounded="md"
-            />
+            <v-textarea v-model="form.notes" label="Optional Notes" rows="2" variant="outlined" density="comfortable"
+              rounded="md" />
           </v-form>
         </v-card-text>
 
@@ -510,24 +332,12 @@
 
         <!-- Dialog Footer Actions -->
         <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            color="secondary"
-            class="text-capitalize"
-            @click="closeDialog"
-          >
+          <v-btn variant="outlined" rounded="lg" color="secondary" class="text-capitalize" @click="closeDialog">
             Cancel
           </v-btn>
 
-          <v-btn
-            color="success"
-            variant="flat"
-            rounded="lg"
-            class="text-capitalize font-weight-bold px-4"
-            prepend-icon="mdi-content-save"
-            @click="submitIncome"
-          >
+          <v-btn color="success" variant="flat" rounded="lg" class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save" @click="submitIncome">
             {{ isEditing ? 'Save Changes' : 'Save Income' }}
           </v-btn>
         </v-card-actions>

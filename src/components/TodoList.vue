@@ -1,7 +1,8 @@
 <template>
   <div class="todo-component">
     <!-- Header Summary Card (Mantis Style) -->
-    <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white" style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
+    <v-card class="mb-4 pa-4 rounded-lg elevation-0 text-white"
+      style="background: var(--v-gradient, linear-gradient(250.38deg, #1677ff 0%, #0958d9 100%));">
       <div class="d-flex justify-space-between align-center flex-wrap gap-2 mb-2">
         <div class="d-flex align-center gap-2">
           <v-avatar color="white" variant="tonal" size="38" rounded="lg">
@@ -18,16 +19,9 @@
         </div>
 
         <!-- Add Task Primary CTA -->
-        <v-btn
-          color="white"
-          variant="flat"
-          size="small"
-          rounded="lg"
-          class="text-primary font-weight-bold text-capitalize"
-          prepend-icon="mdi-plus"
-          @click="openAddModal"
-        >
-          + Add
+        <v-btn color="white" variant="flat" size="small" rounded="lg"
+          class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-plus" @click="openAddModal">
+          Add
         </v-btn>
       </div>
 
@@ -36,16 +30,12 @@
           <span>Progress</span>
           <span>{{ progressPercent }}% Done</span>
         </div>
-        <v-progress-linear
-          :model-value="progressPercent"
-          color="white"
-          height="6"
-          rounded="lg"
-        />
+        <v-progress-linear :model-value="progressPercent" color="white" height="6" rounded="lg" />
       </div>
 
       <div class="d-flex justify-end text-caption pt-2 mt-2 border-t-white-20 text-white-75">
-        <span>Completed: <strong class="text-white">{{ todoStore.completedCount }}</strong> / {{ todoStore.totalCount }} tasks</span>
+        <span>Completed: <strong class="text-white">{{ todoStore.completedCount }}</strong> / {{ todoStore.totalCount }}
+          tasks</span>
       </div>
     </v-card>
 
@@ -68,11 +58,7 @@
           <v-btn icon="mdi-dots-vertical" variant="text" size="small" v-bind="props" />
         </template>
         <v-list density="compact" rounded="lg">
-          <v-list-item
-            prepend-icon="mdi-delete-sweep"
-            title="Clear Done"
-            @click="todoStore.clearCompleted"
-          />
+          <v-list-item prepend-icon="mdi-delete-sweep" title="Clear Done" @click="todoStore.clearCompleted" />
         </v-list>
       </v-menu>
     </div>
@@ -84,38 +70,26 @@
       </v-avatar>
       <div class="text-subtitle-1 font-weight-medium text-darkText">No tasks found</div>
       <div class="text-body-2 text-lightText">
-        {{ activeFilter === 'completed' ? 'No completed tasks yet.' : 'All caught up! Tap the button above to add a new task.' }}
+        {{ activeFilter === 'completed' ? 'No completed tasks yet.' : 'All caught up! Tap the button to add a task.'
+        }}
       </div>
     </div>
 
     <v-slide-y-transition group>
-      <v-card
-        v-for="item in filteredTodos"
-        :key="item.id"
-        variant="outlined"
-        elevation="0"
-        class="mb-2 rounded-lg bg-surface card-hover-border"
-        :class="{ 'opacity-60': item.completed }"
-      >
+      <v-card v-for="item in filteredTodos" :key="item.id" variant="outlined" elevation="0"
+        class="mb-2 rounded-lg bg-surface card-hover-border" :class="{ 'opacity-60': item.completed }">
         <div class="d-flex align-center pa-3">
           <!-- Title and Info (Left checkbox removed) -->
           <div class="flex-grow-1 cursor-pointer" style="min-width: 0;" @click="todoStore.toggleDone(item.id)">
-            <div
-              class="text-body-2 font-weight-medium text-truncate text-darkText"
-              :class="{ 'text-decoration-line-through text-medium-emphasis': item.completed }"
-            >
+            <div class="text-body-2 font-weight-medium text-truncate text-darkText"
+              :class="{ 'text-decoration-line-through text-medium-emphasis': item.completed }">
               {{ item.title }}
             </div>
 
             <div class="d-flex align-center gap-2 mt-1 flex-wrap">
               <!-- Priority badge -->
-              <v-chip
-                size="x-small"
-                :color="getPriorityColor(item.priority)"
-                variant="flat"
-                rounded="md"
-                class="text-capitalize font-weight-medium"
-              >
+              <v-chip size="x-small" :color="getPriorityColor(item.priority)" variant="flat" rounded="md"
+                class="text-capitalize font-weight-medium">
                 {{ item.priority }}
               </v-chip>
 
@@ -125,25 +99,15 @@
               </v-chip>
 
               <!-- Member Attribution OR Unassigned Option (Anyone can do) -->
-              <span v-if="item.memberId && getMember(item.memberId)" class="text-caption text-lightText d-flex align-center">
-                <v-avatar
-                  size="14"
-                  variant="flat"
-                  :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }"
-                  class="mr-1"
-                >
+              <span v-if="item.memberId && getMember(item.memberId)"
+                class="text-caption text-lightText d-flex align-center">
+                <v-avatar size="14" variant="flat"
+                  :style="{ backgroundColor: getMember(item.memberId)?.avatarColor || '#6366F1' }" class="mr-1">
                   <v-icon :icon="getMember(item.memberId)?.avatarIcon || 'mdi-account'" size="9" color="white" />
                 </v-avatar>
                 {{ getMemberName(item.memberId) }}
               </span>
-              <v-chip
-                v-else
-                size="x-small"
-                variant="tonal"
-                color="secondary"
-                rounded="md"
-                class="font-weight-medium"
-              >
+              <v-chip v-else size="x-small" variant="tonal" color="secondary" rounded="md" class="font-weight-medium">
                 <v-icon icon="mdi-account-clock-outline" size="12" class="mr-1" />
                 Unassigned (Anyone)
               </v-chip>
@@ -158,30 +122,13 @@
 
           <!-- Mark As Done button / Edit button / Delete button -->
           <div class="d-flex align-center ml-2 flex-shrink-0">
-            <v-btn
-              :icon="item.completed ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
-              :color="item.completed ? 'success' : 'grey'"
-              variant="text"
-              size="small"
-              title="Toggle Done"
-              @click.stop="todoStore.toggleDone(item.id)"
-            />
-            <v-btn
-              icon="mdi-pencil-outline"
-              color="primary"
-              variant="text"
-              size="small"
-              title="Edit Task"
-              @click.stop="openEditModal(item)"
-            />
-            <v-btn
-              icon="mdi-trash-can-outline"
-              color="error"
-              variant="text"
-              size="small"
-              title="Delete Task"
-              @click.stop="todoStore.deleteTodo(item.id)"
-            />
+            <v-btn :icon="item.completed ? 'mdi-check-circle' : 'mdi-checkbox-blank-circle-outline'"
+              :color="item.completed ? 'success' : 'grey'" variant="text" size="small" title="Toggle Done"
+              @click.stop="todoStore.toggleDone(item.id)" />
+            <v-btn icon="mdi-pencil-outline" color="primary" variant="text" size="small" title="Edit Task"
+              @click.stop="openEditModal(item)" />
+            <v-btn icon="mdi-trash-can-outline" color="error" variant="text" size="small" title="Delete Task"
+              @click.stop="todoStore.deleteTodo(item.id)" />
           </div>
         </div>
       </v-card>
@@ -194,7 +141,8 @@
         <v-card-title class="pa-4 bg-primary text-white d-flex align-center justify-space-between">
           <div class="d-flex align-center">
             <v-avatar color="white" variant="tonal" size="34" class="mr-3">
-              <v-icon :icon="isEditing ? 'mdi-pencil-outline' : 'mdi-checkbox-marked-circle-plus-outline'" size="20" color="white" />
+              <v-icon :icon="isEditing ? 'mdi-pencil-outline' : 'mdi-checkbox-marked-circle-plus-outline'" size="20"
+                color="white" />
             </v-avatar>
             <div>
               <div class="text-subtitle-1 font-weight-bold line-height-1">
@@ -202,13 +150,7 @@
               </div>
             </div>
           </div>
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            color="white"
-            @click="closeDialog"
-          />
+          <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="closeDialog" />
         </v-card-title>
 
         <v-divider />
@@ -216,40 +158,18 @@
         <!-- Form Body -->
         <v-card-text class="pa-4" style="max-height: 75vh;">
           <v-form @submit.prevent="submitTask">
-            <v-text-field
-              v-model="form.title"
-              label="Task Title *"
-              placeholder="e.g. Pay electricity bill, Buy milk"
-              variant="outlined"
-              density="comfortable"
-              rounded="lg"
-              class="mb-3"
-              autofocus
-              :rules="[(v) => !!v.trim() || 'Task title is required']"
-            />
+            <v-text-field v-model="form.title" label="Task Title *" placeholder="e.g. Pay electricity bill, Buy milk"
+              variant="outlined" density="comfortable" rounded="lg" class="mb-3" autofocus
+              :rules="[(v) => !!v.trim() || 'Task title is required']" />
 
             <v-row density="compact">
               <v-col cols="6">
-                <v-select
-                  v-model="form.category"
-                  :items="categories"
-                  label="Category"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  class="mb-3"
-                />
+                <v-select v-model="form.category" :items="categories" label="Category" variant="outlined"
+                  density="comfortable" rounded="lg" class="mb-3" />
               </v-col>
               <v-col cols="6">
-                <v-text-field
-                  v-model="form.dueDate"
-                  label="Due Date"
-                  type="date"
-                  variant="outlined"
-                  density="comfortable"
-                  rounded="lg"
-                  class="mb-3"
-                />
+                <v-text-field v-model="form.dueDate" label="Due Date" type="date" variant="outlined"
+                  density="comfortable" rounded="lg" class="mb-3" />
               </v-col>
             </v-row>
 
@@ -288,55 +208,31 @@
               <!-- Compact chip-row assignee picker -->
               <div class="d-flex align-center gap-2 flex-wrap">
                 <!-- Unassigned chip -->
-                <div
-                  class="assignee-chip cursor-pointer d-flex flex-column align-center"
-                  style="gap: 4px;"
-                  @click="form.memberId = ''"
-                >
-                  <v-avatar
-                    :color="!form.memberId ? 'primary' : 'grey-lighten-2'"
-                    variant="flat"
-                    size="36"
-                    rounded="lg"
-                    :style="!form.memberId ? 'outline: 2px solid var(--v-theme-primary); outline-offset: 2px;' : ''"
-                  >
-                    <v-icon
-                      icon="mdi-account-question-outline"
-                      size="18"
-                      :color="!form.memberId ? 'white' : 'grey-darken-1'"
-                    />
+                <div class="assignee-chip cursor-pointer d-flex flex-column align-center" style="gap: 4px;"
+                  @click="form.memberId = ''">
+                  <v-avatar :color="!form.memberId ? 'primary' : 'grey-lighten-2'" variant="flat" size="36" rounded="lg"
+                    :style="!form.memberId ? 'outline: 2px solid var(--v-theme-primary); outline-offset: 2px;' : ''">
+                    <v-icon icon="mdi-account-question-outline" size="18"
+                      :color="!form.memberId ? 'white' : 'grey-darken-1'" />
                   </v-avatar>
-                  <span
-                    class="text-caption font-weight-medium"
+                  <span class="text-caption font-weight-medium"
                     style="font-size: 0.65rem; max-width: 52px; text-align: center; line-height: 1.2;"
-                    :class="!form.memberId ? 'text-primary' : 'text-lightText'"
-                  >
+                    :class="!form.memberId ? 'text-primary' : 'text-lightText'">
                     Anyone
                   </span>
                 </div>
 
                 <!-- Family Member chips -->
-                <div
-                  v-for="member in familyStore.members"
-                  :key="member.id"
-                  class="assignee-chip cursor-pointer d-flex flex-column align-center"
-                  style="gap: 4px;"
-                  @click="form.memberId = member.id"
-                >
-                  <v-avatar
-                    :color="member.avatarColor || 'primary'"
-                    variant="flat"
-                    size="36"
-                    rounded="lg"
-                    :style="form.memberId === member.id ? 'outline: 2px solid var(--v-theme-primary); outline-offset: 2px;' : 'opacity: 0.7;'"
-                  >
+                <div v-for="member in familyStore.members" :key="member.id"
+                  class="assignee-chip cursor-pointer d-flex flex-column align-center" style="gap: 4px;"
+                  @click="form.memberId = member.id">
+                  <v-avatar :color="member.avatarColor || 'primary'" variant="flat" size="36" rounded="lg"
+                    :style="form.memberId === member.id ? 'outline: 2px solid var(--v-theme-primary); outline-offset: 2px;' : 'opacity: 0.7;'">
                     <v-icon :icon="member.avatarIcon || 'mdi-account'" size="18" color="white" />
                   </v-avatar>
-                  <span
-                    class="text-caption font-weight-medium"
+                  <span class="text-caption font-weight-medium"
                     style="font-size: 0.65rem; max-width: 52px; text-align: center; line-height: 1.2;"
-                    :class="form.memberId === member.id ? 'text-primary font-weight-bold' : 'text-lightText'"
-                  >
+                    :class="form.memberId === member.id ? 'text-primary font-weight-bold' : 'text-lightText'">
                     {{ member.name.split(' ')[0] }}
                   </span>
                 </div>
@@ -349,24 +245,12 @@
 
         <!-- Dialog Footer Actions -->
         <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            color="secondary"
-            class="text-capitalize"
-            @click="closeDialog"
-          >
+          <v-btn variant="outlined" rounded="lg" color="secondary" class="text-capitalize" @click="closeDialog">
             Cancel
           </v-btn>
 
-          <v-btn
-            color="primary"
-            variant="flat"
-            rounded="lg"
-            class="text-capitalize font-weight-bold px-4"
-            prepend-icon="mdi-content-save"
-            @click="submitTask"
-          >
+          <v-btn color="primary" variant="flat" rounded="lg" class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save" @click="submitTask">
             {{ isEditing ? 'Save Changes' : 'Create Task' }}
           </v-btn>
         </v-card-actions>

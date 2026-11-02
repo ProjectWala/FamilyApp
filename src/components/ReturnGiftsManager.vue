@@ -3,10 +3,8 @@
     <!-- 1. Header Card with Gradient & Quick Stats (Matching Guestlist Purple Gradient) -->
     <v-card class="mb-4 rounded-lg elevation-0 overflow-hidden bg-surface card-hover-border border">
       <!-- Gradient Header Bar -->
-      <div
-        class="pa-4 text-white position-relative"
-        style="background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);"
-      >
+      <div class="pa-4 text-white position-relative"
+        style="background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);">
         <div class="d-flex justify-space-between align-center flex-wrap gap-2">
           <div class="d-flex align-center gap-2">
             <v-avatar color="white" variant="tonal" size="38" rounded="lg">
@@ -23,15 +21,9 @@
           </div>
 
           <!-- Add Gift Primary CTA -->
-          <v-btn
-            color="white"
-            variant="flat"
-            size="small"
-            rounded="lg"
-            class="text-primary font-weight-bold text-capitalize"
-            prepend-icon="mdi-gift-open-outline"
-            @click="openAddGiftDialog"
-          >
+          <v-btn color="white" variant="flat" size="small" rounded="lg"
+            class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-gift-open-outline"
+            @click="openAddGiftDialog">
             + Add Gift
           </v-btn>
         </div>
@@ -92,14 +84,8 @@
       <div class="d-flex flex-column gap-2">
         <div class="d-flex align-center justify-space-between flex-wrap gap-2">
           <!-- View Tabs (Presets vs Allocations) -->
-          <v-btn-toggle
-            v-model="activeViewTab"
-            mandatory
-            density="compact"
-            color="primary"
-            rounded="lg"
-            variant="outlined"
-          >
+          <v-btn-toggle v-model="activeViewTab" mandatory density="compact" color="primary" rounded="lg"
+            variant="outlined">
             <v-btn value="presets" size="small" class="font-weight-medium text-capitalize">
               <v-icon icon="mdi-cube-outline" size="16" class="mr-1" />
               Gift Presets ({{ giftPresets.length }})
@@ -112,16 +98,9 @@
 
           <!-- Search Input -->
           <div style="min-width: 220px; flex: 1; max-width: 320px;">
-            <v-text-field
-              v-model="searchQuery"
-              density="compact"
-              variant="outlined"
-              placeholder="Search gifts or guests..."
-              prepend-inner-icon="mdi-magnify"
-              clearable
-              hide-details
-              rounded="lg"
-            />
+            <v-text-field v-model="searchQuery" density="compact" variant="outlined"
+              placeholder="Search gifts or guests..." prepend-inner-icon="mdi-magnify" clearable hide-details
+              rounded="lg" />
           </div>
         </div>
       </div>
@@ -130,11 +109,8 @@
     <!-- VIEW 1: GIFT PRESETS CATALOG -->
     <div v-if="activeViewTab === 'presets'" class="presets-section">
       <!-- Empty State -->
-      <v-card
-        v-if="filteredPresets.length === 0"
-        variant="outlined"
-        class="pa-8 text-center rounded-lg border bg-surface"
-      >
+      <v-card v-if="filteredPresets.length === 0" variant="outlined"
+        class="pa-8 text-center rounded-lg border bg-surface">
         <v-avatar color="primary" variant="tonal" size="56" class="mb-3">
           <v-icon icon="mdi-gift-off-outline" size="30" />
         </v-avatar>
@@ -142,28 +118,18 @@
           No gift presets found
         </div>
         <div class="text-caption text-lightText mb-4">
-          {{ searchQuery ? `No gifts matching "${searchQuery}"` : 'Add your first return gift to initialize your catalog' }}
+          {{ searchQuery ? `No gifts matching "${searchQuery}"` : 'Add return gift to initialize your catalog' }}
         </div>
-        <v-btn
-          color="primary"
-          variant="flat"
-          size="small"
-          rounded="lg"
-          prepend-icon="mdi-plus"
-          @click="openAddGiftDialog"
-        >
+        <v-btn color="primary" variant="flat" size="small" rounded="lg" prepend-icon="mdi-plus"
+          @click="openAddGiftDialog">
           Add Return Gift
         </v-btn>
       </v-card>
 
       <!-- Presets Grid -->
       <div v-else class="d-flex flex-column gap-2 mb-6">
-        <v-card
-          v-for="gift in filteredPresets"
-          :key="gift.name"
-          variant="outlined"
-          class="pa-3 rounded-lg border bg-surface card-hover-border"
-        >
+        <v-card v-for="gift in filteredPresets" :key="gift.name" variant="outlined"
+          class="pa-3 rounded-lg border bg-surface card-hover-border">
           <div class="d-flex justify-space-between align-center flex-wrap gap-2">
             <!-- Left info -->
             <div class="d-flex align-center gap-2" style="min-width: 0;">
@@ -194,22 +160,10 @@
 
             <!-- Right Actions -->
             <div class="d-flex align-center gap-1">
-              <v-btn
-                icon="mdi-pencil-outline"
-                size="small"
-                variant="text"
-                color="primary"
-                title="Edit Gift Preset"
-                @click="openEditGiftDialog(gift)"
-              />
-              <v-btn
-                icon="mdi-delete-outline"
-                size="small"
-                variant="text"
-                color="error"
-                title="Delete Gift Preset"
-                @click="confirmDeleteGift(gift)"
-              />
+              <v-btn icon="mdi-pencil-outline" size="small" variant="text" color="primary" title="Edit Gift Preset"
+                @click="openEditGiftDialog(gift)" />
+              <v-btn icon="mdi-delete-outline" size="small" variant="text" color="error" title="Delete Gift Preset"
+                @click="confirmDeleteGift(gift)" />
             </div>
           </div>
         </v-card>
@@ -219,11 +173,8 @@
     <!-- VIEW 2: GUEST ALLOCATIONS LIST -->
     <div v-else class="allocations-section">
       <!-- Empty State -->
-      <v-card
-        v-if="filteredGuestAllocations.length === 0"
-        variant="outlined"
-        class="pa-8 text-center rounded-lg border bg-surface"
-      >
+      <v-card v-if="filteredGuestAllocations.length === 0" variant="outlined"
+        class="pa-8 text-center rounded-lg border bg-surface">
         <v-avatar color="primary" variant="tonal" size="56" class="mb-3">
           <v-icon icon="mdi-account-heart-outline" size="30" />
         </v-avatar>
@@ -237,12 +188,8 @@
 
       <!-- Guest Allocation Cards -->
       <div v-else class="d-flex flex-column gap-2 mb-6">
-        <v-card
-          v-for="allocation in filteredGuestAllocations"
-          :key="`${allocation.guestId}-${allocation.giftIndex}`"
-          variant="outlined"
-          class="pa-3 rounded-lg border bg-surface card-hover-border"
-        >
+        <v-card v-for="allocation in filteredGuestAllocations" :key="`${allocation.guestId}-${allocation.giftIndex}`"
+          variant="outlined" class="pa-3 rounded-lg border bg-surface card-hover-border">
           <div class="d-flex justify-space-between align-center flex-wrap gap-2">
             <!-- Left Guest & Gift Info -->
             <div class="d-flex align-center gap-2" style="min-width: 0;">
@@ -254,7 +201,8 @@
                   <span class="text-subtitle-2 font-weight-bold text-darkText text-truncate">
                     {{ allocation.guestName }}
                   </span>
-                  <v-chip size="x-small" :color="allocation.delivered ? 'success' : 'warning'" variant="tonal" class="font-weight-medium">
+                  <v-chip size="x-small" :color="allocation.delivered ? 'success' : 'warning'" variant="tonal"
+                    class="font-weight-medium">
                     {{ allocation.delivered ? 'Delivered' : 'Pending' }}
                   </v-chip>
                 </div>
@@ -268,26 +216,16 @@
 
             <!-- Right Actions: Toggle Delivered & Remove -->
             <div class="d-flex align-center gap-1">
-              <v-btn
-                :color="allocation.delivered ? 'success' : 'default'"
-                :variant="allocation.delivered ? 'flat' : 'outlined'"
-                size="x-small"
-                rounded="lg"
+              <v-btn :color="allocation.delivered ? 'success' : 'default'"
+                :variant="allocation.delivered ? 'flat' : 'outlined'" size="x-small" rounded="lg"
                 class="font-weight-bold text-capitalize"
                 :prepend-icon="allocation.delivered ? 'mdi-check-circle' : 'mdi-circle-outline'"
-                @click="toggleAllocationDelivered(allocation)"
-              >
+                @click="toggleAllocationDelivered(allocation)">
                 {{ allocation.delivered ? 'Given' : 'Mark Given' }}
               </v-btn>
 
-              <v-btn
-                icon="mdi-close"
-                size="small"
-                variant="text"
-                color="error"
-                title="Unassign Gift from Guest"
-                @click="unassignGift(allocation)"
-              />
+              <v-btn icon="mdi-close" size="small" variant="text" color="error" title="Unassign Gift from Guest"
+                @click="unassignGift(allocation)" />
             </div>
           </div>
         </v-card>
@@ -325,17 +263,9 @@
               <label class="text-caption font-weight-bold text-darkText d-block mb-1">
                 Gift Name *
               </label>
-              <v-text-field
-                v-model="giftForm.name"
-                density="comfortable"
-                variant="outlined"
-                placeholder="e.g. Silver Coin (10g), Royal Mithai Box..."
-                rounded="lg"
-                autofocus
-                clearable
-                :rules="[(v: string) => !!(v && v.trim()) || 'Gift name is required']"
-                hide-details="auto"
-              />
+              <v-text-field v-model="giftForm.name" density="comfortable" variant="outlined"
+                placeholder="e.g. Silver Coin (10g), Royal Mithai Box..." rounded="lg" autofocus clearable
+                :rules="[(v: string) => !!(v && v.trim()) || 'Gift name is required']" hide-details="auto" />
             </div>
 
             <!-- Price Input -->
@@ -343,18 +273,9 @@
               <label class="text-caption font-weight-bold text-darkText d-block mb-1">
                 Estimated Price (₹) *
               </label>
-              <v-text-field
-                v-model="giftForm.price"
-                type="number"
-                min="0"
-                prefix="₹"
-                density="comfortable"
-                variant="outlined"
-                placeholder="0"
-                rounded="lg"
-                :rules="[(v: any) => Number(v) >= 0 || 'Price cannot be negative']"
-                hide-details="auto"
-              />
+              <v-text-field v-model="giftForm.price" type="number" min="0" prefix="₹" density="comfortable"
+                variant="outlined" placeholder="0" rounded="lg"
+                :rules="[(v: any) => Number(v) >= 0 || 'Price cannot be negative']" hide-details="auto" />
             </div>
 
             <!-- Quick Popular Presets (Only when adding) -->
@@ -363,14 +284,8 @@
                 Popular Gift Presets:
               </label>
               <div class="d-flex flex-wrap gap-1">
-                <v-chip
-                  v-for="preset in suggestedReturnGifts"
-                  :key="preset.name"
-                  size="small"
-                  variant="outlined"
-                  class="cursor-pointer mb-1"
-                  @click="applyPreset(preset)"
-                >
+                <v-chip v-for="preset in suggestedReturnGifts" :key="preset.name" size="small" variant="outlined"
+                  class="cursor-pointer mb-1" @click="applyPreset(preset)">
                   <v-icon icon="mdi-gift-outline" size="13" class="mr-1" />
                   {{ preset.name }} (₹{{ preset.price }})
                 </v-chip>
@@ -383,26 +298,11 @@
 
         <!-- Fixed Footer Actions -->
         <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
-          <v-btn
-            variant="outlined"
-            color="secondary"
-            rounded="lg"
-            size="small"
-            class="px-4"
-            @click="closeGiftModal"
-          >
+          <v-btn variant="outlined" color="secondary" rounded="lg" size="small" class="px-4" @click="closeGiftModal">
             Cancel
           </v-btn>
-          <v-btn
-            variant="flat"
-            color="primary"
-            rounded="lg"
-            size="small"
-            class="px-4 font-weight-bold"
-            prepend-icon="mdi-check"
-            :disabled="!giftForm.name.trim()"
-            @click="saveGift"
-          >
+          <v-btn variant="flat" color="primary" rounded="lg" size="small" class="px-4 font-weight-bold"
+            prepend-icon="mdi-check" :disabled="!giftForm.name.trim()" @click="saveGift">
             {{ isEditingGift ? 'Update Gift' : 'Save Gift' }}
           </v-btn>
         </v-card-actions>
@@ -426,36 +326,18 @@
             <strong class="text-darkText">"{{ giftToDelete?.name }}"</strong>?
           </p>
 
-          <v-checkbox
-            v-model="removeGiftFromGuests"
-            label="Also unassign this gift from all assigned guests"
-            density="compact"
-            color="error"
-            hide-details
-          />
+          <v-checkbox v-model="removeGiftFromGuests" label="Also unassign this gift from all assigned guests"
+            density="compact" color="error" hide-details />
         </v-card-text>
 
         <v-divider />
 
         <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
-          <v-btn
-            variant="outlined"
-            color="secondary"
-            size="small"
-            rounded="lg"
-            @click="deleteModalOpen = false"
-          >
+          <v-btn variant="outlined" color="secondary" size="small" rounded="lg" @click="deleteModalOpen = false">
             Cancel
           </v-btn>
-          <v-btn
-            variant="flat"
-            color="error"
-            size="small"
-            rounded="lg"
-            class="font-weight-bold"
-            prepend-icon="mdi-delete"
-            @click="executeDeleteGift"
-          >
+          <v-btn variant="flat" color="error" size="small" rounded="lg" class="font-weight-bold"
+            prepend-icon="mdi-delete" @click="executeDeleteGift">
             Delete
           </v-btn>
         </v-card-actions>
@@ -726,6 +608,7 @@ async function unassignGift(allocation: GuestAllocationView) {
     opacity: 0;
     transform: translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
