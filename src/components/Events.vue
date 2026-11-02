@@ -1,5 +1,5 @@
 <template>
-  <div class="event-list-component">
+  <div class="events-component event-list-component">
     <!-- =================================================================== -->
     <!-- VIEW MODE 1: EVENTS LIST (or fallback ALL)                          -->
     <!-- =================================================================== -->
@@ -136,306 +136,24 @@
       <!-- 4. Events Cards List -->
       <div v-else>
         <v-slide-y-transition group>
-          <v-card v-for="event in eventsStore.filteredEvents" :key="event.id" variant="outlined" elevation="0"
-            class="mb-4 rounded-lg bg-surface card-hover-border overflow-hidden"
-            :style="{ borderLeft: `5px solid ${event.color || '#1890ff'}` }">
-            <!-- Event Header Banner -->
-            <div class="pa-3 border-b bg-containerBg">
-              <div class="d-flex align-start justify-space-between gap-2 flex-wrap">
-                <div class="flex-grow-1" style="min-width: 0;">
-                  <div class="d-flex align-center flex-wrap gap-1.5 mb-1">
-                    <!-- Category Chip (Type) -->
-                    <v-chip size="x-small" variant="flat"
-                      :style="{ backgroundColor: event.color || '#1890ff', color: '#fff' }"
-                      class="font-weight-bold text-uppercase">
-                      <v-icon :icon="getCategoryIcon(event.category)" size="11" class="mr-1" />
-                      {{ event.category || 'Celebration' }}
-                    </v-chip>
-
-                    <!-- Date Countdown / Status Badge -->
-                    <v-chip size="x-small" variant="tonal" :color="getDateBadgeColor(event.date)"
-                      class="font-weight-medium">
-                      <v-icon icon="mdi-calendar" size="11" class="mr-1" />
-                      {{ getRelativeDateLabel(event.date) }}
-                    </v-chip>
-                  </div>
-
-                  <!-- Event Title -->
-                  <div class="text-subtitle-1 font-weight-bold text-darkText line-height-1 mb-1">
-                    {{ event.title }}
-                  </div>
-
-                  <!-- EVENT PARAMETERS: Date/Time & Venue as stacked label+value -->
-                  <div class="d-flex align-center gap-3 flex-wrap mt-2">
-                    <!-- Date & Time -->
-                    <div>
-                      <div class="d-flex align-center gap-1" style="line-height:1.1;">
-                        <v-icon icon="mdi-calendar-text" size="12" class="text-primary" />
-                        <span class="text-caption text-lightText" style="font-size:0.68rem;">Date &amp; Time</span>
-                      </div>
-                      <div class="text-caption font-weight-bold text-darkText" style="padding-left:16px;">
-                        {{ formatEventDate(event.date) }} {{ event.time || 'TBA' }}
-                      </div>
-                    </div>
-
-                    <!-- Venue -->
-                    <div style="min-width:0; max-width: 200px;">
-                      <div class="d-flex align-center gap-1" style="line-height:1.1;">
-                        <v-icon icon="mdi-map-marker" size="12" class="text-error" />
-                        <span class="text-caption text-lightText" style="font-size:0.68rem;">Venue</span>
-                      </div>
-                      <div class="text-caption font-weight-medium text-darkText text-truncate" style="padding-left:16px;">
-                        {{ event.location || 'TBA' }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Event Description if any -->
-                  <div v-if="event.description" class="text-caption text-lightText mt-1 line-clamp-2">
-                    {{ event.description }}
-                  </div>
-                </div>
-
-                <!-- Top Right Action Menu -->
-                <div class="d-flex align-center gap-1.5 flex-shrink-0">
-                  <!-- Manage Invites Primary Action Button -->
-                  <v-btn size="small" variant="flat" color="primary" rounded="lg"
-                    class="font-weight-bold text-capitalize text-caption px-3" prepend-icon="mdi-email-send-outline"
-                    @click="goToInvitesTab(event.id)">
-                    Manage Invites ({{ event.invitedGuests?.length || 0 }})
-                  </v-btn>
-
-                  <!-- Quick Invite from DB -->
-                  <v-btn size="small" variant="outlined" color="primary" rounded="lg"
-                    class="font-weight-medium text-capitalize text-caption px-2" prepend-icon="mdi-account-plus"
-                    @click="openInvitePicker(event)">
-                    + Quick Invite
-                  </v-btn>
-
-                  <!-- 3-Dots Action Menu -->
-                  <v-menu location="bottom end">
-                    <template #activator="{ props: menuProps }">
-                      <v-btn v-bind="menuProps" icon="mdi-dots-vertical" variant="text" size="small"
-                        color="lightText" />
-                    </template>
-                    <v-list density="compact" rounded="lg" elevation="4">
-                      <v-list-item prepend-icon="mdi-email-arrow-right" title="View Invites & RSVPs"
-                        @click="goToInvitesTab(event.id)" />
-                      <v-list-item prepend-icon="mdi-account-multiple-plus" title="Invite DB Guests"
-                        @click="openInvitePicker(event)" />
-                      <v-list-item prepend-icon="mdi-share-variant" title="Share WhatsApp Invite"
-                        @click="shareEventWhatsApp(event)" />
-                      <v-list-item prepend-icon="mdi-pencil-outline" title="Edit Event Details"
-                        @click="openEditEventDialog(event)" />
-                      <v-divider class="my-1" />
-                      <v-list-item prepend-icon="mdi-delete-outline" title="Delete Event" color="error"
-                        class="text-error" @click="confirmDeleteEvent(event)" />
-                    </v-list>
-                  </v-menu>
-                </div>
-              </div>
-            </div>
-
-            <!-- Event Metrics Strip & Quick RSVP Progress -->
-            <div class="pa-3">
-              <div class="d-flex align-center justify-space-between flex-wrap gap-2 mb-2">
-                <div class="d-flex align-center gap-2 flex-wrap">
-                  <!-- Total Invited Pill -->
-                  <v-chip size="x-small" variant="tonal" color="primary" class="font-weight-bold">
-                    <v-icon icon="mdi-account-group" size="12" class="mr-1" />
-                    {{ event.invitedGuests?.length || 0 }} Invited
-                  </v-chip>
-
-                  <!-- Confirmed Heads -->
-                  <v-chip size="x-small" variant="flat" color="success" class="font-weight-bold">
-                    <v-icon icon="mdi-check-circle" size="12" class="mr-1" />
-                    {{ getEventStats(event).confirmedCount }} Confirmed ({{ getEventStats(event).totalHeadcount }}
-                    Heads)
-                  </v-chip>
-
-                  <!-- Pending -->
-                  <v-chip v-if="getEventStats(event).pendingCount > 0" size="x-small" variant="tonal" color="warning"
-                    class="font-weight-medium">
-                    <v-icon icon="mdi-clock-outline" size="12" class="mr-1" />
-                    {{ getEventStats(event).pendingCount }} Pending
-                  </v-chip>
-
-                  <!-- Declined -->
-                  <v-chip v-if="getEventStats(event).declinedCount > 0" size="x-small" variant="tonal" color="error"
-                    class="font-weight-medium">
-                    <v-icon icon="mdi-close-circle-outline" size="12" class="mr-1" />
-                    {{ getEventStats(event).declinedCount }} Declined
-                  </v-chip>
-
-                  <!-- Invites Sent -->
-                  <v-chip size="x-small" variant="tonal" color="secondary" class="font-weight-medium">
-                    <v-icon icon="mdi-send-check" size="12" class="mr-1" />
-                    {{ getEventStats(event).sentCount }}/{{ event.invitedGuests?.length || 0 }} Invites Sent
-                  </v-chip>
-                </div>
-
-                <!-- If in all mode, keep expand option -->
-                <v-btn v-if="mode === 'all'" size="x-small" variant="tonal"
-                  :color="isEventExpanded(event.id) ? 'primary' : 'secondary'" rounded="lg"
-                  class="text-capitalize font-weight-bold" @click="toggleEventExpand(event.id)">
-                  <v-icon :icon="isEventExpanded(event.id) ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="16"
-                    class="mr-1" />
-                  {{ isEventExpanded(event.id) ? 'Hide Guest List' : `View Guests (${event.invitedGuests?.length || 0})`
-                  }}
-                </v-btn>
-              </div>
-
-              <!-- RSVP Progress Mini Bar -->
-              <div v-if="event.invitedGuests && event.invitedGuests.length > 0"
-                class="d-flex rounded-pill overflow-hidden" style="height: 6px; background: rgba(0,0,0,0.06);">
-                <div :style="{
-                  width: `${(getEventStats(event).confirmedCount / event.invitedGuests.length) * 100}%`,
-                  backgroundColor: '#52c41a'
-                }" title="Confirmed" />
-                <div :style="{
-                  width: `${(getEventStats(event).pendingCount / event.invitedGuests.length) * 100}%`,
-                  backgroundColor: '#faad14'
-                }" title="Pending" />
-                <div :style="{
-                  width: `${(getEventStats(event).declinedCount / event.invitedGuests.length) * 100}%`,
-                  backgroundColor: '#ff4d4f'
-                }" title="Declined" />
-              </div>
-            </div>
-
-            <!-- Inline expand if mode is all -->
-            <v-expand-transition v-if="mode === 'all'">
-              <div v-if="isEventExpanded(event.id)" class="border-t bg-surface">
-                <div class="pa-3">
-                  <div class="d-flex align-center justify-space-between flex-wrap gap-2 mb-3">
-                    <div class="text-caption font-weight-bold text-darkText d-flex align-center">
-                      <v-icon icon="mdi-account-multiple-check" size="16" class="text-primary mr-1" />
-                      Invited Guests ({{ event.invitedGuests.length }} total • {{ getEventStats(event).totalHeadcount }}
-                      attending heads)
-                    </div>
-
-                    <div class="d-flex align-center gap-1">
-                      <v-btn size="x-small" variant="outlined" color="primary" rounded="md"
-                        prepend-icon="mdi-account-plus" @click="openInvitePicker(event)">
-                        + Add More from DB
-                      </v-btn>
-                    </div>
-                  </div>
-
-                  <div v-if="event.invitedGuests.length === 0"
-                    class="pa-6 text-center border-dashed rounded-lg bg-containerBg mb-2">
-                    <v-avatar color="primary" variant="tonal" size="48" class="mb-2">
-                      <v-icon icon="mdi-account-plus-outline" size="24" />
-                    </v-avatar>
-                    <div class="text-subtitle-2 font-weight-bold text-darkText mb-1">
-                      No Guests Invited Yet
-                    </div>
-                    <div class="text-caption text-lightText mb-3">
-                      Add guests directly from your saved database catalog to invite them to this event.
-                    </div>
-                    <v-btn color="primary" size="small" rounded="lg" prepend-icon="mdi-account-plus"
-                      @click="openInvitePicker(event)">
-                      Select Guests from DB
-                    </v-btn>
-                  </div>
-
-                  <div v-else class="event-guests-list">
-                    <v-card v-for="guest in event.invitedGuests" :key="guest.guestId" variant="outlined" elevation="0"
-                      class="mb-2 pa-2.5 rounded-lg bg-surface card-hover-border">
-                      <div class="d-flex align-center justify-space-between flex-wrap gap-2">
-                        <div class="d-flex align-center gap-2 flex-grow-1" style="min-width: 0;">
-                          <v-avatar size="32" color="primary" variant="tonal" rounded="md"
-                            class="font-weight-bold flex-shrink-0" style="font-size: 0.75rem;">
-                            {{ getInitials(guest.name) }}
-                          </v-avatar>
-
-                          <div style="min-width: 0;">
-                            <div class="d-flex align-center flex-wrap gap-1">
-                              <span class="text-subtitle-2 font-weight-bold text-darkText text-truncate">
-                                {{ guest.name }}
-                              </span>
-
-                              <!-- Persons display badge -->
-                              <v-chip size="x-small" variant="tonal"
-                                :color="(guest.additionalGuests || 0) > 0 ? 'primary' : 'secondary'"
-                                class="font-weight-bold">
-                                <v-icon
-                                  :icon="(guest.additionalGuests || 0) > 0 ? 'mdi-account-multiple' : 'mdi-account'"
-                                  size="10" class="mr-0.5" />
-                                {{ formatGuestPersonsDisplay(guest.additionalGuests) }}
-                              </v-chip>
-
-                              <v-chip v-if="guest.group" size="x-small" variant="flat" color="containerBg"
-                                class="border text-caption">
-                                {{ guest.group }}
-                              </v-chip>
-                            </div>
-
-                            <div class="d-flex align-center gap-2 text-caption text-lightText"
-                              style="font-size: 0.7rem;">
-                              <span v-if="guest.phone" class="d-flex align-center">
-                                <v-icon icon="mdi-phone" size="11" class="mr-0.5 text-primary" />
-                                {{ guest.phone }}
-                              </span>
-                              <span v-if="guest.email" class="d-flex align-center text-truncate"
-                                style="max-width: 140px;">
-                                <v-icon icon="mdi-email-outline" size="11" class="mr-0.5 text-secondary" />
-                                {{ guest.email }}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="d-flex align-center gap-1.5 flex-wrap">
-                          <v-menu location="bottom end">
-                            <template #activator="{ props: rsvpProps }">
-                              <v-chip v-bind="rsvpProps" size="small" variant="flat"
-                                :color="getEventRsvpColor(guest.rsvpStatus)"
-                                class="font-weight-bold cursor-pointer text-capitalize">
-                                <v-icon :icon="getEventRsvpIcon(guest.rsvpStatus)" size="12" class="mr-1" />
-                                {{ guest.rsvpStatus }}
-                                <v-icon icon="mdi-chevron-down" size="12" class="ml-1" />
-                              </v-chip>
-                            </template>
-                            <v-list density="compact" rounded="lg" elevation="4">
-                              <v-list-item title="Confirmed (Attending)" prepend-icon="mdi-check-circle"
-                                class="text-success font-weight-bold"
-                                @click="setGuestEventRsvp(event.id, guest.guestId, 'confirmed')" />
-                              <v-list-item title="Pending (Awaiting RSVP)" prepend-icon="mdi-clock-outline"
-                                class="text-warning font-weight-bold"
-                                @click="setGuestEventRsvp(event.id, guest.guestId, 'pending')" />
-                              <v-list-item title="Declined (Cannot attend)" prepend-icon="mdi-close-circle"
-                                class="text-error font-weight-bold"
-                                @click="setGuestEventRsvp(event.id, guest.guestId, 'declined')" />
-                              <v-list-item title="Invited (Sent)" prepend-icon="mdi-email-send"
-                                class="text-primary font-weight-bold"
-                                @click="setGuestEventRsvp(event.id, guest.guestId, 'invited')" />
-                            </v-list>
-                          </v-menu>
-
-                          <v-btn v-if="guest.phone" icon="mdi-whatsapp" variant="tonal" size="x-small" color="success"
-                            title="Send invitation via WhatsApp" @click="sendWhatsAppInviteToGuest(event, guest)" />
-
-                          <v-btn size="x-small" :variant="guest.invitationSent ? 'flat' : 'outlined'"
-                            :color="guest.invitationSent ? 'success' : 'secondary'" rounded="md" class="text-capitalize"
-                            :title="guest.invitationSent ? 'Invite sent' : 'Mark invite sent'"
-                            @click="eventsStore.toggleGuestInvitationSent(event.id, guest.guestId)">
-                            <v-icon :icon="guest.invitationSent ? 'mdi-check-all' : 'mdi-send-outline'" size="12"
-                              class="mr-1" />
-                            {{ guest.invitationSent ? 'Sent' : 'Mark Sent' }}
-                          </v-btn>
-
-                          <v-btn icon="mdi-close" variant="text" size="x-small" color="lightText"
-                            title="Remove from this event"
-                            @click="removeGuestFromEvent(event.id, guest.guestId, guest.name)" />
-                        </div>
-                      </div>
-                    </v-card>
-                  </div>
-                </div>
-              </div>
-            </v-expand-transition>
-          </v-card>
+          <EventDetail
+            v-for="event in eventsStore.filteredEvents"
+            :key="event.id"
+            :event="event"
+            :mode="mode"
+            elevation="2"
+            :expanded="isEventExpanded(event.id)"
+            @manage-invites="goToInvitesTab"
+            @quick-invite="openInvitePicker"
+            @share-whatsapp="shareEventWhatsApp"
+            @edit="openEditEventDialog"
+            @delete="confirmDeleteEvent"
+            @whatsapp-guest="sendWhatsAppInviteToGuest"
+            @remove-guest="removeGuestFromEvent"
+            @toggle-invite-sent="toggleGuestInviteSent"
+            @update-guest-rsvp="setGuestEventRsvp"
+            @toggle-expand="toggleEventExpand"
+          />
         </v-slide-y-transition>
       </div>
     </div>
@@ -1022,7 +740,7 @@
     <!-- ==================================================================== -->
     <!-- DIALOG 2: CREATE / EDIT EVENT MODAL                                  -->
     <!-- ==================================================================== -->
-    <v-dialog v-model="eventDialog" max-width="540" persistent>
+    <v-dialog v-model="eventDialog" max-width="540" persistent @after-leave="dismissActiveKeyboard">
       <v-card class="rounded-xl overflow-hidden bg-surface d-flex flex-column" elevation="10"
         style="max-height: 92vh;">
         <!-- Sticky Dialog Header -->
@@ -1041,12 +759,13 @@
               </div>
             </div>
           </div>
-          <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="eventDialog = false" />
+          <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="closeEventDialog" />
         </div>
 
-        <!-- Scrollable Body -->
-        <v-card-text class="pa-4 overflow-y-auto flex-grow-1">
-          <v-form ref="eventFormRef" @submit.prevent="saveEvent">
+        <!-- Form wrapping scrollable body and sticky actions -->
+        <v-form ref="eventFormRef" class="d-flex flex-column flex-grow-1 overflow-hidden" @submit.prevent="triggerSaveEvent">
+          <!-- Scrollable Body -->
+          <v-card-text class="pa-4 overflow-y-auto flex-grow-1">
             <!-- Event Title -->
             <v-text-field v-model="eventForm.title" label="Event Title *"
               placeholder="e.g. Rahul & Meera Wedding, 25th Anniversary Dinner..." variant="outlined"
@@ -1112,19 +831,35 @@
             <v-textarea v-model="eventForm.notes" label="Internal Notes"
               placeholder="e.g. Stage decoration vendor contact, dress code..." rows="2" variant="outlined"
               density="comfortable" rounded="lg" />
-          </v-form>
-        </v-card-text>
+          </v-card-text>
 
-        <!-- Sticky Footer Actions -->
-        <v-card-actions class="pa-4 border-t d-flex justify-end gap-2 flex-shrink-0 bg-surface">
-          <v-btn variant="outlined" size="small" rounded="lg" @click="eventDialog = false">
-            Cancel
-          </v-btn>
-          <v-btn color="primary" variant="flat" size="small" rounded="lg" class="font-weight-bold px-4"
-            @click="saveEvent">
-            {{ isEditingEvent ? 'Save Changes' : 'Create Event' }}
-          </v-btn>
-        </v-card-actions>
+          <!-- Sticky Footer Actions -->
+          <v-card-actions class="pa-4 border-t d-flex justify-end gap-2 flex-shrink-0 bg-surface">
+            <v-btn
+              variant="outlined"
+              size="small"
+              rounded="lg"
+              @click="closeEventDialog"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              type="submit"
+              color="primary"
+              variant="flat"
+              size="small"
+              rounded="lg"
+              class="font-weight-bold px-4"
+              :loading="isSavingEvent"
+              :disabled="isSavingEvent"
+              @pointerdown.prevent
+              @mousedown.prevent
+              @click="triggerSaveEvent"
+            >
+              {{ isEditingEvent ? 'Save Changes' : 'Create Event' }}
+            </v-btn>
+          </v-card-actions>
+        </v-form>
       </v-card>
     </v-dialog>
 
@@ -1172,6 +907,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import EventDetail from '@/components/shared/EventDetail.vue'
 import {
   useEventsStore,
   defaultEventCategories,
@@ -1518,6 +1254,11 @@ async function setGuestEventRsvp(eventId: string, guestId: string, status: Event
   await eventsStore.updateEventGuestInvite(eventId, guestId, { rsvpStatus: status })
 }
 
+// Toggle invitation sent for guest in event
+async function toggleGuestInviteSent(eventId: string, guestId: string) {
+  await eventsStore.toggleGuestInvitationSent(eventId, guestId)
+}
+
 // Remove guest from event
 async function removeGuestFromEvent(eventId: string, guestId: string, guestName: string) {
   await eventsStore.removeGuestFromEvent(eventId, guestId)
@@ -1592,14 +1333,80 @@ function openEditEventDialog(event: EventItem) {
   eventDialog.value = true
 }
 
+function dismissActiveKeyboard() {
+  if (typeof document !== 'undefined') {
+    if (document.activeElement && typeof (document.activeElement as HTMLElement).blur === 'function') {
+      (document.activeElement as HTMLElement).blur()
+    }
+    const focused = document.querySelectorAll('input:focus, textarea:focus, [contenteditable="true"]:focus')
+    focused.forEach((el) => {
+      if (typeof (el as HTMLElement).blur === 'function') {
+        (el as HTMLElement).blur()
+      }
+    })
+  }
+}
+
+function closeEventDialog() {
+  dismissActiveKeyboard()
+  eventDialog.value = false
+}
+
+watch(eventDialog, (isOpen) => {
+  if (!isOpen) {
+    dismissActiveKeyboard()
+  }
+})
+
+const isSavingEvent = ref(false)
+let isSubmittingEvent = false
+let lastSubmitTime = 0
+
+async function triggerSaveEvent() {
+  const now = Date.now()
+  // Guard 1: Debounce duplicate invocations (within 1000ms) or when actively saving
+  if (isSubmittingEvent || isSavingEvent.value || now - lastSubmitTime < 1000) {
+    return
+  }
+
+  // Guard 2: Dialog must be open
+  if (!eventDialog.value) return
+
+  // Guard 3: Title must be present (otherwise let Vuetify validate and show errors)
+  if (!eventForm.value.title.trim()) {
+    await eventFormRef.value?.validate()
+    return
+  }
+
+  isSubmittingEvent = true
+  lastSubmitTime = now
+  isSavingEvent.value = true
+
+  // Explicitly dismiss active keyboard cleanly
+  dismissActiveKeyboard()
+
+  try {
+    await saveEvent()
+  } finally {
+    isSavingEvent.value = false
+    setTimeout(() => {
+      isSubmittingEvent = false
+    }, 800)
+  }
+}
+
 async function saveEvent() {
   const valid = await eventFormRef.value?.validate()
   if (valid && !valid.valid) return
 
-  if (!eventForm.value.title.trim()) return
+  const title = eventForm.value.title.trim()
+  if (!title) return
+
+  // Consume title immediately to make this function strictly idempotent
+  eventForm.value.title = ''
 
   const payload = {
-    title: eventForm.value.title.trim(),
+    title,
     category: eventForm.value.category || 'Celebration',
     color: eventForm.value.color || '#1890ff',
     date: eventForm.value.date,
@@ -1621,6 +1428,7 @@ async function saveEvent() {
     showNotification('New event created! Now invite guests.')
   }
 
+  dismissActiveKeyboard()
   eventDialog.value = false
 }
 
@@ -1694,6 +1502,7 @@ function copyOrShareText(text: string, successMsg: string) {
 </script>
 
 <style scoped lang="scss">
+.events-component,
 .event-list-component {
   width: 100%;
 }

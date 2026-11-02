@@ -1,0 +1,1863 @@
+<template>
+  <div class="invites-container">
+    <!-- Target Event Selector & Details Banner -->
+    <v-card v-if="activeEventForInvites" class="mb-3 rounded-lg elevation-0 bg-surface border overflow-hidden"
+      :style="{ borderLeft: `5px solid ${activeEventForInvites.color || '#1890ff'}` }">
+      <!-- Header Row: Title + actions + toggle -->
+      <div class="pa-3 bg-containerBg" :class="{ 'border-b': inviteHeaderExpanded }">
+        <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+          <div class="d-flex align-center gap-2 flex-grow-1" style="min-width: 0;">
+            <v-avatar color="primary" variant="tonal" size="32" rounded="md">
+              <v-icon :icon="getEventCategoryIcon(activeEventForInvites.category)" size="18" />
+            </v-avatar>
+            <div style="min-width: 0;">
+              <div class="text-caption text-lightText font-weight-bold text-uppercase"
+                style="font-size: 0.68rem; letter-spacing: 0.5px;">
+                Target Event for Inviting Guests:
+              </div>
+              <div class="text-subtitle-2 font-weight-bold text-darkText text-truncate">
+                {{ activeEventForInvites.title }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Switch + Share + toggle -->
+          <div class="d-flex align-center gap-1.5 flex-wrap">
+            <v-menu location="bottom end">
+              <template #activator="{ props: menuProps }">
+                <v-btn v-bind="menuProps" size="x-small" variant="outlined" color="primary" rounded="lg"
+                  class="font-weight-medium text-capitalize" append-icon="mdi-chevron-down">
+                  Switch
+                </v-btn>
+              </template>
+              <v-list density="compact" rounded="lg" elevation="4">
+                <v-list-item v-for="evt in eventsStore.events" :key="evt.id"
+                  :active="activeEventForInvites.id === evt.id" :title="evt.title"
+                  :subtitle="`${formatEventDate(evt.date)} • ${evt.category || 'Event'}`"
+                  @click="selectedEventForInvites = evt.id">
+                  <template #prepend>
+                    <v-icon :icon="getEventCategoryIcon(evt.category)" size="16" class="mr-2"
+                      :color="evt.color || 'primary'" />
+                  </template>
+                  <template #append>
+                    <v-chip size="x-small" variant="tonal" color="primary" class="font-weight-bold">
+                      {{ evt.invitedGuests?.length || 0 }}
+                    </v-chip>
+                  </template>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+
+            <v-btn size="x-small" variant="tonal" color="success" rounded="lg"
+              class="font-weight-bold text-capitalize" prepend-icon="mdi-whatsapp"
+              @click="shareEventWhatsApp(activeEventForInvites)">
+              Share
+            </v-btn>
+
+            <!-- Toggle details -->
+            <v-btn :icon="inviteHeaderExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'" variant="text" size="x-small"
+              color="lightText" @click="inviteHeaderExpanded = !inviteHeaderExpanded" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Event Details -->
+      <v-expand-transition>
+        <div v-if="inviteHeaderExpanded" class="pa-2 px-3 bg-surface">
+          <div class="d-flex flex-wrap align-center gap-x-4 gap-y-1 text-caption">
+            <div class="d-flex align-center gap-1">
+              <v-icon icon="mdi-tag-outline" size="13" class="text-lightText" />
+              <v-chip size="x-small" variant="flat"
+                :style="{ backgroundColor: activeEventForInvites.color || '#1890ff', color: '#fff' }"
+                class="font-weight-bold">
+                {{ activeEventForInvites.category || 'Celebration' }}
+              </v-chip>
+            </div>
+            <div class="d-flex align-center gap-1">
+              <v-icon icon="mdi-calendar-text" size="13" class="text-primary" />
+              <span class="font-weight-bold text-darkText">{{ formatEventDate(activeEventForInvites.date) }}
+                {{ activeEventForInvites.time || '' }}</span>
+            </div>
+            <div class="d-flex align-center gap-1" style="max-width: 220px;">
+              <v-icon icon="mdi-map-marker" size="13" class="text-error flex-shrink-0" />
+              <span class="font-weight-medium text-darkText text-truncate">
+                {{ activeEventForInvites.location || 'Venue TBA' }}</span>
+            </div>
+            <div class="d-flex align-center gap-1">
+              <v-icon icon="mdi-account-group" size="13" class="text-primary" />
+              <v-chip size="x-small" variant="tonal" color="primary" class="font-weight-bold">
+                {{ activeEventForInvites.invitedGuests?.length || 0 }} invited • {{ activeEventConfirmedHeads }}
+                confirmed
+              </v-chip>
+            </div>
+          </div>
+        </div>
+      </v-expand-transition>
+    </v-card>
+
+    <!-- If no events exist yet -->
+    <v-card v-else-if="eventsStore.events.length === 0" variant="outlined" elevation="0"
+      class="mb-3 pa-4 text-center rounded-lg bg-surface border-dashed">
+      <v-icon icon="mdi-calendar-blank-outline" size="32" color="primary" class="mb-1" />
+      <div class="text-subtitle-2 font-weight-bold text-darkText">No Events Created Yet</div>
+      <div class="text-caption text-lightText mb-2">Create an event in the Events tab to start inviting guests.</div>
+      <v-btn color="primary" size="x-small" rounded="lg" @click="emit('go-to-events')">Go to Events Tab</v-btn>
+    </v-card>
+
+    <!-- 1. Header Card with Gradient & Quick Stats -->
+    <v-card class="mb-4 rounded-lg elevation-0 overflow-hidden bg-surface card-hover-border border">
+      <!-- Gradient Header Bar -->
+      <div class="pa-4 text-white position-relative"
+        style="background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);">
+        <div class="d-flex justify-space-between align-center flex-wrap gap-2">
+          <div class="d-flex align-center gap-2">
+            <v-avatar color="white" variant="tonal" size="38" rounded="lg">
+              <v-icon icon="mdi-account-multiple-check-outline" size="22" color="white" />
+            </v-avatar>
+            <div>
+              <span class="text-caption text-white-75 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
+                Guest Tracker
+              </span>
+              <div class="text-h6 font-weight-bold text-white line-height-1">
+                {{ guestsStore.totalGuests }} Guests • {{ guestsStore.totalPartyCount }} Total Heads
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Guest Primary CTA -->
+          <v-btn color="white" variant="flat" size="small" rounded="lg"
+            class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-account-plus"
+            @click="openAddGuestDialog">
+            + Add
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- Quick Stats Metric Grid (2 Rows x 2 Cols) -->
+      <div class="pa-3 px-4">
+        <div class="stats-overview-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+          <!-- Col 1: Attending -->
+          <div class="stat-grid-col pr-3 border-e">
+            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
+              <v-icon icon="mdi-account-group" size="13" class="text-primary mr-1 flex-shrink-0" />
+              <span>Attending</span>
+            </div>
+            <div class="text-subtitle-2 font-weight-bold text-primary text-truncate">
+              {{ guestsStore.totalConfirmedParty }} <span
+                class="text-caption font-weight-regular text-lightText"></span>
+            </div>
+          </div>
+
+          <!-- Col 2: Return Gifts -->
+          <div class="stat-grid-col pl-3">
+            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
+              <v-icon icon="mdi-gift-outline" size="13" class="text-warning mr-1 flex-shrink-0" />
+              <span>Return Gifts</span>
+            </div>
+            <div class="text-subtitle-2 font-weight-bold text-warning text-truncate">
+              {{ guestsStore.totalReturnGiftsCount }} <span
+                class="text-caption font-weight-regular text-lightText">gifts
+                (₹{{ guestsStore.totalReturnGiftsCost.toLocaleString() }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </v-card>
+
+    <!-- 2. COLLAPSIBLE SEARCH, TAGS & FILTERS PANEL (Mantis Style - Matching ShoppingList) -->
+    <v-card variant="outlined" elevation="0" class="mb-3 rounded-lg bg-surface card-hover-border overflow-hidden">
+      <div class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none filter-header-bar"
+        @click="showFiltersPanel = !showFiltersPanel">
+        <div class="d-flex align-center flex-wrap gap-2" style="min-width: 0;">
+          <v-avatar color="primary" variant="tonal" size="28" rounded="md">
+            <v-icon icon="mdi-filter-variant" size="16" />
+          </v-avatar>
+          <div>
+            <div class="text-subtitle-2 font-weight-bold text-darkText d-flex align-center">
+              Tags &amp; Filters
+              <v-chip v-if="hasActiveFilters" size="x-small" color="primary" variant="flat" rounded="pill"
+                class="ml-2 font-weight-bold px-2">
+                Filtered
+              </v-chip>
+            </div>
+            <div class="text-caption text-lightText" style="font-size: 0.68rem !important;">
+              {{ filterSummary }}
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex align-center">
+          <v-btn v-if="hasActiveFilters" variant="text" size="x-small" color="error"
+            class="mr-1 text-capitalize px-2 font-weight-bold" @click.stop="resetFilters">
+            Reset
+          </v-btn>
+          <v-btn icon variant="text" size="small" color="lightText"
+            :aria-label="showFiltersPanel ? 'Collapse Filters' : 'Expand Filters'">
+            <v-icon :icon="showFiltersPanel ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="20" />
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- Collapsible Container for Search, Tags, Groups, Gifts & RSVP -->
+      <v-expand-transition>
+        <div v-if="showFiltersPanel" class="expand-wrapper">
+          <div class="px-3 pb-3 pt-1 border-t">
+            <!-- Search Input -->
+            <v-text-field v-model="guestsStore.searchQuery"
+              placeholder="Search by guest name, addon companion, phone, tags, gifts, notes..."
+              prepend-inner-icon="mdi-magnify" density="compact" variant="outlined" hide-details clearable
+              rounded="lg" class="mb-3" @click:clear="guestsStore.searchQuery = ''" />
+
+            <!-- Group Category Chips -->
+            <div class="mb-3">
+              <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+                Guest Group:
+              </div>
+              <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+                <v-chip :color="guestsStore.selectedGroup === 'all' ? 'primary' : 'secondary'"
+                  :variant="guestsStore.selectedGroup === 'all' ? 'flat' : 'outlined'" size="small"
+                  class="font-weight-medium cursor-pointer filter-gray-chip"
+                  @click="guestsStore.selectedGroup = 'all'">
+                  All Groups ({{ guestsStore.totalGuests }})
+                </v-chip>
+
+                <v-chip v-for="grp in guestsStore.allGroups" :key="grp"
+                  :color="guestsStore.selectedGroup === grp ? 'primary' : 'secondary'"
+                  :variant="guestsStore.selectedGroup === grp ? 'flat' : 'outlined'" size="small"
+                  class="font-weight-medium cursor-pointer filter-gray-chip" @click="guestsStore.selectedGroup = grp">
+                  <v-icon :icon="getGuestGroupIcon(grp)" size="14" class="mr-1" />
+                  {{ grp }}
+                  <span v-if="guestsStore.groupCountMap[grp]" class="ml-1 opacity-70">
+                    ({{ guestsStore.groupCountMap[grp] }})
+                  </span>
+                </v-chip>
+              </div>
+            </div>
+
+            <!-- Tag Filter Chips Bar -->
+            <div class="mb-3">
+              <div class="d-flex align-center justify-space-between mb-1">
+                <span class="text-caption font-weight-bold text-lightText text-uppercase">
+                  Tags ({{ guestsStore.allTags.length }}):
+                </span>
+                <span class="text-caption text-lightText" style="font-size: 0.68rem !important;">
+                  Tap tag to toggle
+                </span>
+              </div>
+              <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+                <v-chip :color="guestsStore.selectedTags.length === 0 ? 'primary' : 'secondary'"
+                  :variant="guestsStore.selectedTags.length === 0 ? 'flat' : 'outlined'" size="x-small"
+                  class="font-weight-medium cursor-pointer filter-gray-chip"
+                  @click="guestsStore.selectedTags = []; guestsStore.selectedTag = null">
+                  All Tags
+                </v-chip>
+
+                <v-chip v-for="tag in guestsStore.allTags" :key="tag"
+                  :color="isTagSelected(tag) ? 'primary' : 'secondary'"
+                  :variant="isTagSelected(tag) ? 'flat' : 'outlined'" size="x-small"
+                  class="font-weight-medium cursor-pointer filter-gray-chip" @click="guestsStore.toggleTag(tag)">
+                  <v-icon icon="mdi-tag" size="11" class="mr-0.5" />
+                  #{{ tag }}
+                  <span v-if="guestsStore.tagCountMap[tag]" class="ml-1 opacity-70">
+                    ({{ guestsStore.tagCountMap[tag] }})
+                  </span>
+                </v-chip>
+              </div>
+            </div>
+
+            <!-- Return Gift Filter Chips Bar -->
+            <div class="mb-3">
+              <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+                Return Gifts Filter:
+              </div>
+              <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+                <v-chip size="x-small"
+                  :color="guestsStore.giftFilter === 'all' && !guestsStore.selectedGiftName ? 'warning' : undefined"
+                  :variant="guestsStore.giftFilter === 'all' && !guestsStore.selectedGiftName ? 'flat' : 'outlined'"
+                  class="cursor-pointer font-weight-medium"
+                  @click="guestsStore.giftFilter = 'all'; guestsStore.selectedGiftName = null">
+                  All ({{ guestsStore.totalGuests }})
+                </v-chip>
+
+                <v-chip size="x-small" :color="guestsStore.giftFilter === 'with_gift' ? 'warning' : undefined"
+                  :variant="guestsStore.giftFilter === 'with_gift' ? 'flat' : 'outlined'"
+                  class="cursor-pointer font-weight-medium"
+                  @click="guestsStore.giftFilter = 'with_gift'; guestsStore.selectedGiftName = null">
+                  <v-icon icon="mdi-gift" size="11" class="mr-0.5" />
+                  Has Gifts ({{ guestsStore.guestsWithGiftCount }})
+                </v-chip>
+
+                <v-chip size="x-small" :color="guestsStore.giftFilter === 'without_gift' ? 'warning' : undefined"
+                  :variant="guestsStore.giftFilter === 'without_gift' ? 'flat' : 'outlined'"
+                  class="cursor-pointer font-weight-medium"
+                  @click="guestsStore.giftFilter = 'without_gift'; guestsStore.selectedGiftName = null">
+                  <v-icon icon="mdi-gift-off-outline" size="11" class="mr-0.5" />
+                  No Gift ({{ guestsStore.guestsWithoutGiftCount }})
+                </v-chip>
+
+                <!-- Specific gift presets filters -->
+                <v-chip v-for="item in guestsStore.returnGiftsDistribution.slice(0, 4)" :key="item.name"
+                  size="x-small" :color="guestsStore.selectedGiftName === item.name ? 'warning' : undefined"
+                  :variant="guestsStore.selectedGiftName === item.name ? 'flat' : 'outlined'"
+                  class="cursor-pointer font-weight-medium" @click="guestsStore.toggleGiftNameFilter(item.name)">
+                  {{ item.name }} ({{ item.count }})
+                </v-chip>
+              </div>
+            </div>
+
+            <!-- RSVP Status Filter -->
+            <div class="mb-3">
+              <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+                RSVP Status:
+              </div>
+              <div class="d-flex align-center gap-1.5 flex-wrap">
+                <v-chip size="x-small" :variant="guestsStore.selectedRsvp === 'all' ? 'flat' : 'tonal'"
+                  color="primary" class="cursor-pointer font-weight-medium" @click="guestsStore.selectedRsvp = 'all'">
+                  All RSVPs ({{ guestsStore.totalGuests }})
+                </v-chip>
+                <v-chip size="x-small" :variant="guestsStore.selectedRsvp === 'confirmed' ? 'flat' : 'tonal'"
+                  color="success" class="cursor-pointer font-weight-medium"
+                  @click="guestsStore.selectedRsvp = 'confirmed'">
+                  <v-icon icon="mdi-check-circle" size="12" class="mr-1" />
+                  Confirmed ({{ guestsStore.confirmedCount }})
+                </v-chip>
+                <v-chip size="x-small" :variant="guestsStore.selectedRsvp === 'pending' ? 'flat' : 'tonal'"
+                  color="warning" class="cursor-pointer font-weight-medium"
+                  @click="guestsStore.selectedRsvp = 'pending'">
+                  <v-icon icon="mdi-clock-outline" size="12" class="mr-1" />
+                  Pending ({{ guestsStore.pendingCount }})
+                </v-chip>
+              </div>
+            </div>
+
+            <!-- Active Filters Reset Banner (Inside Panel) -->
+            <div v-if="hasActiveFilters" class="d-flex align-center flex-wrap gap-1 pt-2 mt-2 border-t">
+              <span class="text-caption text-lightText font-weight-bold mr-1">Active:</span>
+
+              <v-chip v-if="guestsStore.searchQuery.trim()" size="x-small" color="primary" variant="flat" closable
+                @click:close="guestsStore.searchQuery = ''">
+                <v-icon icon="mdi-magnify" size="10" class="mr-1" />
+                "{{ guestsStore.searchQuery.trim() }}"
+              </v-chip>
+
+              <v-chip v-for="tag in guestsStore.selectedTags" :key="tag" size="x-small" color="primary" variant="flat"
+                closable @click:close="guestsStore.toggleTag(tag)">
+                <v-icon icon="mdi-tag" size="10" class="mr-1" />
+                #{{ tag }}
+              </v-chip>
+
+              <v-chip v-if="guestsStore.giftFilter !== 'all'" size="x-small" color="warning" variant="flat" closable
+                @click:close="guestsStore.giftFilter = 'all'">
+                <v-icon icon="mdi-gift" size="10" class="mr-1" />
+                {{ guestsStore.giftFilter === 'with_gift' ? 'Has Gifts' : 'No Gifts' }}
+              </v-chip>
+
+              <v-chip v-if="guestsStore.selectedGiftName" size="x-small" color="warning" variant="flat" closable
+                @click:close="guestsStore.selectedGiftName = null">
+                <v-icon icon="mdi-gift-outline" size="10" class="mr-1" />
+                Gift: {{ guestsStore.selectedGiftName }}
+              </v-chip>
+
+              <v-chip v-if="guestsStore.selectedGroup !== 'all'" size="x-small" color="secondary" variant="flat"
+                closable @click:close="guestsStore.selectedGroup = 'all'">
+                {{ guestsStore.selectedGroup }}
+              </v-chip>
+
+              <v-chip v-if="guestsStore.selectedRsvp !== 'all'" size="x-small" color="success" variant="flat" closable
+                @click:close="guestsStore.selectedRsvp = 'all'">
+                RSVP: {{ guestsStore.selectedRsvp }}
+              </v-chip>
+
+              <v-btn variant="text" size="x-small" color="error" class="font-weight-bold text-caption px-1 ml-auto"
+                @click="resetFilters">
+                Clear Filters
+              </v-btn>
+            </div>
+          </div>
+        </div>
+      </v-expand-transition>
+    </v-card>
+
+    <!-- Toolbar: View Mode, Details Toggle, Sort & Guests Count -->
+    <div class="d-flex align-center justify-space-between mb-3 px-1 flex-wrap gap-2">
+      <div class="text-subtitle-1 font-weight-bold d-flex align-center text-darkText">
+        <v-icon icon="mdi-account-group" class="mr-2 text-primary" size="20" />
+        {{ listHeaderTitle }}
+      </div>
+
+      <div class="d-flex align-center gap-1.5 flex-wrap">
+        <!-- View Mode Toggle Menu (Flat vs Grouped by Tag vs Grouped by Category) -->
+        <v-menu location="bottom end">
+          <template #activator="{ props: menuProps }">
+            <v-btn v-bind="menuProps" size="x-small" variant="outlined" color="primary" rounded="lg"
+              class="text-capitalize font-weight-medium">
+              <v-icon :icon="viewModeIcon" size="13" class="mr-1" />
+              {{ viewModeLabel }}
+              <v-icon icon="mdi-chevron-down" size="12" class="ml-1" />
+            </v-btn>
+          </template>
+          <v-list density="compact" rounded="lg" elevation="4">
+            <v-list-item :active="guestsStore.viewMode === 'flat'" prepend-icon="mdi-view-headline"
+              title="Flat Cards View" @click="guestsStore.viewMode = 'flat'" />
+            <v-list-item :active="guestsStore.viewMode === 'grouped_by_tag'" prepend-icon="mdi-tag-multiple-outline"
+              title="Grouped by Tag" @click="guestsStore.viewMode = 'grouped_by_tag'" />
+            <v-list-item :active="guestsStore.viewMode === 'grouped_by_category'" prepend-icon="mdi-folder-outline"
+              title="Grouped by Category" @click="guestsStore.viewMode = 'grouped_by_category'" />
+          </v-list>
+        </v-menu>
+
+        <!-- Toggle Expand All Details Button -->
+        <v-btn size="x-small" :variant="showAllDetails ? 'flat' : 'outlined'"
+          :color="showAllDetails ? 'primary' : 'secondary'" rounded="lg"
+          class="text-capitalize font-weight-medium px-2" title="Toggle details for all guests"
+          @click="showAllDetails = !showAllDetails">
+          <v-icon :icon="showAllDetails ? 'mdi-eye-check-outline' : 'mdi-eye-outline'" size="13" class="mr-1" />
+          {{ showAllDetails ? 'Hide Details' : 'Show Details' }}
+        </v-btn>
+
+        <!-- Sort Menu -->
+        <v-menu location="bottom end">
+          <template #activator="{ props: sortProps }">
+            <v-btn v-bind="sortProps" size="x-small" variant="outlined" color="secondary" rounded="lg"
+              class="text-capitalize font-weight-medium px-2" prepend-icon="mdi-sort-variant" title="Sort guests">
+              {{ currentSortLabel }}
+              <v-icon icon="mdi-chevron-down" size="12" class="ml-1" />
+            </v-btn>
+          </template>
+          <v-list density="compact" rounded="lg" elevation="4">
+            <v-list-item :active="guestsStore.sortBy === 'newest'" title="Newest Added"
+              @click="guestsStore.sortBy = 'newest'" />
+            <v-list-item :active="guestsStore.sortBy === 'name'" title="Guest Name (A-Z)"
+              @click="guestsStore.sortBy = 'name'" />
+            <v-list-item :active="guestsStore.sortBy === 'party-desc'" title="Party Size (Largest First)"
+              @click="guestsStore.sortBy = 'party-desc'" />
+          </v-list>
+        </v-menu>
+      </div>
+    </div>
+
+    <!-- Event Invitation Quick Filter Bar -->
+    <div v-if="activeEventForInvites"
+      class="d-flex align-center gap-1.5 overflow-x-auto pb-1 mb-3 no-scrollbar flex-wrap">
+      <span class="text-caption font-weight-bold text-lightText mr-1">Invite Filter:</span>
+      <v-chip size="x-small" :color="inviteEventFilter === 'all' ? 'primary' : undefined"
+        :variant="inviteEventFilter === 'all' ? 'flat' : 'outlined'" class="font-weight-medium cursor-pointer"
+        @click="inviteEventFilter = 'all'">
+        All ({{ guestsStore.filteredGuests.length }})
+      </v-chip>
+      <v-chip size="x-small" :color="inviteEventFilter === 'invited' ? 'primary' : undefined"
+        :variant="inviteEventFilter === 'invited' ? 'flat' : 'outlined'" class="font-weight-medium cursor-pointer"
+        @click="inviteEventFilter = 'invited'">
+        Invited ({{ activeEventInvitedCount }})
+      </v-chip>
+      <v-chip size="x-small" :color="inviteEventFilter === 'not_invited' ? 'primary' : undefined"
+        :variant="inviteEventFilter === 'not_invited' ? 'flat' : 'outlined'" class="font-weight-medium cursor-pointer"
+        @click="inviteEventFilter = 'not_invited'">
+        Not Invited ({{ activeEventNotInvitedCount }})
+      </v-chip>
+      <v-chip size="x-small" :color="inviteEventFilter === 'confirmed' ? 'success' : undefined"
+        :variant="inviteEventFilter === 'confirmed' ? 'flat' : 'outlined'" class="font-weight-medium cursor-pointer"
+        @click="inviteEventFilter = 'confirmed'">
+        Confirmed ({{ activeEventConfirmedCount }})
+      </v-chip>
+
+      <v-btn v-if="activeEventNotInvitedCount > 0" size="x-small" variant="tonal" color="primary" rounded="lg"
+        class="font-weight-bold ml-auto text-capitalize" prepend-icon="mdi-account-multiple-plus"
+        @click="inviteAllFilteredToActiveEvent">
+        Invite All Uninvited ({{ activeEventNotInvitedCount }})
+      </v-btn>
+    </div>
+
+    <!-- 3. Empty State -->
+    <v-card v-if="displayedGuestsInInvites.length === 0" variant="outlined" elevation="0"
+      class="pa-8 text-center rounded-lg bg-surface border-dashed">
+      <v-avatar color="primary" variant="tonal" size="64" class="mb-3">
+        <v-icon icon="mdi-account-search-outline" size="32" />
+      </v-avatar>
+      <div class="text-subtitle-1 font-weight-bold text-darkText mb-1">
+        No Guests Found
+      </div>
+      <div class="text-caption text-lightText mb-4" style="max-width: 340px; margin: 0 auto;">
+        {{ hasActiveFilters ? 'No guests match your active filters or search criteria.' :
+          'Start building your event guest list with companion addon persons, group tags, and return gifts.' }}
+      </div>
+      <div class="d-flex justify-center gap-2">
+        <v-btn v-if="hasActiveFilters" variant="outlined" size="small" rounded="lg" @click="resetFilters">
+          Reset Filters
+        </v-btn>
+        <v-btn color="primary" size="small" rounded="lg" prepend-icon="mdi-account-plus" @click="openAddGuestDialog">
+          Add First Guest
+        </v-btn>
+      </div>
+    </v-card>
+
+    <!-- 4. VIEW A: Flat Cards View -->
+    <div v-else-if="guestsStore.viewMode === 'flat'">
+      <v-slide-y-transition group>
+        <v-card v-for="guest in displayedGuestsInInvites" :key="guest.id" :ripple="false" variant="outlined"
+          elevation="0" class="mb-3 pa-3 rounded-lg bg-surface card-hover-border cursor-pointer"
+          @click="toggleGuestExpand(guest.id)">
+          <!-- Card Content Wrapper -->
+          <div class="d-flex align-start justify-space-between">
+            <!-- Left Info Section -->
+            <div class="d-flex align-start gap-3 flex-grow-1" style="min-width: 0;">
+              <!-- Avatar with Initials -->
+              <v-avatar color="primary" variant="tonal" size="32" rounded="md" class="flex-shrink-0 font-weight-bold"
+                style="font-size: 0.75rem;">
+                {{ getInitials(guest.name) }}
+              </v-avatar>
+
+              <div class="flex-grow-1" style="min-width: 0;">
+                <!-- Main Guest Name & Party Headcount Pill -->
+                <div class="d-flex align-center flex-wrap gap-1 mb-1">
+                  <span class="text-subtitle-1 font-weight-bold text-darkText text-truncate">
+                    {{ guest.name }}
+                  </span>
+
+                  <!-- Party Size Badge (+N Addons) -->
+                  <v-chip size="x-small" variant="tonal" :color="guest.additionalGuests > 0 ? 'primary' : 'secondary'"
+                    class="font-weight-bold ml-1">
+                    <v-icon :icon="guest.additionalGuests > 0 ? 'mdi-account-multiple' : 'mdi-account'" size="12"
+                      class="mr-1" />
+                    {{ formatGuestPersonsDisplay(guest.additionalGuests) }}
+                  </v-chip>
+
+                  <!-- Event Invitation Status for Active Event -->
+                  <template v-if="activeEventForInvites">
+                    <!-- Already Invited: show RSVP Chip & WhatsApp -->
+                    <template v-if="isGuestInvitedToActiveEvent(guest.id)">
+                      <v-menu location="bottom end">
+                        <template #activator="{ props: rsvpProps }">
+                          <v-chip v-bind="rsvpProps" size="x-small" variant="flat"
+                            :color="getEventRsvpColor(getGuestActiveEventInvite(guest.id)?.rsvpStatus)"
+                            class="font-weight-bold text-capitalize cursor-pointer ml-1" @click.stop>
+                            <v-icon :icon="getEventRsvpIcon(getGuestActiveEventInvite(guest.id)?.rsvpStatus)"
+                              size="11" class="mr-0.5" />
+                            {{ getGuestActiveEventInvite(guest.id)?.rsvpStatus || 'Invited' }}
+                            <v-icon icon="mdi-chevron-down" size="10" class="ml-0.5" />
+                          </v-chip>
+                        </template>
+                        <v-list density="compact" rounded="lg" elevation="4">
+                          <v-list-item title="Confirmed (Attending)" prepend-icon="mdi-check-circle"
+                            class="text-success font-weight-bold"
+                            @click="updateGuestActiveEventRsvp(guest.id, 'confirmed')" />
+                          <v-list-item title="Pending (Awaiting RSVP)" prepend-icon="mdi-clock-outline"
+                            class="text-warning font-weight-bold"
+                            @click="updateGuestActiveEventRsvp(guest.id, 'pending')" />
+                          <v-list-item title="Declined (Cannot attend)" prepend-icon="mdi-close-circle"
+                            class="text-error font-weight-bold"
+                            @click="updateGuestActiveEventRsvp(guest.id, 'declined')" />
+                          <v-list-item title="Invited (Sent)" prepend-icon="mdi-email-send"
+                            class="text-primary font-weight-bold"
+                            @click="updateGuestActiveEventRsvp(guest.id, 'invited')" />
+                        </v-list>
+                      </v-menu>
+
+                      <v-btn v-if="guest.phone" icon="mdi-whatsapp" variant="tonal" size="x-small" color="success"
+                        title="Send WhatsApp Invite" class="ml-1"
+                        @click.stop="sendWhatsAppInviteToGuestForEvent(guest)" />
+
+                      <v-btn icon="mdi-close" variant="text" size="x-small" color="lightText"
+                        title="Remove from this event"
+                        @click.stop="removeGuestFromActiveEvent(guest.id, guest.name)" />
+                    </template>
+
+                    <!-- Not Invited Yet: show + Invite to Event button -->
+                    <v-btn v-else size="x-small" variant="flat" color="primary" rounded="lg"
+                      class="font-weight-bold text-capitalize text-caption px-2 ml-1" prepend-icon="mdi-account-plus"
+                      @click.stop="inviteGuestToActiveEvent(guest)">
+                      + Invite
+                    </v-btn>
+                  </template>
+                </div>
+
+                <!-- Group category chip only -->
+                <div class="d-flex align-center gap-1.5 flex-wrap mb-1.5">
+                  <v-chip size="x-small" variant="flat" color="containerBg"
+                    class="font-weight-medium text-darkText border">
+                    <v-icon :icon="getGuestGroupIcon(guest.group)" size="12" class="mr-1 text-primary" />
+                    {{ guest.group || 'General' }}
+                  </v-chip>
+                </div>
+
+                <!-- Addon Persons Chips -->
+                <div v-if="guest.accompanyingPersons && guest.accompanyingPersons.length > 0"
+                  class="d-flex align-center gap-1 flex-wrap mt-1 mb-1">
+                  <span class="text-caption text-lightText font-weight-medium mr-1" style="font-size: 0.72rem;">
+                    Addons:
+                  </span>
+                  <v-chip v-for="(person, pIdx) in guest.accompanyingPersons" :key="pIdx" size="x-small"
+                    variant="tonal" color="secondary" class="font-weight-medium">
+                    <v-icon icon="mdi-account" size="10" class="mr-1" />
+                    <span>{{ person.name }}</span>
+                    <span v-if="person.relation" class="ml-1 opacity-70">({{ person.relation }})</span>
+                  </v-chip>
+                </div>
+
+                <!-- Return Gifts Section -->
+                <div class="d-flex align-center gap-1.5 flex-wrap mt-2 pt-1 border-t">
+                  <span v-if="guest.returnGifts && guest.returnGifts.length > 0"
+                    class="text-caption text-lightText font-weight-bold mr-1" style="font-size: 0.72rem;">
+                    <v-icon icon="mdi-gift-outline" size="12" class="mr-0.5 text-warning" />
+                    Return Gifts ({{ guest.returnGifts.length }}):
+                  </span>
+
+                  <!-- Return Gift Chips (Name & Price) -->
+                  <v-chip v-for="(gift, gIdx) in (guest.returnGifts || [])" :key="gIdx" size="x-small" variant="tonal"
+                    color="warning" class="font-weight-medium">
+                    <v-icon icon="mdi-gift" size="11" class="mr-1 text-warning" />
+                    <span>{{ gift.name }}</span>
+                    <span class="ml-1 font-weight-bold text-darkText">(₹{{ Number(gift.price || 0).toLocaleString()
+                    }})</span>
+                    <v-btn icon="mdi-close" variant="text" size="x-small" density="compact"
+                      class="ml-1 text-lightText hover-error" title="Remove this return gift"
+                      @click.stop="removeGuestGift(guest.id, gIdx)" />
+                  </v-chip>
+
+                  <!-- + Add Return Gift Quick Button -->
+                  <v-chip size="x-small" variant="outlined" color="warning" class="font-weight-medium cursor-pointer"
+                    @click.stop="openQuickAddGift(guest)">
+                    <v-icon icon="mdi-plus" size="11" class="mr-0.5" />
+                    Add Return Gift
+                  </v-chip>
+                </div>
+
+                <!-- Return Gift Handed Over / Given Switch Row -->
+                <div v-if="guest.returnGifts && guest.returnGifts.length > 0"
+                  class="d-flex align-center justify-space-between mt-1.5 cursor-pointer"
+                  @click.stop="guestsStore.toggleReturnGiftGiven(guest.id)">
+                  <div class="d-flex align-center">
+                    <v-icon :icon="guest.returnGiftGiven ? 'mdi-gift-check' : 'mdi-gift-outline'"
+                      :color="guest.returnGiftGiven ? 'success' : 'lightText'" class="mr-1" size="14" />
+                    <span class="font-weight-regular" style="font-size: 0.7rem; line-height: 1.2;"
+                      :class="guest.returnGiftGiven ? 'text-success' : 'text-darkText'">
+                      {{ guest.returnGiftGiven ? 'Return Gift Handed Over ✓' : 'Mark Return Gift Handed Over' }}
+                    </span>
+                  </div>
+                  <v-switch :model-value="Boolean(guest.returnGiftGiven)" color="success" density="compact"
+                    hide-details @click.stop @update:model-value="guestsStore.toggleReturnGiftGiven(guest.id)" />
+                </div>
+
+                <!-- Expandable Details (Tags, Phone, Email, Notes, Full Addon Management) -->
+                <v-expand-transition>
+                  <div v-if="isGuestExpanded(guest.id)" class="expand-wrapper">
+                    <div class="mt-2 pt-2 border-t">
+                      <!-- Grouping Tags Chips -->
+                      <div v-if="guest.tags && guest.tags.length > 0"
+                        class="d-flex align-center gap-1 flex-wrap mb-2">
+                        <v-icon icon="mdi-tag-outline" size="14" class="text-primary flex-shrink-0" />
+                        <span class="text-caption font-weight-medium text-darkText mr-1">Tags:</span>
+                        <v-chip v-for="tag in guest.tags" :key="tag" size="x-small" variant="outlined" color="primary"
+                          class="font-weight-medium cursor-pointer" @click.stop="guestsStore.toggleTag(tag)">
+                          <v-icon icon="mdi-tag" size="10" class="mr-0.5" />
+                          #{{ tag }}
+                        </v-chip>
+                      </div>
+
+                      <!-- Phone Contact -->
+                      <div v-if="guest.phone" class="d-flex align-center gap-1 text-lightText mb-1">
+                        <v-icon icon="mdi-phone" size="14" class="text-primary flex-shrink-0" />
+                        <span class="text-caption font-weight-medium text-darkText">Phone:</span>
+                        <a :href="`tel:${guest.phone}`"
+                          class="text-primary font-weight-bold text-caption text-decoration-none" @click.stop>
+                          {{ guest.phone }}
+                        </a>
+                      </div>
+
+                      <!-- Email Contact -->
+                      <div v-if="guest.email" class="d-flex align-center gap-1 text-lightText mb-1">
+                        <v-icon icon="mdi-email-outline" size="14" class="text-secondary flex-shrink-0" />
+                        <span class="text-caption font-weight-medium text-darkText">Email:</span>
+                        <a :href="`mailto:${guest.email}`" class="text-darkText text-caption text-decoration-none"
+                          @click.stop>
+                          {{ guest.email }}
+                        </a>
+                      </div>
+
+                      <!-- Notes -->
+                      <div v-if="guest.notes"
+                        class="pa-2 rounded-md bg-containerBg mt-1 text-caption text-darkText font-italic">
+                        <v-icon icon="mdi-note-text-outline" size="13" class="text-lightText mr-1" />
+                        {{ guest.notes }}
+                      </div>
+
+                      <!-- Quick Inline Add Person / Edit CTA -->
+                      <div class="mt-2 d-flex align-center gap-2">
+                        <v-btn size="x-small" variant="tonal" color="primary" prepend-icon="mdi-account-edit"
+                          class="text-capitalize rounded-md" @click.stop="openEditGuestDialog(guest)">
+                          Edit Guest &amp; Addons
+                        </v-btn>
+                        <v-btn size="x-small" variant="tonal" color="warning" prepend-icon="mdi-gift-outline"
+                          class="text-capitalize rounded-md" @click.stop="openQuickAddGift(guest)">
+                          + Add Return Gift
+                        </v-btn>
+                      </div>
+                    </div>
+                  </div>
+                </v-expand-transition>
+              </div>
+            </div>
+
+            <!-- Right Side Action Menu -->
+            <div class="text-right ml-2 flex-shrink-0" @click.stop>
+              <v-menu location="bottom end">
+                <template #activator="{ props: menuProps }">
+                  <v-btn v-bind="menuProps" icon="mdi-dots-vertical" variant="text" size="small" color="lightText" />
+                </template>
+                <v-list density="compact" rounded="lg" elevation="4">
+                  <v-list-item prepend-icon="mdi-pencil-outline" title="Edit Guest & Addons"
+                    @click="openEditGuestDialog(guest)" />
+                  <v-list-item
+                    :prepend-icon="guest.rsvpStatus === 'confirmed' ? 'mdi-clock-outline' : 'mdi-check-circle-outline'"
+                    :title="guest.rsvpStatus === 'confirmed' ? 'Mark Pending' : 'Mark Confirmed'"
+                    @click="toggleGuestRsvp(guest)" />
+                  <v-divider class="my-1" />
+                  <v-list-item prepend-icon="mdi-delete-outline" title="Delete Guest" class="text-error"
+                    @click="confirmDeleteGuest(guest)" />
+                </v-list>
+              </v-menu>
+            </div>
+          </div>
+        </v-card>
+      </v-slide-y-transition>
+    </div>
+
+    <!-- 5. VIEW B: Grouped by Tag View -->
+    <div v-else-if="guestsStore.viewMode === 'grouped_by_tag'">
+      <div v-for="tagGroup in guestsStore.guestsGroupedByTag" :key="tagGroup.tag" class="mb-4">
+        <!-- Tag Header Bar -->
+        <div class="d-flex align-center justify-space-between mb-2 px-1">
+          <div class="d-flex align-center gap-2">
+            <v-chip color="primary" variant="flat" size="small" class="font-weight-bold">
+              <v-icon icon="mdi-tag" size="12" class="mr-1" />
+              #{{ tagGroup.tag }}
+            </v-chip>
+            <span class="text-caption font-weight-bold text-darkText">
+              {{ tagGroup.count }} {{ tagGroup.count === 1 ? 'Guest' : 'Guests' }}
+            </span>
+          </div>
+          <span class="text-caption text-lightText font-weight-medium">
+            {{ tagGroup.totalParty }} Total Heads
+          </span>
+        </div>
+
+        <!-- Tag Guest Cards -->
+        <v-card v-for="guest in tagGroup.guests" :key="guest.id" :ripple="false" variant="outlined" elevation="0"
+          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center gap-2" style="min-width: 0;">
+              <v-avatar color="primary" variant="tonal" size="28" rounded="md" class="font-weight-bold"
+                style="font-size: 0.68rem;">
+                {{ getInitials(guest.name) }}
+              </v-avatar>
+              <div class="text-truncate">
+                <div class="text-subtitle-2 font-weight-bold text-darkText text-truncate">
+                  {{ guest.name }}
+                  <span class="text-primary font-weight-bold ml-1 text-caption">{{
+                    formatGuestPersonsDisplay(guest.additionalGuests) }}</span>
+                </div>
+                <div class="text-caption text-lightText d-flex align-center gap-1 flex-wrap">
+                  <span>{{ guest.group }}</span>
+                  <span>•</span>
+                  <span :class="getRsvpTextColor(guest.rsvpStatus)" class="font-weight-medium text-capitalize">
+                    {{ guest.rsvpStatus }}
+                  </span>
+                  <span v-if="guest.returnGifts && guest.returnGifts.length > 0">
+                    • <v-icon icon="mdi-gift" size="11" class="text-warning mr-0.5" />{{ guest.returnGifts.length }}
+                    gifts
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Edit, Gift & Delete Quick Icons -->
+            <div class="d-flex align-center" @click.stop>
+              <v-btn icon="mdi-gift-outline" variant="text" size="small" color="warning" title="Add Return Gift"
+                @click="openQuickAddGift(guest)" />
+              <v-btn icon="mdi-pencil-outline" variant="text" size="small" color="primary"
+                @click="openEditGuestDialog(guest)" />
+              <v-btn icon="mdi-delete-outline" variant="text" size="small" color="error"
+                @click="confirmDeleteGuest(guest)" />
+            </div>
+          </div>
+        </v-card>
+      </div>
+    </div>
+
+    <!-- 6. VIEW C: Grouped by Category View -->
+    <div v-else-if="guestsStore.viewMode === 'grouped_by_category'">
+      <div v-for="catGroup in guestsStore.guestsGroupedByCategory" :key="catGroup.group" class="mb-4">
+        <!-- Category Header Bar -->
+        <div class="d-flex align-center justify-space-between mb-2 px-1">
+          <div class="d-flex align-center gap-2">
+            <v-chip color="secondary" variant="flat" size="small" class="font-weight-bold">
+              <v-icon :icon="getGuestGroupIcon(catGroup.group)" size="12" class="mr-1" />
+              {{ catGroup.group }}
+            </v-chip>
+            <span class="text-caption font-weight-bold text-darkText">
+              {{ catGroup.count }} {{ catGroup.count === 1 ? 'Guest' : 'Guests' }}
+            </span>
+          </div>
+          <span class="text-caption text-lightText font-weight-medium">
+            {{ catGroup.totalParty }} Total Heads
+          </span>
+        </div>
+
+        <!-- Category Guest Cards -->
+        <v-card v-for="guest in catGroup.guests" :key="guest.id" :ripple="false" variant="outlined" elevation="0"
+          class="mb-2 pa-3 rounded-lg bg-surface card-hover-border cursor-pointer"
+          @click="toggleGuestExpand(guest.id)">
+          <div class="d-flex align-center justify-space-between">
+            <div class="d-flex align-center gap-2" style="min-width: 0;">
+              <v-avatar color="secondary" variant="tonal" size="28" rounded="md" class="font-weight-bold"
+                style="font-size: 0.68rem;">
+                {{ getInitials(guest.name) }}
+              </v-avatar>
+              <div class="text-truncate">
+                <div class="text-subtitle-2 font-weight-bold text-darkText text-truncate">
+                  {{ guest.name }}
+                  <span class="text-secondary font-weight-bold ml-1 text-caption">{{
+                    formatGuestPersonsDisplay(guest.additionalGuests) }}</span>
+                </div>
+                <div class="text-caption text-lightText d-flex align-center gap-1 flex-wrap">
+                  <span :class="getRsvpTextColor(guest.rsvpStatus)" class="font-weight-medium text-capitalize">
+                    {{ guest.rsvpStatus }}
+                  </span>
+                  <span v-if="guest.returnGifts && guest.returnGifts.length > 0">
+                    • <v-icon icon="mdi-gift" size="11" class="text-warning mr-0.5" />{{ guest.returnGifts.length }}
+                    gifts
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex align-center" @click.stop>
+              <v-btn icon="mdi-gift-outline" variant="text" size="small" color="warning" title="Add Return Gift"
+                @click="openQuickAddGift(guest)" />
+              <v-btn icon="mdi-pencil-outline" variant="text" size="small" color="primary"
+                @click="openEditGuestDialog(guest)" />
+              <v-btn icon="mdi-delete-outline" variant="text" size="small" color="error"
+                @click="confirmDeleteGuest(guest)" />
+            </div>
+          </div>
+
+          <!-- Expandable Details on Click (Tags, Phone, Email, Notes) -->
+          <v-expand-transition>
+            <div v-if="isGuestExpanded(guest.id)" class="expand-wrapper">
+              <div class="mt-2 pt-2 border-t">
+                <!-- Grouping Tags Chips -->
+                <div v-if="guest.tags && guest.tags.length > 0" class="d-flex align-center gap-1 flex-wrap mb-2">
+                  <v-icon icon="mdi-tag-outline" size="14" class="text-primary flex-shrink-0" />
+                  <span class="text-caption font-weight-medium text-darkText mr-1">Tags:</span>
+                  <v-chip v-for="tag in guest.tags" :key="tag" size="x-small" variant="outlined" color="primary"
+                    class="font-weight-medium cursor-pointer" @click.stop="guestsStore.toggleTag(tag)">
+                    <v-icon icon="mdi-tag" size="10" class="mr-0.5" />
+                    #{{ tag }}
+                  </v-chip>
+                </div>
+
+                <!-- Phone Contact -->
+                <div v-if="guest.phone" class="d-flex align-center gap-1 text-lightText mb-1">
+                  <v-icon icon="mdi-phone" size="14" class="text-primary flex-shrink-0" />
+                  <span class="text-caption font-weight-medium text-darkText">Phone:</span>
+                  <a :href="`tel:${guest.phone}`"
+                    class="text-primary font-weight-bold text-caption text-decoration-none" @click.stop>
+                    {{ guest.phone }}
+                  </a>
+                </div>
+
+                <!-- Email Contact -->
+                <div v-if="guest.email" class="d-flex align-center gap-1 text-lightText mb-1">
+                  <v-icon icon="mdi-email-outline" size="14" class="text-secondary flex-shrink-0" />
+                  <span class="text-caption font-weight-medium text-darkText">Email:</span>
+                  <a :href="`mailto:${guest.email}`" class="text-darkText text-caption text-decoration-none"
+                    @click.stop>
+                    {{ guest.email }}
+                  </a>
+                </div>
+
+                <!-- Notes -->
+                <div v-if="guest.notes"
+                  class="pa-2 rounded-md bg-containerBg mt-1 text-caption text-darkText font-italic">
+                  <v-icon icon="mdi-note-text-outline" size="13" class="text-lightText mr-1" />
+                  {{ guest.notes }}
+                </div>
+              </div>
+            </div>
+          </v-expand-transition>
+        </v-card>
+      </div>
+    </div>
+
+    <!-- 7. ADD / EDIT GUEST MODAL DIALOG -->
+    <v-dialog v-model="guestDialog" max-width="580" persistent scrollable>
+      <v-card class="rounded-xl overflow-hidden">
+        <!-- Dialog Header -->
+        <v-card-title class="pa-4 bg-primary text-white d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <v-avatar color="white" variant="tonal" size="34" class="mr-3">
+              <v-icon :icon="isEditing ? 'mdi-account-edit' : 'mdi-account-plus'" size="20" color="white" />
+            </v-avatar>
+            <div>
+              <div class="text-subtitle-1 font-weight-bold line-height-1">
+                {{ isEditing ? 'Edit Guest & Details' : 'Add New Guest' }}
+              </div>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="guestDialog = false" />
+        </v-card-title>
+
+        <v-divider />
+
+        <!-- Form Body -->
+        <v-card-text class="pa-4" style="max-height: 75vh;">
+          <v-form ref="guestFormRef" @submit.prevent="saveGuest">
+            <!-- SECTION 1: GUEST NAME WITH AUTOCOMPLETE / AUTO-CORRECT -->
+            <div class="mb-3">
+              <v-combobox v-model="guestForm.name" :items="guestsStore.knownGuestNames" label="Guest / Family Name *"
+                placeholder="Type or select guest name (e.g. Vikram Sharma)" variant="outlined" density="comfortable"
+                rounded="lg" prepend-inner-icon="mdi-account" clearable
+                :rules="[(v) => !!(typeof v === 'string' ? v.trim() : v) || 'Guest name is required']"
+                @update:model-value="onGuestNameChange">
+                <template #prepend-item>
+                  <div class="px-3 py-1 text-caption text-lightText font-weight-bold border-b bg-containerBg">
+                    Saved Guests &amp; Contacts (Autocomplete)
+                  </div>
+                </template>
+              </v-combobox>
+            </div>
+
+            <!-- SECTION 2: ADDON PERSONS (Accompanying / Companions) -->
+            <div class="mb-4 pa-3 rounded-lg bg-containerBg border">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center gap-1">
+                  <v-icon icon="mdi-account-multiple-plus" size="18" class="text-primary" />
+                  <span class="text-subtitle-2 font-weight-bold text-darkText">
+                    Addons
+                  </span>
+                </div>
+
+                <!-- Live Headcount Pill -->
+                <v-chip size="x-small" color="primary" variant="flat" class="font-weight-bold">
+                  {{ calculatedTotalParty }}
+                </v-chip>
+              </div>
+
+              <!-- Quick Presets for Additional Guests -->
+              <div class="d-flex align-center gap-1.5 flex-wrap mb-3">
+                <span class="text-caption font-weight-medium text-darkText mr-1">Count:</span>
+                <v-btn v-for="cnt in [0, 1, 2, 3, 4, 5]" :key="cnt" size="x-small"
+                  :variant="guestForm.additionalGuests === cnt ? 'flat' : 'outlined'"
+                  :color="guestForm.additionalGuests === cnt ? 'primary' : 'secondary'" rounded="md"
+                  class="font-weight-bold" @click="setAdditionalCount(cnt)">
+                  {{ cnt === 0 ? 'Solo (+0)' : `+${cnt}` }}
+                </v-btn>
+              </div>
+
+              <!-- Dynamic Addon Persons List -->
+              <div v-for="(person, pIdx) in guestForm.accompanyingPersons" :key="pIdx"
+                class="d-flex align-center gap-2 mb-2 pa-2 rounded-lg bg-surface border">
+                <!-- Addon Person Name (with Autocomplete) -->
+                <v-combobox v-model="person.name" :items="guestsStore.knownGuestNames"
+                  :label="`Addon Person #${pIdx + 1} Name`" placeholder="e.g. Ananya Sharma" variant="outlined"
+                  density="compact" hide-details rounded="md" class="flex-grow-1" />
+
+                <!-- Relation Selector -->
+                <v-combobox v-model="person.relation"
+                  :items="['Spouse', 'Child', 'Parent', 'Sibling', 'Friend', 'Partner', 'Relative', 'Colleague']"
+                  label="Relation" placeholder="Relation" variant="outlined" density="compact" hide-details
+                  rounded="md" style="max-width: 140px;" />
+
+                <!-- Remove Row Button -->
+                <v-btn icon="mdi-trash-can-outline" variant="text" color="error" size="small"
+                  title="Remove addon person" @click="removeAccompanyingPerson(pIdx)" />
+              </div>
+
+              <!-- Button to Add Another Addon Person -->
+              <v-btn variant="tonal" color="primary" size="small" block rounded="lg" prepend-icon="mdi-plus"
+                class="font-weight-bold text-capitalize mt-2" @click="addAccompanyingPerson">
+                + Add Addon Person
+              </v-btn>
+            </div>
+
+            <!-- SECTION 3: GROUP CATEGORY & TAGS -->
+            <div class="mb-4">
+              <div class="text-subtitle-2 font-weight-bold text-darkText mb-2 d-flex align-center">
+                <v-icon icon="mdi-tag-multiple-outline" size="18" class="mr-1 text-primary" />
+                Group Category &amp; Tags
+              </div>
+
+              <!-- Group Category -->
+              <v-combobox v-model="guestForm.group" :items="guestsStore.allGroups" label="Group Category *"
+                placeholder="Select or type category" variant="outlined" density="comfortable" rounded="lg"
+                prepend-inner-icon="mdi-folder-outline" class="mb-3"
+                :rules="[(v) => !!v || 'Group category is required']" />
+
+              <!-- Tags Multi-Selector -->
+              <div class="mt-1">
+                <v-combobox v-model="guestForm.tags" :items="guestsStore.allTags"
+                  label="Tags for Grouping (Type & press Enter for custom tags)"
+                  placeholder="Select tags or type custom (e.g. VIP, Outstation)" multiple chips closable-chips
+                  variant="outlined" density="comfortable" rounded="lg" prepend-inner-icon="mdi-tag-outline" />
+
+                <!-- Quick Suggested Tag Toggles -->
+                <div class="d-flex align-center gap-1 flex-wrap mt-1">
+                  <span class="text-caption text-lightText" style="font-size: 0.68rem;">Quick Tags:</span>
+                  <v-chip
+                    v-for="tag in ['VIP', 'Family Event', 'Friends', 'Outstation', 'Vegetarian', 'Hotel Needed', 'College']"
+                    :key="tag" size="x-small" :variant="isTagInForm(tag) ? 'flat' : 'outlined'" color="primary"
+                    class="cursor-pointer" @click="toggleFormTag(tag)">
+                    <v-icon :icon="isTagInForm(tag) ? 'mdi-check' : 'mdi-plus'" size="10" class="mr-0.5" />
+                    {{ tag }}
+                  </v-chip>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 4: CONTACT & NOTES (Optional) -->
+            <v-expansion-panels variant="accordion" class="mb-4">
+              <v-expansion-panel elevation="0" class="border rounded-lg">
+                <v-expansion-panel-title class="py-2 text-caption font-weight-bold text-darkText">
+                  <v-icon icon="mdi-card-account-phone-outline" size="16" class="mr-2 text-primary" />
+                  Additional Details (Phone, Email, Notes)
+                </v-expansion-panel-title>
+                <v-expansion-panel-text eager>
+                  <v-row density="compact" class="pt-2">
+                    <v-col cols="12" sm="6">
+                      <v-text-field v-model="guestForm.phone" label="Phone Number" placeholder="+91 98765 43210"
+                        variant="outlined" density="comfortable" rounded="lg" prepend-inner-icon="mdi-phone" />
+                    </v-col>
+
+                    <v-col cols="12" sm="6">
+                      <v-text-field v-model="guestForm.email" label="Email Address" placeholder="guest@example.com"
+                        variant="outlined" density="comfortable" rounded="lg"
+                        prepend-inner-icon="mdi-email-outline" />
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-textarea v-model="guestForm.notes" label="Notes &amp; Special Arrangements"
+                        placeholder="e.g. Arriving Friday evening, requires ground-floor room" variant="outlined"
+                        density="comfortable" rows="2" rounded="lg" hide-details />
+                    </v-col>
+                  </v-row>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+
+            <!-- SECTION 5: RETURN GIFTS -->
+            <div class="mb-2 pa-3 rounded-lg bg-containerBg border">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center gap-1">
+                  <v-icon icon="mdi-gift-outline" size="18" class="text-warning" />
+                  <span class="text-subtitle-2 font-weight-bold text-darkText">
+                    Return Gifts ({{ guestForm.returnGifts.length }})
+                  </span>
+                </div>
+
+                <!-- Live Total Value Badge -->
+                <v-chip size="x-small" color="warning" variant="flat" class="font-weight-bold">
+                  Total: ₹{{ formReturnGiftsTotal.toLocaleString() }}
+                </v-chip>
+              </div>
+
+              <!-- Quick 1-Tap Preset Gifts -->
+              <div class="mb-3">
+                <div class="d-flex align-center gap-1 flex-wrap">
+                  <v-chip v-for="preset in guestsStore.defaultGiftPresets" :key="preset.name" size="x-small"
+                    variant="tonal" color="warning" class="cursor-pointer font-weight-medium"
+                    @click="addPresetGiftToForm(preset)">
+                    <v-icon icon="mdi-plus" size="10" class="mr-0.5" />
+                    {{ preset.name }} (₹{{ preset.price }})
+                  </v-chip>
+                </div>
+              </div>
+
+              <!-- List of Added Return Gifts -->
+              <div v-for="(gift, gIdx) in guestForm.returnGifts" :key="gIdx"
+                class="d-flex align-center gap-2 mb-2 pa-2 rounded-lg bg-surface border">
+                <v-combobox v-model="gift.name" :items="guestsStore.knownGiftNames" :label="`Gift #${gIdx + 1} Name`"
+                  placeholder="e.g. Silver Coin (10g)" variant="outlined" density="compact" hide-details rounded="md"
+                  class="flex-grow-1" />
+
+                <v-text-field v-model.number="gift.price" label="Price (₹)" placeholder="0" type="number" min="0"
+                  step="50" variant="outlined" density="compact" hide-details rounded="md" style="max-width: 130px;"
+                  prepend-inner-icon="mdi-currency-inr" />
+
+                <v-btn icon="mdi-trash-can-outline" variant="text" color="error" size="small" title="Remove gift"
+                  @click="removeGiftFromForm(gIdx)" />
+              </div>
+
+              <!-- Add Custom Gift Button -->
+              <v-btn variant="tonal" color="warning" size="small" block rounded="lg" prepend-icon="mdi-plus"
+                class="font-weight-bold text-capitalize mt-2" @click="addBlankGiftToForm">
+                + Add Return Gift
+              </v-btn>
+            </div>
+          </v-form>
+        </v-card-text>
+
+        <v-divider />
+
+        <!-- Dialog Footer Actions -->
+        <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
+          <v-btn variant="outlined" rounded="lg" color="secondary" class="text-capitalize"
+            @click="guestDialog = false">
+            Cancel
+          </v-btn>
+
+          <v-btn color="primary" variant="flat" rounded="lg" class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save" @click="saveGuest">
+            {{ isEditing ? 'Save Changes' : 'Add Guest' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 8. QUICK ADD RETURN GIFT MODAL (Inline from Card) -->
+    <v-dialog v-model="quickAddGiftDialog" max-width="480">
+      <v-card class="rounded-xl pa-2">
+        <v-card-title class="d-flex align-center justify-space-between pt-4 px-4">
+          <div class="d-flex align-center">
+            <v-avatar color="warning" variant="tonal" size="36" rounded="lg" class="mr-2">
+              <v-icon icon="mdi-gift-outline" size="22" />
+            </v-avatar>
+            <div>
+              <div class="text-subtitle-1 font-weight-bold text-darkText">Add Return Gift</div>
+              <div class="text-caption text-lightText font-weight-medium">
+                For: <span class="text-primary font-weight-bold">{{ targetGuestForGift?.name }}</span>
+              </div>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" @click="quickAddGiftDialog = false" />
+        </v-card-title>
+
+        <v-card-text class="px-4 py-2">
+          <!-- Presets for 1-Tap Addition -->
+          <div class="text-caption font-weight-bold text-darkText mb-1.5">
+            Quick Add from Presets (1 Tap):
+          </div>
+          <div class="d-flex align-center gap-1.5 flex-wrap mb-3">
+            <v-chip v-for="preset in guestsStore.defaultGiftPresets" :key="preset.name" size="small" variant="tonal"
+              color="warning" class="cursor-pointer font-weight-medium" @click="assignPresetGiftToTarget(preset)">
+              <v-icon icon="mdi-plus" size="12" class="mr-1" />
+              {{ preset.name }} (₹{{ preset.price }})
+            </v-chip>
+          </div>
+
+          <v-divider class="my-3" />
+
+          <!-- Custom Gift Form -->
+          <div class="text-caption font-weight-bold text-darkText mb-2">
+            Or Type Custom Return Gift:
+          </div>
+          <v-combobox v-model="quickGiftForm.name" :items="guestsStore.knownGiftNames" label="Gift Name *"
+            placeholder="e.g. Royal Mithai Box" variant="outlined" density="comfortable" rounded="md" class="mb-2" />
+          <v-text-field v-model.number="quickGiftForm.price" label="Price (₹)" placeholder="0" type="number" min="0"
+            step="50" variant="outlined" density="comfortable" rounded="md" prepend-inner-icon="mdi-currency-inr" />
+        </v-card-text>
+
+        <v-card-actions class="px-4 pb-4 pt-1 d-flex justify-end gap-2">
+          <v-btn variant="outlined" rounded="lg" color="secondary" @click="quickAddGiftDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="warning" variant="flat" rounded="lg" class="font-weight-bold text-capitalize"
+            prepend-icon="mdi-gift-outline" :disabled="!quickGiftForm.name || !quickGiftForm.name.trim()"
+            @click="saveQuickCustomGift">
+            Add Return Gift
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 9. DELETE CONFIRMATION DIALOG -->
+    <v-dialog v-model="deleteConfirmDialog" max-width="400">
+      <v-card class="rounded-xl pa-2">
+        <v-card-title class="d-flex align-center pt-4 px-4">
+          <v-avatar color="error" variant="tonal" size="36" rounded="lg" class="mr-2">
+            <v-icon icon="mdi-alert-outline" size="20" />
+          </v-avatar>
+          <span class="text-subtitle-1 font-weight-bold text-darkText">Delete Guest?</span>
+        </v-card-title>
+        <v-card-text class="px-4 py-2 text-body-2 text-lightText">
+          Are you sure you want to remove <strong>{{ guestToDelete?.name }}</strong>? This will remove all addon
+          persons and
+          details.
+        </v-card-text>
+        <v-card-actions class="px-4 pb-4 pt-2 d-flex justify-end gap-2">
+          <v-btn variant="outlined" rounded="lg" color="secondary" @click="deleteConfirmDialog = false">
+            Cancel
+          </v-btn>
+          <v-btn color="error" variant="flat" rounded="lg" class="font-weight-bold" @click="executeDeleteGuest">
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Snackbar notification feedback -->
+    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="2500" location="bottom" rounded="lg">
+      {{ snackbarText }}
+      <template #actions>
+        <v-btn color="white" variant="text" size="small" @click="snackbar = false">Close</v-btn>
+      </template>
+    </v-snackbar>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useGuestsStore } from '@/stores/guests'
+import { useEventsStore } from '@/stores/events'
+import { useModalBack } from '@/composables/useModalBack'
+import type { GuestItem, AccompanyingPerson, ReturnGift, RsvpStatus, EventItem, EventGuestInvite, EventRsvpStatus } from '@/types'
+import {
+  getInitials,
+  getGuestGroupIcon,
+  createEditGuestForm,
+  syncAccompanyingPersons,
+  sanitizeAccompanyingPersons,
+  sanitizeReturnGifts,
+  calculateGuestGiftsTotal,
+} from '@/services/service.js'
+
+const props = withDefaults(
+  defineProps<{
+    selectedEventId?: string | null
+  }>(),
+  {
+    selectedEventId: null,
+  }
+)
+
+const emit = defineEmits<{
+  (e: 'update:selectedEventId', value: string | null): void
+  (e: 'go-to-events'): void
+}>()
+
+const guestsStore = useGuestsStore()
+const eventsStore = useEventsStore()
+
+const inviteHeaderExpanded = ref(false)
+const selectedEventForInvites = ref<string | null>(props.selectedEventId || eventsStore.events[0]?.id || null)
+
+watch(
+  () => props.selectedEventId,
+  (newVal) => {
+    if (newVal !== undefined && newVal !== selectedEventForInvites.value) {
+      selectedEventForInvites.value = newVal
+    }
+  }
+)
+
+watch(
+  () => selectedEventForInvites.value,
+  (newVal) => {
+    emit('update:selectedEventId', newVal)
+  }
+)
+
+watch(
+  () => eventsStore.events,
+  (evts) => {
+    if ((!selectedEventForInvites.value || !evts.some((e) => e.id === selectedEventForInvites.value)) && evts.length > 0) {
+      selectedEventForInvites.value = evts[0].id
+    }
+  },
+  { immediate: true }
+)
+
+const activeEventForInvites = computed<EventItem | null>(() => {
+  if (selectedEventForInvites.value) {
+    const found = eventsStore.events.find((e) => e.id === selectedEventForInvites.value)
+    if (found) return found
+  }
+  return eventsStore.events[0] || null
+})
+
+const activeEventInvitedMap = computed(() => {
+  const map = new Map<string, EventGuestInvite>()
+  if (activeEventForInvites.value?.invitedGuests) {
+    activeEventForInvites.value.invitedGuests.forEach((inv) => {
+      map.set(inv.guestId, inv)
+    })
+  }
+  return map
+})
+
+function isGuestInvitedToActiveEvent(guestId: string): boolean {
+  return activeEventInvitedMap.value.has(guestId)
+}
+
+function getGuestActiveEventInvite(guestId: string): EventGuestInvite | undefined {
+  return activeEventInvitedMap.value.get(guestId)
+}
+
+const activeEventInvitedCount = computed(() => activeEventInvitedMap.value.size)
+
+const activeEventNotInvitedCount = computed(() => {
+  return Math.max(0, guestsStore.guests.length - activeEventInvitedCount.value)
+})
+
+const activeEventConfirmedCount = computed(() => {
+  if (!activeEventForInvites.value?.invitedGuests) return 0
+  return activeEventForInvites.value.invitedGuests.filter((g) => g.rsvpStatus === 'confirmed').length
+})
+
+const activeEventConfirmedHeads = computed(() => {
+  if (!activeEventForInvites.value) return 0
+  return eventsStore.getEventStats(activeEventForInvites.value).totalHeadcount
+})
+
+const inviteEventFilter = ref<'all' | 'invited' | 'not_invited' | 'confirmed'>('all')
+
+const displayedGuestsInInvites = computed(() => {
+  const base = guestsStore.filteredGuests
+  if (!activeEventForInvites.value || inviteEventFilter.value === 'all') {
+    return base
+  }
+  return base.filter((g) => {
+    const isInvited = isGuestInvitedToActiveEvent(g.id)
+    if (inviteEventFilter.value === 'invited') return isInvited
+    if (inviteEventFilter.value === 'not_invited') return !isInvited
+    if (inviteEventFilter.value === 'confirmed') {
+      const inv = getGuestActiveEventInvite(g.id)
+      return inv?.rsvpStatus === 'confirmed'
+    }
+    return true
+  })
+})
+
+async function inviteGuestToActiveEvent(guest: GuestItem) {
+  if (!activeEventForInvites.value) return
+  await eventsStore.addGuestsToEvent(activeEventForInvites.value.id, [guest.id])
+  showNotification(`Invited ${guest.name} to ${activeEventForInvites.value.title}!`)
+}
+
+async function removeGuestFromActiveEvent(guestId: string, guestName: string) {
+  if (!activeEventForInvites.value) return
+  await eventsStore.removeGuestFromEvent(activeEventForInvites.value.id, guestId)
+  showNotification(`Removed ${guestName} from ${activeEventForInvites.value.title}`)
+}
+
+async function updateGuestActiveEventRsvp(guestId: string, status: EventRsvpStatus) {
+  if (!activeEventForInvites.value) return
+  await eventsStore.updateEventGuestInvite(activeEventForInvites.value.id, guestId, { rsvpStatus: status })
+}
+
+async function inviteAllFilteredToActiveEvent() {
+  if (!activeEventForInvites.value) return
+  const uninvited = displayedGuestsInInvites.value
+    .filter((g) => !isGuestInvitedToActiveEvent(g.id))
+    .map((g) => g.id)
+
+  if (uninvited.length === 0) {
+    showNotification('All filtered guests are already invited!')
+    return
+  }
+
+  await eventsStore.addGuestsToEvent(activeEventForInvites.value.id, uninvited)
+  showNotification(`Invited ${uninvited.length} guests to ${activeEventForInvites.value.title}!`)
+}
+
+function sendWhatsAppInviteToGuestForEvent(guest: GuestItem) {
+  if (!activeEventForInvites.value) return
+  const evt = activeEventForInvites.value
+  const dateFormatted = formatEventDate(evt.date)
+  const cleanPhone = (guest.phone || '').replace(/[^0-9]/g, '')
+  const message = `Dear *${guest.name}*,\n\nYou and your family are cordially invited to celebrate with us!\n\n🎉 *Event:* ${evt.title}\n🏷️ *Type:* ${evt.category || 'Celebration'}\n📅 *Date:* ${dateFormatted}\n⏰ *Time:* ${evt.time || 'TBA'}\n📍 *Venue:* ${evt.location || 'To be shared'}\n\n${evt.description ? `${evt.description}\n\n` : ''}Kindly confirm your presence.\n\nWarm regards!`
+
+  if (cleanPhone) {
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`
+    window.open(url, '_blank')
+  } else {
+    copyOrShareText(message, `Invitation message for ${guest.name} copied to clipboard!`)
+  }
+}
+
+function shareEventWhatsApp(event: EventItem) {
+  const dateFormatted = formatEventDate(event.date)
+  const message = `✨ *You're Cordially Invited!* ✨\n\n🎉 *Event:* ${event.title}\n🏷️ *Type:* ${event.category || 'Celebration'}\n📅 *Date:* ${dateFormatted}\n⏰ *Time:* ${event.time || 'TBA'}\n📍 *Venue:* ${event.location || 'To be announced'}\n\n${event.description ? `${event.description}\n\n` : ''}Please RSVP and let us know if you can join us. Looking forward to celebrating together!`
+
+  copyOrShareText(message, 'Event invitation copied to clipboard!')
+}
+
+function formatEventDate(dateStr?: string): string {
+  if (!dateStr) return 'Date TBD'
+  try {
+    const parts = dateStr.split('-')
+    if (parts.length === 3) {
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+      return d.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    }
+    return dateStr
+  } catch {
+    return dateStr
+  }
+}
+
+function getEventCategoryIcon(cat?: string): string {
+  switch (cat) {
+    case 'Wedding': return 'mdi-ring'
+    case 'Reception': return 'mdi-glass-cocktail'
+    case 'Birthday': return 'mdi-cake-variant'
+    case 'Anniversary': return 'mdi-heart-pulse'
+    case 'Housewarming': return 'mdi-home-heart'
+    case 'Festival / Puja': return 'mdi-fire'
+    case 'Dinner Party': return 'mdi-silverware-fork-knife'
+    case 'Baby Shower': return 'mdi-baby-carriage'
+    case 'Get-Together': return 'mdi-account-group'
+    default: return 'mdi-calendar-star'
+  }
+}
+
+function getEventRsvpColor(status?: EventRsvpStatus): string {
+  switch (status) {
+    case 'confirmed': return 'success'
+    case 'pending': return 'warning'
+    case 'declined': return 'error'
+    case 'invited':
+    default: return 'primary'
+  }
+}
+
+function getEventRsvpIcon(status?: EventRsvpStatus): string {
+  switch (status) {
+    case 'confirmed': return 'mdi-check-circle'
+    case 'pending': return 'mdi-clock-outline'
+    case 'declined': return 'mdi-close-circle'
+    case 'invited':
+    default: return 'mdi-email-send'
+  }
+}
+
+const snackbar = ref(false)
+const snackbarText = ref('')
+const snackbarColor = ref('success')
+
+function showNotification(text: string, color = 'success') {
+  snackbarText.value = text
+  snackbarColor.value = color
+  snackbar.value = true
+}
+
+function copyOrShareText(text: string, successMsg: string) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showNotification(successMsg)
+    }).catch(() => {
+      showNotification('Copied!')
+    })
+  } else {
+    showNotification(successMsg)
+  }
+}
+
+// Collapsible filter panel state & helpers
+const showFiltersPanel = ref(false)
+
+const hasActiveFilters = computed(() => {
+  return (
+    guestsStore.activeFiltersCount > 0 ||
+    !!guestsStore.searchQuery.trim()
+  )
+})
+
+const filterSummary = computed(() => {
+  const parts: string[] = []
+  if (guestsStore.searchQuery.trim()) parts.push(`Query: "${guestsStore.searchQuery.trim()}"`)
+  if (guestsStore.selectedGroup !== 'all') parts.push(`Group: ${guestsStore.selectedGroup}`)
+  if (guestsStore.selectedTags.length > 0) {
+    parts.push(`Tags: ${guestsStore.selectedTags.map((t) => '#' + t).join(', ')}`)
+  } else if (guestsStore.selectedTag) {
+    parts.push(`Tag: #${guestsStore.selectedTag}`)
+  }
+  if (guestsStore.giftFilter !== 'all') {
+    parts.push(guestsStore.giftFilter === 'with_gift' ? 'Has Gifts' : 'No Gifts')
+  }
+  if (guestsStore.selectedGiftName) {
+    parts.push(`Gift: ${guestsStore.selectedGiftName}`)
+  }
+  if (guestsStore.selectedRsvp !== 'all') {
+    parts.push(`RSVP: ${guestsStore.selectedRsvp}`)
+  }
+  return parts.length > 0 ? parts.join(' • ') : 'Showing all guests'
+})
+
+function resetFilters() {
+  guestsStore.resetAllFilters()
+}
+
+const listHeaderTitle = computed(() => {
+  if (guestsStore.searchQuery.trim()) {
+    return `Results for "${guestsStore.searchQuery.trim()}" (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.selectedTags.length > 0) {
+    return `Tagged: ${guestsStore.selectedTags.map((t) => '#' + t).join(', ')} (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.selectedGroup !== 'all') {
+    return `${guestsStore.selectedGroup} (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.selectedRsvp === 'confirmed') {
+    return `Confirmed Guests (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.selectedRsvp === 'pending') {
+    return `Pending RSVPs (${guestsStore.filteredGuests.length})`
+  }
+  if (guestsStore.giftFilter === 'with_gift') {
+    return `Guests with Gifts (${guestsStore.filteredGuests.length})`
+  }
+  return `All Guests (${guestsStore.filteredGuests.length})`
+})
+
+const currentSortLabel = computed(() => {
+  switch (guestsStore.sortBy) {
+    case 'name':
+      return 'Name (A-Z)'
+    case 'party-desc':
+      return 'Party Size'
+    default:
+      return 'Newest'
+  }
+})
+
+// View toggles
+const showAllDetails = ref(false)
+const expandedGuestIds = ref<Set<string>>(new Set())
+
+function toggleGuestExpand(id: string) {
+  const next = new Set(expandedGuestIds.value)
+  if (next.has(id)) {
+    next.delete(id)
+  } else {
+    next.add(id)
+  }
+  expandedGuestIds.value = next
+}
+
+function isGuestExpanded(id: string) {
+  return showAllDetails.value || expandedGuestIds.value.has(id)
+}
+
+const viewModeLabel = computed(() => {
+  switch (guestsStore.viewMode) {
+    case 'grouped_by_tag':
+      return 'Grouped by Tag'
+    case 'grouped_by_category':
+      return 'Grouped by Category'
+    default:
+      return 'Flat Cards'
+  }
+})
+
+const viewModeIcon = computed(() => {
+  switch (guestsStore.viewMode) {
+    case 'grouped_by_tag':
+      return 'mdi-tag-multiple-outline'
+    case 'grouped_by_category':
+      return 'mdi-folder-outline'
+    default:
+      return 'mdi-view-headline'
+  }
+})
+
+function isTagSelected(tag: string) {
+  return guestsStore.selectedTags.includes(tag) || guestsStore.selectedTag === tag
+}
+
+function getRsvpTextColor(status: string) {
+  switch (status) {
+    case 'confirmed':
+      return 'text-success'
+    case 'pending':
+      return 'text-warning'
+    case 'declined':
+      return 'text-error'
+    default:
+      return 'text-lightText'
+  }
+}
+
+// Form Dialog State
+const guestDialog = ref(false)
+const deleteConfirmDialog = ref(false)
+const quickAddGiftDialog = ref(false)
+const isEditing = ref(false)
+const editingGuestId = ref<string | null>(null)
+const guestToDelete = ref<GuestItem | null>(null)
+const targetGuestForGift = ref<GuestItem | null>(null)
+const guestFormRef = ref<any>(null)
+
+useModalBack(guestDialog, 'guestFormModal')
+useModalBack(deleteConfirmDialog, 'deleteGuestModal')
+useModalBack(quickAddGiftDialog, 'quickAddGiftModal')
+
+const guestForm = ref({
+  name: '',
+  phone: '',
+  email: '',
+  group: 'Family',
+  tags: [] as string[],
+  rsvpStatus: 'confirmed' as RsvpStatus,
+  additionalGuests: 0,
+  accompanyingPersons: [] as AccompanyingPerson[],
+  returnGifts: [] as ReturnGift[],
+  notes: '',
+})
+
+const quickGiftForm = ref({
+  name: '',
+  price: 0,
+})
+
+function formatGuestPersonsDisplay(additionalGuests?: number) {
+  const extra = Number(additionalGuests) || 0
+  if (extra <= 0) return 'Solo (1)'
+  return `Persons : ${(extra + 1) + extra}`
+}
+
+const calculatedTotalParty = computed(() => {
+  return formatGuestPersonsDisplay(guestForm.value.additionalGuests)
+})
+
+const formReturnGiftsTotal = computed(() => {
+  return calculateGuestGiftsTotal(guestForm.value.returnGifts)
+})
+
+function onGuestNameChange(val: string) {
+  if (!val || typeof val !== 'string') return
+  const trimmed = val.trim().toLowerCase()
+  const match = guestsStore.guests.find((g) => g.name.toLowerCase() === trimmed)
+  if (match && !isEditing.value) {
+    if (match.group) guestForm.value.group = match.group
+    if (Array.isArray(match.tags) && match.tags.length > 0) guestForm.value.tags = [...match.tags]
+    if (match.phone && !guestForm.value.phone) guestForm.value.phone = match.phone
+    if (Array.isArray(match.returnGifts) && match.returnGifts.length > 0 && guestForm.value.returnGifts.length === 0) {
+      guestForm.value.returnGifts = match.returnGifts.map((g) => ({ ...g }))
+    }
+  }
+}
+
+function isTagInForm(tag: string) {
+  return Array.isArray(guestForm.value.tags) && guestForm.value.tags.includes(tag)
+}
+
+function toggleFormTag(tag: string) {
+  if (!Array.isArray(guestForm.value.tags)) {
+    guestForm.value.tags = []
+  }
+  const idx = guestForm.value.tags.indexOf(tag)
+  if (idx === -1) {
+    guestForm.value.tags.push(tag)
+  } else {
+    guestForm.value.tags.splice(idx, 1)
+  }
+}
+
+function setAdditionalCount(count: number) {
+  guestForm.value.additionalGuests = count
+  guestForm.value.accompanyingPersons = syncAccompanyingPersons(
+    guestForm.value.accompanyingPersons,
+    count
+  )
+}
+
+function addAccompanyingPerson() {
+  guestForm.value.accompanyingPersons.push({
+    name: '',
+    relation: guestForm.value.accompanyingPersons.length === 0 ? 'Spouse' : 'Child',
+  })
+  guestForm.value.additionalGuests = guestForm.value.accompanyingPersons.length
+}
+
+function removeAccompanyingPerson(index: number) {
+  guestForm.value.accompanyingPersons.splice(index, 1)
+  guestForm.value.additionalGuests = guestForm.value.accompanyingPersons.length
+}
+
+function addPresetGiftToForm(preset: { name: string; price: number }) {
+  guestForm.value.returnGifts.push({
+    name: preset.name,
+    price: preset.price,
+  })
+}
+
+function addBlankGiftToForm() {
+  guestForm.value.returnGifts.push({
+    name: '',
+    price: 0,
+  })
+}
+
+function removeGiftFromForm(index: number) {
+  guestForm.value.returnGifts.splice(index, 1)
+}
+
+function openQuickAddGift(guest: GuestItem) {
+  targetGuestForGift.value = guest
+  quickGiftForm.value = {
+    name: '',
+    price: 0,
+  }
+  quickAddGiftDialog.value = true
+}
+
+async function assignPresetGiftToTarget(preset: { name: string; price: number }) {
+  if (!targetGuestForGift.value) return
+  await guestsStore.addReturnGiftToGuest(targetGuestForGift.value.id, {
+    name: preset.name,
+    price: preset.price,
+  })
+  quickAddGiftDialog.value = false
+}
+
+async function saveQuickCustomGift() {
+  if (!targetGuestForGift.value || !quickGiftForm.value.name) return
+  await guestsStore.addReturnGiftToGuest(targetGuestForGift.value.id, {
+    name: quickGiftForm.value.name.trim(),
+    price: Number(quickGiftForm.value.price) || 0,
+  })
+  quickAddGiftDialog.value = false
+}
+
+async function removeGuestGift(guestId: string, giftIndex: number) {
+  await guestsStore.removeReturnGiftFromGuest(guestId, giftIndex)
+}
+
+function openAddGuestDialog() {
+  isEditing.value = false
+  editingGuestId.value = null
+  guestForm.value = {
+    name: '',
+    phone: '',
+    email: '',
+    group: 'Family',
+    tags: ['Family Event'],
+    rsvpStatus: 'confirmed',
+    additionalGuests: 0,
+    accompanyingPersons: [],
+    returnGifts: [],
+    notes: '',
+  }
+  guestDialog.value = true
+}
+
+function openEditGuestDialog(guest: GuestItem) {
+  isEditing.value = true
+  editingGuestId.value = guest.id
+  const editData = createEditGuestForm(guest)
+  guestForm.value = {
+    name: editData.name,
+    phone: editData.phone,
+    email: editData.email,
+    group: editData.group || 'Family',
+    tags: Array.isArray(editData.tags) ? [...editData.tags] : [],
+    rsvpStatus: editData.rsvpStatus || 'confirmed',
+    additionalGuests: editData.additionalGuests || 0,
+    accompanyingPersons: Array.isArray(editData.accompanyingPersons)
+      ? editData.accompanyingPersons.map((p) => ({ ...p }))
+      : [],
+    returnGifts: Array.isArray(editData.returnGifts) ? [...editData.returnGifts] : [],
+    notes: editData.notes || '',
+  }
+  guestDialog.value = true
+}
+
+async function saveGuest() {
+  const formValidation = await guestFormRef.value?.validate()
+  if (formValidation && !formValidation.valid) {
+    return
+  }
+
+  const sanitizedCompanions = sanitizeAccompanyingPersons(guestForm.value.accompanyingPersons)
+  const sanitizedGifts = sanitizeReturnGifts(guestForm.value.returnGifts)
+  const additionalCount = Math.max(
+    Number(guestForm.value.additionalGuests) || 0,
+    sanitizedCompanions.length
+  )
+
+  const rawName = guestForm.value.name
+  const cleanName = (typeof rawName === 'string' ? rawName : (rawName as any)?.value || '').trim()
+
+  const payload = {
+    name: cleanName,
+    phone: (guestForm.value.phone || '').trim(),
+    email: (guestForm.value.email || '').trim(),
+    group: guestForm.value.group || 'General',
+    tags: Array.isArray(guestForm.value.tags)
+      ? guestForm.value.tags.map((t) => (typeof t === 'string' ? t.trim() : (t as any).value || '')).filter(Boolean)
+      : [],
+    rsvpStatus: guestForm.value.rsvpStatus || 'confirmed',
+    additionalGuests: additionalCount,
+    accompanyingPersons: sanitizedCompanions,
+    returnGifts: sanitizedGifts,
+    notes: (guestForm.value.notes || '').trim(),
+  }
+
+  if (isEditing.value && editingGuestId.value) {
+    await guestsStore.updateGuest(editingGuestId.value, payload)
+  } else {
+    await guestsStore.addGuest(payload)
+  }
+
+  guestDialog.value = false
+}
+
+async function toggleGuestRsvp(guest: GuestItem) {
+  const nextStatus: RsvpStatus = guest.rsvpStatus === 'confirmed' ? 'pending' : 'confirmed'
+  await guestsStore.updateGuest(guest.id, { rsvpStatus: nextStatus })
+}
+
+function confirmDeleteGuest(guest: GuestItem) {
+  guestToDelete.value = guest
+  deleteConfirmDialog.value = true
+}
+
+async function executeDeleteGuest() {
+  if (guestToDelete.value) {
+    await guestsStore.deleteGuest(guestToDelete.value.id)
+    guestToDelete.value = null
+  }
+  deleteConfirmDialog.value = false
+}
+
+function selectEvent(eventId: string) {
+  selectedEventForInvites.value = eventId
+}
+
+defineExpose({
+  openAddGuestDialog,
+  openEditGuestDialog,
+  selectEvent,
+})
+</script>
+
+<style scoped>
+.invites-container {
+  width: 100%;
+}
+
+.filter-gray-chip.v-chip--variant-outlined {
+  border-color: #8c8c8c !important;
+  color: #595959 !important;
+}
+
+.filter-gray-chip.v-chip--variant-outlined :deep(.v-icon) {
+  color: #8c8c8c !important;
+}
+
+:root.v-theme--dark .filter-gray-chip.v-chip--variant-outlined,
+.v-theme--dark .filter-gray-chip.v-chip--variant-outlined {
+  border-color: #595959 !important;
+  color: #bfbfbf !important;
+}
+
+:root.v-theme--dark .filter-gray-chip.v-chip--variant-outlined :deep(.v-icon),
+.v-theme--dark .filter-gray-chip.v-chip--variant-outlined :deep(.v-icon) {
+  color: #bfbfbf !important;
+}
+</style>
