@@ -36,42 +36,175 @@
 
       </v-card>
 
-      <!-- 2. Search, Category Filter & Sort Toolbar -->
+      <!-- 2. COLLAPSIBLE SEARCH, TAGS & FILTERS PANEL (Matching Invites.vue) -->
       <v-card variant="outlined" elevation="0" class="mb-3 rounded-lg bg-surface card-hover-border overflow-hidden">
-        <div class="pa-3">
-          <!-- Search Field -->
-          <v-text-field v-model="eventsStore.searchQuery"
-            placeholder="Search events by title, venue, category, or invited guest name..."
-            prepend-inner-icon="mdi-magnify" density="compact" variant="outlined" hide-details clearable rounded="lg"
-            class="mb-3" @click:clear="eventsStore.searchQuery = ''" />
+        <div class="d-flex align-center justify-space-between pa-3 cursor-pointer select-none filter-header-bar"
+          @click="showFiltersPanel = !showFiltersPanel">
+          <div class="d-flex align-center flex-wrap gap-2" style="min-width: 0;">
+            <v-avatar color="primary" variant="tonal" size="28" rounded="md">
+              <v-icon icon="mdi-filter-variant" size="16" />
+            </v-avatar>
+            <div>
+              <div class="text-subtitle-2 font-weight-bold text-darkText d-flex align-center">
+                Tags &amp; Filters
+                <v-chip v-if="hasActiveFilters" size="x-small" color="primary" variant="flat" rounded="pill"
+                  class="ml-2 font-weight-bold px-2">
+                  Filtered
+                </v-chip>
+              </div>
+              <div class="text-caption text-lightText" style="font-size: 0.68rem !important;">
+                {{ filterSummary }}
+              </div>
+            </div>
+          </div>
 
-          <!-- Category Filter Chips Bar -->
-          <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
-            <v-chip :color="eventsStore.selectedCategory === 'all' ? 'primary' : undefined"
-              :variant="eventsStore.selectedCategory === 'all' ? 'flat' : 'outlined'" size="small"
-              class="font-weight-medium cursor-pointer" @click="eventsStore.selectedCategory = 'all'">
-              All Categories ({{ eventsStore.totalEvents }})
-            </v-chip>
-
-            <v-chip v-for="cat in availableCategories" :key="cat"
-              :color="eventsStore.selectedCategory === cat ? 'primary' : undefined"
-              :variant="eventsStore.selectedCategory === cat ? 'flat' : 'outlined'" size="small"
-              class="font-weight-medium cursor-pointer" @click="eventsStore.selectedCategory = cat">
-              <v-icon :icon="getCategoryIcon(cat)" size="14" class="mr-1" />
-              {{ cat }}
-              <span v-if="categoryCountMap[cat]" class="ml-1 opacity-70">
-                ({{ categoryCountMap[cat] }})
-              </span>
-            </v-chip>
+          <div class="d-flex align-center">
+            <v-btn v-if="hasActiveFilters" variant="text" size="x-small" color="error"
+              class="mr-1 text-capitalize px-2 font-weight-bold" @click.stop="resetEventFilters">
+              Reset
+            </v-btn>
+            <v-btn icon variant="text" size="small" color="lightText"
+              :aria-label="showFiltersPanel ? 'Collapse Filters' : 'Expand Filters'">
+              <v-icon :icon="showFiltersPanel ? 'mdi-chevron-up' : 'mdi-chevron-down'" size="20" />
+            </v-btn>
           </div>
         </div>
+
+        <!-- Collapsible Container for Search, Categories, Timeline & Tags -->
+        <v-expand-transition>
+          <div v-if="showFiltersPanel" class="expand-wrapper">
+            <div class="px-3 pb-3 pt-1 border-t">
+              <!-- Search Input -->
+              <v-text-field v-model="eventsStore.searchQuery"
+                placeholder="Search events by title, venue, category, or invited guest name..."
+                prepend-inner-icon="mdi-magnify" density="compact" variant="outlined" hide-details clearable
+                rounded="lg" class="mb-3" @click:clear="eventsStore.searchQuery = ''" />
+
+              <!-- Event Category Chips -->
+              <div class="mb-3">
+                <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+                  Event Category:
+                </div>
+                <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+                  <v-chip :color="eventsStore.selectedCategory === 'all' ? 'primary' : 'secondary'"
+                    :variant="eventsStore.selectedCategory === 'all' ? 'flat' : 'outlined'" size="small"
+                    class="font-weight-medium cursor-pointer filter-gray-chip"
+                    @click="eventsStore.selectedCategory = 'all'">
+                    All Categories ({{ eventsStore.totalEvents }})
+                  </v-chip>
+
+                  <v-chip v-for="cat in availableCategories" :key="cat"
+                    :color="eventsStore.selectedCategory === cat ? 'primary' : 'secondary'"
+                    :variant="eventsStore.selectedCategory === cat ? 'flat' : 'outlined'" size="small"
+                    class="font-weight-medium cursor-pointer filter-gray-chip"
+                    @click="eventsStore.selectedCategory = cat">
+                    <v-icon :icon="getCategoryIcon(cat)" size="14" class="mr-1" />
+                    {{ cat }}
+                    <span v-if="categoryCountMap[cat]" class="ml-1 opacity-70">
+                      ({{ categoryCountMap[cat] }})
+                    </span>
+                  </v-chip>
+                </div>
+              </div>
+
+              <!-- Event Timeline Filter (All, Upcoming, This Month, Past) -->
+              <div class="mb-3">
+                <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
+                  Event Timeline:
+                </div>
+                <div class="d-flex align-center gap-1.5 flex-wrap">
+                  <v-chip size="x-small" :variant="timeframeFilter === 'all' ? 'flat' : 'tonal'"
+                    color="primary" class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'all'">
+                    All Dates ({{ eventsStore.totalEvents }})
+                  </v-chip>
+                  <v-chip size="x-small" :variant="timeframeFilter === 'upcoming' ? 'flat' : 'tonal'"
+                    color="success" class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'upcoming'">
+                    <v-icon icon="mdi-calendar-arrow-right" size="12" class="mr-1" />
+                    Upcoming ({{ upcomingEventsCount }})
+                  </v-chip>
+                  <v-chip size="x-small" :variant="timeframeFilter === 'this_month' ? 'flat' : 'tonal'"
+                    color="warning" class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'this_month'">
+                    <v-icon icon="mdi-calendar-month" size="12" class="mr-1" />
+                    This Month ({{ thisMonthEventsCount }})
+                  </v-chip>
+                  <v-chip size="x-small" :variant="timeframeFilter === 'past' ? 'flat' : 'tonal'"
+                    color="secondary" class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'past'">
+                    <v-icon icon="mdi-history" size="12" class="mr-1" />
+                    Past ({{ pastEventsCount }})
+                  </v-chip>
+                </div>
+              </div>
+
+              <!-- Tags Filter Chips Bar (if any events have tags) -->
+              <div v-if="allEventTags.length > 0" class="mb-3">
+                <div class="d-flex align-center justify-space-between mb-1">
+                  <span class="text-caption font-weight-bold text-lightText text-uppercase">
+                    Tags ({{ allEventTags.length }}):
+                  </span>
+                  <span class="text-caption text-lightText" style="font-size: 0.68rem !important;">
+                    Tap tag to toggle
+                  </span>
+                </div>
+                <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
+                  <v-chip :color="selectedEventTag === null ? 'primary' : 'secondary'"
+                    :variant="selectedEventTag === null ? 'flat' : 'outlined'" size="x-small"
+                    class="font-weight-medium cursor-pointer filter-gray-chip"
+                    @click="selectedEventTag = null">
+                    All Tags
+                  </v-chip>
+
+                  <v-chip v-for="tag in allEventTags" :key="tag"
+                    :color="selectedEventTag === tag ? 'primary' : 'secondary'"
+                    :variant="selectedEventTag === tag ? 'flat' : 'outlined'" size="x-small"
+                    class="font-weight-medium cursor-pointer filter-gray-chip"
+                    @click="selectedEventTag = selectedEventTag === tag ? null : tag">
+                    <v-icon icon="mdi-tag" size="11" class="mr-0.5" />
+                    #{{ tag }}
+                    <span v-if="eventTagCountMap[tag]" class="ml-1 opacity-70">
+                      ({{ eventTagCountMap[tag] }})
+                    </span>
+                  </v-chip>
+                </div>
+              </div>
+
+              <!-- Active Filters Reset Banner (Inside Panel) -->
+              <div v-if="hasActiveFilters" class="d-flex align-center flex-wrap gap-1 pt-2 mt-2 border-t">
+                <span class="text-caption text-lightText font-weight-bold mr-1">Active:</span>
+
+                <v-chip v-if="eventsStore.searchQuery.trim()" size="x-small" color="primary" variant="flat" closable
+                  @click:close="eventsStore.searchQuery = ''">
+                  <v-icon icon="mdi-magnify" size="10" class="mr-1" />
+                  "{{ eventsStore.searchQuery.trim() }}"
+                </v-chip>
+
+                <v-chip v-if="eventsStore.selectedCategory !== 'all'" size="x-small" color="primary" variant="flat" closable
+                  @click:close="eventsStore.selectedCategory = 'all'">
+                  <v-icon :icon="getCategoryIcon(eventsStore.selectedCategory)" size="10" class="mr-1" />
+                  Category: {{ eventsStore.selectedCategory }}
+                </v-chip>
+
+                <v-chip v-if="timeframeFilter !== 'all'" size="x-small" color="warning" variant="flat" closable
+                  @click:close="timeframeFilter = 'all'">
+                  <v-icon icon="mdi-calendar-clock" size="10" class="mr-1" />
+                  Timeline: {{ timeframeLabel }}
+                </v-chip>
+
+                <v-chip v-if="selectedEventTag" size="x-small" color="primary" variant="flat" closable
+                  @click:close="selectedEventTag = null">
+                  <v-icon icon="mdi-tag" size="10" class="mr-1" />
+                  #{{ selectedEventTag }}
+                </v-chip>
+              </div>
+            </div>
+          </div>
+        </v-expand-transition>
       </v-card>
 
       <!-- Toolbar: Sort & Count -->
       <div class="d-flex align-center justify-space-between mb-3 px-1 flex-wrap gap-2">
         <div class="text-subtitle-1 font-weight-bold d-flex align-center text-darkText">
           <v-icon icon="mdi-calendar-clock" class="mr-2 text-primary" size="20" />
-          Events ({{ eventsStore.filteredEvents.length }})
+          Events ({{ displayedFilteredEvents.length }})
         </div>
 
         <div class="d-flex align-center gap-2">
@@ -105,7 +238,7 @@
       </div>
 
       <!-- 3. Empty State -->
-      <v-card v-if="eventsStore.filteredEvents.length === 0" variant="outlined" elevation="0"
+      <v-card v-if="displayedFilteredEvents.length === 0" variant="outlined" elevation="0"
         class="pa-8 text-center rounded-lg bg-surface border-dashed">
         <v-avatar color="primary" variant="tonal" size="64" class="mb-3">
           <v-icon icon="mdi-calendar-blank-outline" size="32" />
@@ -114,7 +247,7 @@
           No Events Found
         </div>
         <div class="text-caption text-lightText mb-4" style="max-width: 360px; margin: 0 auto;">
-          <span v-if="eventsStore.searchQuery || eventsStore.selectedCategory !== 'all'">
+          <span v-if="hasActiveFilters">
             No events match your current filter criteria.
           </span>
           <span v-else>
@@ -122,7 +255,7 @@
           </span>
         </div>
         <div class="d-flex justify-center gap-2">
-          <v-btn v-if="eventsStore.searchQuery || eventsStore.selectedCategory !== 'all'" variant="outlined"
+          <v-btn v-if="hasActiveFilters" variant="outlined"
             size="small" rounded="lg" @click="resetEventFilters">
             Reset Filters
           </v-btn>
@@ -137,7 +270,7 @@
       <div v-else>
         <v-slide-y-transition group>
           <EventDetail
-            v-for="event in eventsStore.filteredEvents"
+            v-for="event in displayedFilteredEvents"
             :key="event.id"
             :event="event"
             :mode="mode"
@@ -1152,9 +1285,152 @@ const sortLabel = computed(() => {
   }
 })
 
+// Collapsible filter panel state (matching Invites.vue)
+const showFiltersPanel = ref(false)
+const timeframeFilter = ref<'all' | 'upcoming' | 'this_month' | 'past'>('all')
+const selectedEventTag = ref<string | null>(null)
+
+const allEventTags = computed(() => {
+  const set = new Set<string>()
+  eventsStore.events.forEach((e: any) => {
+    if (Array.isArray(e.tags)) {
+      e.tags.forEach((t: string) => {
+        if (t && t.trim()) set.add(t.trim())
+      })
+    }
+  })
+  return Array.from(set)
+})
+
+const eventTagCountMap = computed(() => {
+  const map: Record<string, number> = {}
+  eventsStore.events.forEach((e: any) => {
+    if (Array.isArray(e.tags)) {
+      e.tags.forEach((t: string) => {
+        if (t && t.trim()) {
+          map[t.trim()] = (map[t.trim()] || 0) + 1
+        }
+      })
+    }
+  })
+  return map
+})
+
+const upcomingEventsCount = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return eventsStore.events.filter((e) => {
+    if (!e.date) return false
+    const d = new Date(e.date)
+    d.setHours(0, 0, 0, 0)
+    return d.getTime() >= today.getTime()
+  }).length
+})
+
+const thisMonthEventsCount = computed(() => {
+  const today = new Date()
+  const currentYear = today.getFullYear()
+  const currentMonth = today.getMonth()
+  return eventsStore.events.filter((e) => {
+    if (!e.date) return false
+    const d = new Date(e.date)
+    return d.getFullYear() === currentYear && d.getMonth() === currentMonth
+  }).length
+})
+
+const pastEventsCount = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return eventsStore.events.filter((e) => {
+    if (!e.date) return false
+    const d = new Date(e.date)
+    d.setHours(0, 0, 0, 0)
+    return d.getTime() < today.getTime()
+  }).length
+})
+
+const displayedFilteredEvents = computed(() => {
+  let list = eventsStore.filteredEvents
+
+  // Filter by tag if selected
+  if (selectedEventTag.value) {
+    list = list.filter((e: any) => {
+      return Array.isArray(e.tags) && e.tags.includes(selectedEventTag.value)
+    })
+  }
+
+  // Filter by timeframe
+  if (timeframeFilter.value !== 'all') {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const currentYear = today.getFullYear()
+    const currentMonth = today.getMonth()
+
+    list = list.filter((e) => {
+      if (!e.date) return false
+      const d = new Date(e.date)
+      d.setHours(0, 0, 0, 0)
+
+      if (timeframeFilter.value === 'upcoming') {
+        return d.getTime() >= today.getTime()
+      }
+      if (timeframeFilter.value === 'past') {
+        return d.getTime() < today.getTime()
+      }
+      if (timeframeFilter.value === 'this_month') {
+        return d.getFullYear() === currentYear && d.getMonth() === currentMonth
+      }
+      return true
+    })
+  }
+
+  return list
+})
+
+const hasActiveFilters = computed(() => {
+  return (
+    !!eventsStore.searchQuery.trim() ||
+    eventsStore.selectedCategory !== 'all' ||
+    timeframeFilter.value !== 'all' ||
+    selectedEventTag.value !== null
+  )
+})
+
+const timeframeLabel = computed(() => {
+  switch (timeframeFilter.value) {
+    case 'upcoming':
+      return 'Upcoming'
+    case 'this_month':
+      return 'This Month'
+    case 'past':
+      return 'Past'
+    default:
+      return 'All Dates'
+  }
+})
+
+const filterSummary = computed(() => {
+  const parts: string[] = []
+  if (eventsStore.searchQuery.trim()) {
+    parts.push(`Query: "${eventsStore.searchQuery.trim()}"`)
+  }
+  if (eventsStore.selectedCategory !== 'all') {
+    parts.push(`Category: ${eventsStore.selectedCategory}`)
+  }
+  if (timeframeFilter.value !== 'all') {
+    parts.push(`Timeline: ${timeframeLabel.value}`)
+  }
+  if (selectedEventTag.value) {
+    parts.push(`Tag: #${selectedEventTag.value}`)
+  }
+  return parts.length > 0 ? parts.join(' • ') : 'Showing all events'
+})
+
 function resetEventFilters() {
   eventsStore.searchQuery = ''
   eventsStore.selectedCategory = 'all'
+  timeframeFilter.value = 'all'
+  selectedEventTag.value = null
 }
 
 // Invites mode search and RSVP filter
@@ -1549,5 +1825,25 @@ function copyOrShareText(text: string, successMsg: string) {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.filter-gray-chip.v-chip--variant-outlined {
+  border-color: #8c8c8c !important;
+  color: #595959 !important;
+}
+
+.filter-gray-chip.v-chip--variant-outlined :deep(.v-icon) {
+  color: #8c8c8c !important;
+}
+
+:root.v-theme--dark .filter-gray-chip.v-chip--variant-outlined,
+.v-theme--dark .filter-gray-chip.v-chip--variant-outlined {
+  border-color: #595959 !important;
+  color: #bfbfbf !important;
+}
+
+:root.v-theme--dark .filter-gray-chip.v-chip--variant-outlined :deep(.v-icon),
+.v-theme--dark .filter-gray-chip.v-chip--variant-outlined :deep(.v-icon) {
+  color: #bfbfbf !important;
 }
 </style>
