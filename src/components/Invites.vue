@@ -11,10 +11,6 @@
               <v-icon :icon="getEventCategoryIcon(activeEventForInvites.category)" size="18" />
             </v-avatar>
             <div style="min-width: 0;">
-              <div class="text-caption text-lightText font-weight-bold text-uppercase"
-                style="font-size: 0.68rem; letter-spacing: 0.5px;">
-                Target Event for Inviting Guests:
-              </div>
               <div class="text-subtitle-2 font-weight-bold text-darkText text-truncate">
                 {{ activeEventForInvites.title }}
               </div>
@@ -132,35 +128,6 @@
         </div>
       </div>
 
-      <!-- Quick Stats Metric Grid (2 Rows x 2 Cols) -->
-      <div class="pa-3 px-4">
-        <div class="stats-overview-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-          <!-- Col 1: Attending -->
-          <div class="stat-grid-col pr-3 border-e">
-            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
-              <v-icon icon="mdi-account-group" size="13" class="text-primary mr-1 flex-shrink-0" />
-              <span>Attending</span>
-            </div>
-            <div class="text-subtitle-2 font-weight-bold text-primary text-truncate">
-              {{ guestsStore.totalConfirmedParty }} <span
-                class="text-caption font-weight-regular text-lightText"></span>
-            </div>
-          </div>
-
-          <!-- Col 2: Return Gifts -->
-          <div class="stat-grid-col pl-3">
-            <div class="text-caption text-lightText font-weight-medium text-truncate mb-0.5 d-flex align-center">
-              <v-icon icon="mdi-gift-outline" size="13" class="text-warning mr-1 flex-shrink-0" />
-              <span>Return Gifts</span>
-            </div>
-            <div class="text-subtitle-2 font-weight-bold text-warning text-truncate">
-              {{ guestsStore.totalReturnGiftsCount }} <span
-                class="text-caption font-weight-regular text-lightText">gifts
-                (₹{{ guestsStore.totalReturnGiftsCost.toLocaleString() }})</span>
-            </div>
-          </div>
-        </div>
-      </div>
     </v-card>
 
     <!-- 2. COLLAPSIBLE SEARCH, TAGS & FILTERS PANEL (Mantis Style - Matching ShoppingList) -->
@@ -922,7 +889,7 @@
             </div>
 
             <!-- SECTION 2: ADDON PERSONS (Accompanying / Companions) -->
-            <div class="mb-4 pa-3 rounded-lg bg-containerBg border">
+            <div v-if="isEditing" class="mb-4 pa-3 rounded-lg bg-containerBg border">
               <div class="d-flex align-center justify-space-between mb-2">
                 <div class="d-flex align-center gap-1">
                   <v-icon icon="mdi-account-multiple-plus" size="18" class="text-primary" />
@@ -1038,7 +1005,7 @@
             </v-expansion-panels>
 
             <!-- SECTION 5: RETURN GIFTS -->
-            <div class="mb-2 pa-3 rounded-lg bg-containerBg border">
+            <div v-if="isEditing" class="mb-2 pa-3 rounded-lg bg-containerBg border">
               <div class="d-flex align-center justify-space-between mb-2">
                 <div class="d-flex align-center gap-1">
                   <v-icon icon="mdi-gift-outline" size="18" class="text-warning" />
@@ -1628,9 +1595,7 @@ function onGuestNameChange(val: string) {
     if (match.group) guestForm.value.group = match.group
     if (Array.isArray(match.tags) && match.tags.length > 0) guestForm.value.tags = [...match.tags]
     if (match.phone && !guestForm.value.phone) guestForm.value.phone = match.phone
-    if (Array.isArray(match.returnGifts) && match.returnGifts.length > 0 && guestForm.value.returnGifts.length === 0) {
-      guestForm.value.returnGifts = match.returnGifts.map((g) => ({ ...g }))
-    }
+    if (match.email && !guestForm.value.email) guestForm.value.email = match.email
   }
 }
 
@@ -1765,12 +1730,15 @@ async function saveGuest() {
     return
   }
 
-  const sanitizedCompanions = sanitizeAccompanyingPersons(guestForm.value.accompanyingPersons)
-  const sanitizedGifts = sanitizeReturnGifts(guestForm.value.returnGifts)
-  const additionalCount = Math.max(
-    Number(guestForm.value.additionalGuests) || 0,
-    sanitizedCompanions.length
-  )
+  const sanitizedCompanions = isEditing.value
+    ? sanitizeAccompanyingPersons(guestForm.value.accompanyingPersons)
+    : []
+  const sanitizedGifts = isEditing.value
+    ? sanitizeReturnGifts(guestForm.value.returnGifts)
+    : []
+  const additionalCount = isEditing.value
+    ? Math.max(Number(guestForm.value.additionalGuests) || 0, sanitizedCompanions.length)
+    : 0
 
   const rawName = guestForm.value.name
   const cleanName = (typeof rawName === 'string' ? rawName : (rawName as any)?.value || '').trim()

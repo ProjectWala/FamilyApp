@@ -41,7 +41,7 @@
 
     <!-- TAB 1: GUESTS (Only Name of Guests) -->
     <div v-show="guestSectionTab === 'guests'">
-      <Guests @add-guest="openAddGuestDialog" />
+      <Guests ref="guestsRef" />
     </div>
 
     <!-- TAB 2: EVENTS (Name of Events with Type, Date, Venue, Time) -->
@@ -73,6 +73,7 @@ const eventsStore = useEventsStore()
 
 const guestSectionTab = ref<'guests' | 'events' | 'invites'>('guests')
 const selectedEventForInvites = ref<string | null>(eventsStore.events[0]?.id || null)
+const guestsRef = ref<InstanceType<typeof Guests> | null>(null)
 const invitesRef = ref<InstanceType<typeof Invites> | null>(null)
 
 const totalInvitesAcrossEvents = computed(() => {
@@ -86,7 +87,7 @@ function handleSwitchToInvites(eventId: string) {
 }
 
 function openAddGuestDialog() {
-  invitesRef.value?.openAddGuestDialog()
+  guestsRef.value?.openAddGuestDialog()
 }
 </script>
 

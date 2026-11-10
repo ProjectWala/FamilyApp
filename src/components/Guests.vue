@@ -18,7 +18,7 @@
           <!-- Add Guest CTA -->
           <v-btn color="white" variant="flat" size="small" rounded="lg"
             class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-account-plus"
-            @click="emit('add-guest')">
+            @click="openAddGuestDialog">
             Add
           </v-btn>
 
@@ -106,11 +106,188 @@
       </v-list>
     </v-card>
 
-    <!-- Copied Snackbar Feedback -->
-    <v-snackbar v-model="showSnackbar" timeout="2000" color="success" rounded="lg">
+    <!-- ADD NEW GUEST MODAL DIALOG -->
+    <v-dialog v-model="addGuestDialog" max-width="580" persistent scrollable>
+      <v-card class="rounded-xl overflow-hidden">
+        <!-- Dialog Header -->
+        <v-card-title class="pa-4 bg-primary text-white d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <v-avatar color="white" variant="tonal" size="34" class="mr-3">
+              <v-icon icon="mdi-account-plus" size="20" color="white" />
+            </v-avatar>
+            <div>
+              <div class="text-subtitle-1 font-weight-bold line-height-1">
+                Add New Guest
+              </div>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" size="small" color="white" @click="closeAddGuestDialog" />
+        </v-card-title>
+
+        <v-divider />
+
+        <!-- Form Body -->
+        <v-card-text class="pa-4" style="max-height: 75vh;">
+          <v-form ref="addGuestFormRef" @submit.prevent="saveNewGuest">
+            <!-- SECTION 1: GUEST NAME WITH AUTOCOMPLETE / AUTO-CORRECT -->
+            <div class="mb-3">
+              <v-combobox
+                v-model="guestForm.name"
+                :items="guestsStore.knownGuestNames"
+                label="Guest / Family Name *"
+                placeholder="Type or select guest name (e.g. Vikram Sharma)"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                prepend-inner-icon="mdi-account"
+                clearable
+                :rules="[(v) => !!(typeof v === 'string' ? v.trim() : v) || 'Guest name is required']"
+                @update:model-value="onGuestNameChange"
+              >
+                <template #prepend-item>
+                  <div class="px-3 py-1 text-caption text-lightText font-weight-bold border-b bg-containerBg">
+                    Saved Guests &amp; Contacts (Autocomplete)
+                  </div>
+                </template>
+              </v-combobox>
+            </div>
+
+            <!-- SECTION 2: GROUP CATEGORY & TAGS -->
+            <div class="mb-4">
+              <div class="text-subtitle-2 font-weight-bold text-darkText mb-2 d-flex align-center">
+                <v-icon icon="mdi-tag-multiple-outline" size="18" class="mr-1 text-primary" />
+                Group Category &amp; Tags
+              </div>
+
+              <!-- Group Category -->
+              <v-combobox
+                v-model="guestForm.group"
+                :items="guestsStore.allGroups"
+                label="Group Category *"
+                placeholder="Select or type category"
+                variant="outlined"
+                density="comfortable"
+                rounded="lg"
+                prepend-inner-icon="mdi-folder-outline"
+                class="mb-3"
+                :rules="[(v) => !!v || 'Group category is required']"
+              />
+
+              <!-- Tags Multi-Selector -->
+              <div class="mt-1">
+                <v-combobox
+                  v-model="guestForm.tags"
+                  :items="guestsStore.allTags"
+                  label="Tags for Grouping (Type &amp; press Enter for custom tags)"
+                  placeholder="Select tags or type custom (e.g. VIP, Outstation)"
+                  multiple
+                  chips
+                  closable-chips
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  prepend-inner-icon="mdi-tag-outline"
+                />
+
+                <!-- Quick Suggested Tag Toggles -->
+                <div class="d-flex align-center gap-1 flex-wrap mt-1">
+                  <span class="text-caption text-lightText" style="font-size: 0.68rem;">Quick Tags:</span>
+                  <v-chip
+                    v-for="tag in ['VIP', 'Family Event', 'Friends', 'Outstation', 'Vegetarian', 'Hotel Needed', 'College']"
+                    :key="tag"
+                    size="x-small"
+                    :variant="isTagInForm(tag) ? 'flat' : 'outlined'"
+                    color="primary"
+                    class="cursor-pointer"
+                    @click="toggleFormTag(tag)"
+                  >
+                    <v-icon :icon="isTagInForm(tag) ? 'mdi-check' : 'mdi-plus'" size="10" class="mr-0.5" />
+                    {{ tag }}
+                  </v-chip>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: CONTACT & NOTES (Optional) -->
+            <v-expansion-panels variant="accordion" class="mb-2">
+              <v-expansion-panel elevation="0" class="border rounded-lg">
+                <v-expansion-panel-title class="py-2 text-caption font-weight-bold text-darkText">
+                  <v-icon icon="mdi-card-account-phone-outline" size="16" class="mr-2 text-primary" />
+                  Additional Details (Phone, Email, Notes)
+                </v-expansion-panel-title>
+                <v-expansion-panel-text eager>
+                  <v-row density="compact" class="pt-2">
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="guestForm.phone"
+                        label="Phone Number"
+                        placeholder="+91 98765 43210"
+                        variant="outlined"
+                        density="comfortable"
+                        rounded="lg"
+                        prepend-inner-icon="mdi-phone"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" sm="6">
+                      <v-text-field
+                        v-model="guestForm.email"
+                        label="Email Address"
+                        placeholder="guest@example.com"
+                        variant="outlined"
+                        density="comfortable"
+                        rounded="lg"
+                        prepend-inner-icon="mdi-email-outline"
+                      />
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-textarea
+                        v-model="guestForm.notes"
+                        label="Notes &amp; Special Arrangements"
+                        placeholder="e.g. Arriving Friday evening, requires ground-floor room"
+                        variant="outlined"
+                        density="comfortable"
+                        rows="2"
+                        rounded="lg"
+                        hide-details
+                      />
+                    </v-col>
+                  </v-row>
+                </v-expansion-panel-text>
+              </v-expansion-panel>
+            </v-expansion-panels>
+          </v-form>
+        </v-card-text>
+
+        <v-divider />
+
+        <!-- Dialog Footer Actions -->
+        <v-card-actions class="pa-4 bg-surface d-flex justify-space-between">
+          <v-btn variant="outlined" rounded="lg" color="secondary" class="text-capitalize" @click="closeAddGuestDialog">
+            Cancel
+          </v-btn>
+
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            class="text-capitalize font-weight-bold px-4"
+            prepend-icon="mdi-content-save"
+            :loading="isSaving"
+            @click="saveNewGuest"
+          >
+            Add Guest
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Feedback Snackbar -->
+    <v-snackbar v-model="showSnackbar" timeout="2500" color="success" rounded="lg">
       <div class="d-flex align-center gap-2">
         <v-icon icon="mdi-check-circle" size="18" />
-        <span>{{ copyMessage }}</span>
+        <span>{{ feedbackMessage }}</span>
       </div>
     </v-snackbar>
   </div>
@@ -120,6 +297,7 @@
 import { ref, computed } from 'vue'
 import { useGuestsStore } from '@/stores/guests'
 import { getInitials } from '@/services/service.js'
+import { useModalBack } from '@/composables/useModalBack'
 
 interface DisplayNameItem {
   id: string
@@ -139,7 +317,108 @@ const sortAlpha = ref(false)
 const includeAddons = ref(false)
 const copied = ref(false)
 const showSnackbar = ref(false)
-const copyMessage = ref('')
+const feedbackMessage = ref('')
+
+// Add Guest Dialog State
+const addGuestDialog = ref(false)
+const isSaving = ref(false)
+const addGuestFormRef = ref<any>(null)
+
+useModalBack(addGuestDialog, 'addGuestModal')
+
+const guestForm = ref({
+  name: '',
+  phone: '',
+  email: '',
+  group: 'Family',
+  tags: ['Family Event'] as string[],
+  notes: '',
+})
+
+function openAddGuestDialog() {
+  emit('add-guest')
+  guestForm.value = {
+    name: '',
+    phone: '',
+    email: '',
+    group: 'Family',
+    tags: ['Family Event'],
+    notes: '',
+  }
+  addGuestDialog.value = true
+}
+
+function closeAddGuestDialog() {
+  addGuestDialog.value = false
+}
+
+function onGuestNameChange(val: string) {
+  if (!val || typeof val !== 'string') return
+  const trimmed = val.trim().toLowerCase()
+  const match = guestsStore.guests.find((g) => g.name.toLowerCase() === trimmed)
+  if (match) {
+    if (match.group) guestForm.value.group = match.group
+    if (Array.isArray(match.tags) && match.tags.length > 0) guestForm.value.tags = [...match.tags]
+    if (match.phone && !guestForm.value.phone) guestForm.value.phone = match.phone
+    if (match.email && !guestForm.value.email) guestForm.value.email = match.email
+    if (match.notes && !guestForm.value.notes) guestForm.value.notes = match.notes
+  }
+}
+
+function isTagInForm(tag: string) {
+  return Array.isArray(guestForm.value.tags) && guestForm.value.tags.includes(tag)
+}
+
+function toggleFormTag(tag: string) {
+  if (!Array.isArray(guestForm.value.tags)) {
+    guestForm.value.tags = []
+  }
+  const idx = guestForm.value.tags.indexOf(tag)
+  if (idx === -1) {
+    guestForm.value.tags.push(tag)
+  } else {
+    guestForm.value.tags.splice(idx, 1)
+  }
+}
+
+async function saveNewGuest() {
+  const formValidation = await addGuestFormRef.value?.validate()
+  if (formValidation && !formValidation.valid) {
+    return
+  }
+
+  isSaving.value = true
+  try {
+    const rawName = guestForm.value.name
+    const cleanName = (typeof rawName === 'string' ? rawName : (rawName as any)?.value || '').trim()
+
+    const payload = {
+      name: cleanName,
+      phone: (guestForm.value.phone || '').trim(),
+      email: (guestForm.value.email || '').trim(),
+      group: guestForm.value.group || 'General',
+      tags: Array.isArray(guestForm.value.tags)
+        ? guestForm.value.tags.map((t) => (typeof t === 'string' ? t.trim() : (t as any).value || '')).filter(Boolean)
+        : [],
+      rsvpStatus: 'confirmed' as const,
+      additionalGuests: 0,
+      accompanyingPersons: [],
+      returnGifts: [],
+      notes: (guestForm.value.notes || '').trim(),
+    }
+
+    await guestsStore.addGuest(payload)
+    addGuestDialog.value = false
+    feedbackMessage.value = `Guest "${cleanName}" added successfully!`
+    showSnackbar.value = true
+  } finally {
+    isSaving.value = false
+  }
+}
+
+defineExpose({
+  openAddGuestDialog,
+})
 
 // Check if any guests have accompanying persons
 const hasAccompanyingPersons = computed(() => {
@@ -214,7 +493,7 @@ async function copyAllNames() {
       document.body.removeChild(textarea)
     }
     copied.value = true
-    copyMessage.value = `${filteredNames.value.length} guest names copied to clipboard!`
+    feedbackMessage.value = `${filteredNames.value.length} guest names copied to clipboard!`
     showSnackbar.value = true
     setTimeout(() => {
       copied.value = false

@@ -8,7 +8,7 @@
       <v-card class="mb-4 rounded-lg elevation-0 overflow-hidden bg-surface card-hover-border border">
         <!-- Gradient Header Bar -->
         <div class="pa-4 text-white position-relative"
-          style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);">
+          style="background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);">
           <div class="d-flex justify-space-between align-center flex-wrap gap-2">
             <div class="d-flex align-center gap-2">
               <v-avatar color="white" variant="tonal" size="38" rounded="lg">
@@ -83,7 +83,7 @@
               <!-- Event Category Chips -->
               <div class="mb-3">
                 <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
-                  Event Category:
+                  Category:
                 </div>
                 <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
                   <v-chip :color="eventsStore.selectedCategory === 'all' ? 'primary' : 'secondary'"
@@ -110,25 +110,25 @@
               <!-- Event Timeline Filter (All, Upcoming, This Month, Past) -->
               <div class="mb-3">
                 <div class="text-caption font-weight-bold text-lightText text-uppercase mb-1">
-                  Event Timeline:
+                  Timeline:
                 </div>
                 <div class="d-flex align-center gap-1.5 flex-wrap">
-                  <v-chip size="x-small" :variant="timeframeFilter === 'all' ? 'flat' : 'tonal'"
-                    color="primary" class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'all'">
+                  <v-chip size="x-small" :variant="timeframeFilter === 'all' ? 'flat' : 'tonal'" color="primary"
+                    class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'all'">
                     All Dates ({{ eventsStore.totalEvents }})
                   </v-chip>
-                  <v-chip size="x-small" :variant="timeframeFilter === 'upcoming' ? 'flat' : 'tonal'"
-                    color="success" class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'upcoming'">
+                  <v-chip size="x-small" :variant="timeframeFilter === 'upcoming' ? 'flat' : 'tonal'" color="success"
+                    class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'upcoming'">
                     <v-icon icon="mdi-calendar-arrow-right" size="12" class="mr-1" />
                     Upcoming ({{ upcomingEventsCount }})
                   </v-chip>
-                  <v-chip size="x-small" :variant="timeframeFilter === 'this_month' ? 'flat' : 'tonal'"
-                    color="warning" class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'this_month'">
+                  <v-chip size="x-small" :variant="timeframeFilter === 'this_month' ? 'flat' : 'tonal'" color="warning"
+                    class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'this_month'">
                     <v-icon icon="mdi-calendar-month" size="12" class="mr-1" />
                     This Month ({{ thisMonthEventsCount }})
                   </v-chip>
-                  <v-chip size="x-small" :variant="timeframeFilter === 'past' ? 'flat' : 'tonal'"
-                    color="secondary" class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'past'">
+                  <v-chip size="x-small" :variant="timeframeFilter === 'past' ? 'flat' : 'tonal'" color="secondary"
+                    class="cursor-pointer font-weight-medium" @click="timeframeFilter = 'past'">
                     <v-icon icon="mdi-history" size="12" class="mr-1" />
                     Past ({{ pastEventsCount }})
                   </v-chip>
@@ -148,8 +148,7 @@
                 <div class="d-flex align-center gap-1 overflow-x-auto pb-1 no-scrollbar flex-wrap">
                   <v-chip :color="selectedEventTag === null ? 'primary' : 'secondary'"
                     :variant="selectedEventTag === null ? 'flat' : 'outlined'" size="x-small"
-                    class="font-weight-medium cursor-pointer filter-gray-chip"
-                    @click="selectedEventTag = null">
+                    class="font-weight-medium cursor-pointer filter-gray-chip" @click="selectedEventTag = null">
                     All Tags
                   </v-chip>
 
@@ -177,8 +176,8 @@
                   "{{ eventsStore.searchQuery.trim() }}"
                 </v-chip>
 
-                <v-chip v-if="eventsStore.selectedCategory !== 'all'" size="x-small" color="primary" variant="flat" closable
-                  @click:close="eventsStore.selectedCategory = 'all'">
+                <v-chip v-if="eventsStore.selectedCategory !== 'all'" size="x-small" color="primary" variant="flat"
+                  closable @click:close="eventsStore.selectedCategory = 'all'">
                   <v-icon :icon="getCategoryIcon(eventsStore.selectedCategory)" size="10" class="mr-1" />
                   Category: {{ eventsStore.selectedCategory }}
                 </v-chip>
@@ -255,8 +254,7 @@
           </span>
         </div>
         <div class="d-flex justify-center gap-2">
-          <v-btn v-if="hasActiveFilters" variant="outlined"
-            size="small" rounded="lg" @click="resetEventFilters">
+          <v-btn v-if="hasActiveFilters" variant="outlined" size="small" rounded="lg" @click="resetEventFilters">
             Reset Filters
           </v-btn>
           <v-btn color="primary" size="small" rounded="lg" prepend-icon="mdi-calendar-plus"
@@ -269,24 +267,12 @@
       <!-- 4. Events Cards List -->
       <div v-else>
         <v-slide-y-transition group>
-          <EventDetail
-            v-for="event in displayedFilteredEvents"
-            :key="event.id"
-            :event="event"
-            :mode="mode"
-            elevation="2"
-            :expanded="isEventExpanded(event.id)"
-            @manage-invites="goToInvitesTab"
-            @quick-invite="openInvitePicker"
-            @share-whatsapp="shareEventWhatsApp"
-            @edit="openEditEventDialog"
-            @delete="confirmDeleteEvent"
-            @whatsapp-guest="sendWhatsAppInviteToGuest"
-            @remove-guest="removeGuestFromEvent"
-            @toggle-invite-sent="toggleGuestInviteSent"
-            @update-guest-rsvp="setGuestEventRsvp"
-            @toggle-expand="toggleEventExpand"
-          />
+          <EventDetail v-for="event in displayedFilteredEvents" :key="event.id" :event="event" :mode="mode"
+            elevation="2" :expanded="isEventExpanded(event.id)" @manage-invites="goToInvitesTab"
+            @quick-invite="openInvitePicker" @share-whatsapp="shareEventWhatsApp" @edit="openEditEventDialog"
+            @delete="confirmDeleteEvent" @whatsapp-guest="sendWhatsAppInviteToGuest"
+            @remove-guest="removeGuestFromEvent" @toggle-invite-sent="toggleGuestInviteSent"
+            @update-guest-rsvp="setGuestEventRsvp" @toggle-expand="toggleEventExpand" />
         </v-slide-y-transition>
       </div>
     </div>
@@ -874,8 +860,7 @@
     <!-- DIALOG 2: CREATE / EDIT EVENT MODAL                                  -->
     <!-- ==================================================================== -->
     <v-dialog v-model="eventDialog" max-width="540" persistent @after-leave="dismissActiveKeyboard">
-      <v-card class="rounded-xl overflow-hidden bg-surface d-flex flex-column" elevation="10"
-        style="max-height: 92vh;">
+      <v-card class="rounded-xl overflow-hidden bg-surface d-flex flex-column" elevation="10" style="max-height: 92vh;">
         <!-- Sticky Dialog Header -->
         <div class="pa-4 text-white d-flex align-center justify-space-between flex-shrink-0"
           :style="{ background: `linear-gradient(135deg, ${eventForm.color || '#4f46e5'} 0%, #7c3aed 100%)` }">
@@ -896,7 +881,8 @@
         </div>
 
         <!-- Form wrapping scrollable body and sticky actions -->
-        <v-form ref="eventFormRef" class="d-flex flex-column flex-grow-1 overflow-hidden" @submit.prevent="triggerSaveEvent">
+        <v-form ref="eventFormRef" class="d-flex flex-column flex-grow-1 overflow-hidden"
+          @submit.prevent="triggerSaveEvent">
           <!-- Scrollable Body -->
           <v-card-text class="pa-4 overflow-y-auto flex-grow-1">
             <!-- Event Title -->
@@ -968,27 +954,12 @@
 
           <!-- Sticky Footer Actions -->
           <v-card-actions class="pa-4 border-t d-flex justify-end gap-2 flex-shrink-0 bg-surface">
-            <v-btn
-              variant="outlined"
-              size="small"
-              rounded="lg"
-              @click="closeEventDialog"
-            >
+            <v-btn variant="outlined" size="small" rounded="lg" @click="closeEventDialog">
               Cancel
             </v-btn>
-            <v-btn
-              type="submit"
-              color="primary"
-              variant="flat"
-              size="small"
-              rounded="lg"
-              class="font-weight-bold px-4"
-              :loading="isSavingEvent"
-              :disabled="isSavingEvent"
-              @pointerdown.prevent
-              @mousedown.prevent
-              @click="triggerSaveEvent"
-            >
+            <v-btn type="submit" color="primary" variant="flat" size="small" rounded="lg" class="font-weight-bold px-4"
+              :loading="isSavingEvent" :disabled="isSavingEvent" @pointerdown.prevent @mousedown.prevent
+              @click="triggerSaveEvent">
               {{ isEditingEvent ? 'Save Changes' : 'Create Event' }}
             </v-btn>
           </v-card-actions>
@@ -1010,7 +981,7 @@
           </div>
           <div class="text-caption text-lightText mt-1">
             Are you sure you want to delete <span class="font-weight-bold text-darkText">"{{ eventToDelete?.title
-              }}"</span>? This will also remove the invited guest list for this specific event.
+            }}"</span>? This will also remove the invited guest list for this specific event.
           </div>
         </div>
 
