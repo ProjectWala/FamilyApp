@@ -1692,7 +1692,7 @@ function openAddGuestDialog() {
     name: '',
     phone: '',
     email: '',
-    group: 'Family',
+    group: guestsStore.lastUsedGroup || 'Family',
     tags: ['Family Event'],
     rsvpStatus: 'confirmed',
     additionalGuests: 0,

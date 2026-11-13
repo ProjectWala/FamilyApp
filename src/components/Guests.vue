@@ -1,33 +1,105 @@
 <template>
   <div class="guests-names-container">
-    <!-- Header Card -->
-    <v-card class="mb-3 pa-4 rounded-lg elevation-0 text-white"
-      style="background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);">
-      <div class="d-flex justify-space-between align-center flex-wrap gap-2">
+    <!-- Header Card (Switches to Selection Toolbar when in Selection Mode) -->
+    <v-card
+      class="mb-3 pa-4 rounded-lg elevation-0 text-white transition-swing"
+      :style="isSelectionMode
+        ? 'background: linear-gradient(135deg, #10239e 0%, #391085 100%);'
+        : 'background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);'"
+    >
+      <!-- NORMAL MODE HEADER -->
+      <div v-if="!isSelectionMode" class="d-flex justify-space-between align-center flex-wrap gap-2">
         <div class="d-flex align-center gap-2">
           <v-avatar color="white" variant="tonal" size="36" rounded="lg">
             <v-icon icon="mdi-format-list-bulleted" size="20" color="white" />
           </v-avatar>
           <div class="text-subtitle-1 font-weight-bold text-white line-height-1">
-            Guest Names ({{ totalNamesCount }})
+            Guests ({{ totalNamesCount }})
           </div>
         </div>
 
         <!-- Header CTAs -->
         <div class="d-flex align-center gap-2">
           <!-- Add Guest CTA -->
-          <v-btn color="white" variant="flat" size="small" rounded="lg"
-            class="text-primary font-weight-bold text-capitalize" prepend-icon="mdi-account-plus"
-            @click="openAddGuestDialog">
+          <v-btn
+            color="white"
+            variant="flat"
+            size="small"
+            rounded="lg"
+            class="text-primary font-weight-bold text-capitalize"
+            prepend-icon="mdi-account-plus"
+            @click="openAddGuestDialog"
+          >
             Add
           </v-btn>
 
-          <!-- Quick Copy CTA -->
-          <v-btn color="white" variant="outlined" size="small" rounded="lg"
+          <!-- Quick Copy All CTA -->
+          <v-btn
+            color="white"
+            variant="outlined"
+            size="small"
+            rounded="lg"
             class="font-weight-bold text-capitalize text-white"
-            :prepend-icon="copied ? 'mdi-check' : 'mdi-content-copy'" :disabled="guestNamesList.length === 0"
-            @click="copyAllNames">
-            {{ copied ? 'Copied!' : 'Copy Names' }}
+            :prepend-icon="copied ? 'mdi-check' : 'mdi-content-copy'"
+            :disabled="filteredNames.length === 0"
+            @click="copyNames('all')"
+          >
+            {{ copied ? 'Copied!' : 'Copy All' }}
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- SELECTION MODE ACTIVE HEADER -->
+      <div v-else class="d-flex justify-space-between align-center flex-wrap gap-2">
+        <div class="d-flex align-center gap-2">
+          <v-avatar color="white" variant="tonal" size="36" rounded="lg">
+            <v-icon icon="mdi-checkbox-marked-circle-outline" size="22" color="white" />
+          </v-avatar>
+          <div>
+            <div class="text-subtitle-1 font-weight-bold text-white line-height-1">
+              {{ selectedCount }} Selected
+            </div>
+          </div>
+        </div>
+
+        <!-- Selection CTAs -->
+        <div class="d-flex align-center gap-2 flex-wrap">
+          <!-- Select All / Deselect All -->
+          <v-btn
+            color="white"
+            variant="text"
+            size="small"
+            rounded="lg"
+            class="text-white text-capitalize px-2"
+            @click="toggleSelectAll"
+          >
+            {{ isAllFilteredSelected ? 'Deselect All' : 'Select All' }}
+          </v-btn>
+
+          <!-- Copy Selected Names CTA -->
+          <v-btn
+            color="white"
+            variant="flat"
+            size="small"
+            rounded="lg"
+            class="text-primary font-weight-bold text-capitalize"
+            :prepend-icon="copied ? 'mdi-check' : 'mdi-content-copy'"
+            @click="copyNames('selected')"
+          >
+            {{ copied ? 'Copied!' : `Copy (${selectedCount})` }}
+          </v-btn>
+
+          <!-- Clear Selection Button (Explicit user request) -->
+          <v-btn
+            color="white"
+            variant="outlined"
+            size="small"
+            rounded="lg"
+            class="text-white font-weight-medium text-capitalize"
+            prepend-icon="mdi-close"
+            @click="clearSelection"
+          >
+            Clear Selection
           </v-btn>
         </div>
       </div>
@@ -35,31 +107,68 @@
 
     <!-- Search & Filter Options Bar -->
     <v-card class="mb-3 pa-3 rounded-lg elevation-0 bg-surface border">
-      <div class="d-flex align-center gap-2 flex-wrap">
-        <v-text-field v-model="searchQuery" density="compact" variant="outlined" placeholder="Search guest names..."
-          prepend-inner-icon="mdi-magnify" hide-details clearable rounded="md" class="flex-grow-1"
-          style="min-width: 180px;" @click:clear="searchQuery = ''" />
+      <div class="d-flex align-center gap-2 flex-wrap mb-2">
+        <v-text-field
+          v-model="searchQuery"
+          density="compact"
+          variant="outlined"
+          placeholder="Search guest names..."
+          prepend-inner-icon="mdi-magnify"
+          hide-details
+          clearable
+          rounded="md"
+          class="flex-grow-1"
+          style="min-width: 180px;"
+          @click:clear="searchQuery = ''"
+        />
 
         <!-- Sort Toggle: A-Z / Default -->
-        <v-btn variant="outlined" color="secondary" size="small" rounded="md" class="text-capitalize font-weight-medium"
-          :prepend-icon="sortAlpha ? 'mdi-sort-alphabetical-ascending' : 'mdi-sort'" @click="sortAlpha = !sortAlpha">
+        <v-btn
+          variant="outlined"
+          color="secondary"
+          size="small"
+          rounded="md"
+          class="text-capitalize font-weight-medium"
+          :prepend-icon="sortAlpha ? 'mdi-sort-alphabetical-ascending' : 'mdi-sort'"
+          @click="sortAlpha = !sortAlpha"
+        >
           {{ sortAlpha ? 'A to Z' : 'Order Added' }}
         </v-btn>
 
         <!-- Toggle Include Accompanying / Addon Names -->
-        <v-chip v-if="hasAccompanyingPersons" size="small" :variant="includeAddons ? 'flat' : 'outlined'"
-          :color="includeAddons ? 'primary' : 'secondary'" class="cursor-pointer font-weight-medium"
-          @click="includeAddons = !includeAddons">
+        <v-chip
+          v-if="hasAccompanyingPersons"
+          size="small"
+          :variant="includeAddons ? 'flat' : 'outlined'"
+          :color="includeAddons ? 'primary' : 'secondary'"
+          class="cursor-pointer font-weight-medium"
+          @click="includeAddons = !includeAddons"
+        >
           <v-icon :icon="includeAddons ? 'mdi-account-multiple' : 'mdi-account'" size="14" class="mr-1" />
           {{ includeAddons ? 'All Persons' : 'Main Guests Only' }}
         </v-chip>
       </div>
+
+     
     </v-card>
 
     <!-- Names List Card -->
-    <v-card class="rounded-lg elevation-0 bg-surface border overflow-hidden">
-      <!-- Loading State -->
-      <div v-if="guestsStore.isSyncing" class="pa-6 text-center text-lightText">
+    <v-card class="rounded-lg elevation-0 bg-surface border overflow-hidden position-relative">
+      <!-- Background sync linear indicator (non-blocking, keeps list visible) -->
+      <v-progress-linear
+        v-if="guestsStore.isSyncing"
+        indeterminate
+        color="primary"
+        height="2"
+        class="position-absolute top-0 left-0 right-0"
+        style="z-index: 5;"
+      />
+
+      <!-- Initial Loading State (Only if list is completely empty) -->
+      <div
+        v-if="guestsStore.isSyncing && filteredNames.length === 0 && guestsStore.guests.length === 0"
+        class="pa-6 text-center text-lightText"
+      >
         <v-progress-circular indeterminate color="primary" size="28" class="mb-2" />
         <div class="text-caption">Loading guest names...</div>
       </div>
@@ -73,33 +182,70 @@
           {{ searchQuery ? 'No Matching Names' : 'No Guests Yet' }}
         </div>
         <div class="text-caption">
-          {{ searchQuery ? 'Try searching for a different name.' : 'Guests added to your guest list will appear here.'
-          }}
+          {{ searchQuery ? 'Try searching for a different name.' : 'Guests added to your guest list will appear here.' }}
         </div>
       </div>
 
-      <!-- Names List -->
+      <!-- Names List (Serial number removed, Long-press & multi-select enabled) -->
       <v-list v-else density="comfortable" class="pa-0">
         <template v-for="(item, index) in filteredNames" :key="item.id || index">
-          <v-list-item class="px-4 py-2 hover-bg">
+          <v-list-item
+            class="px-4 py-2 guest-item-row"
+            :class="{ 'guest-item-selected': isSelected(item.id) }"
+            @touchstart="onTouchStart(item.id, $event)"
+            @touchmove="onTouchMove($event)"
+            @touchend="onTouchEnd"
+            @touchcancel="onTouchCancel"
+            @mousedown="onMouseDown(item.id, $event)"
+            @mousemove="onMouseMove($event)"
+            @mouseup="onMouseUp"
+            @mouseleave="onMouseLeave"
+            @contextmenu="onContextMenu($event)"
+            @click="onItemClick(item.id)"
+          >
             <template #prepend>
-              <div class="name-index text-caption font-weight-bold text-lightText mr-3 text-center"
-                style="width: 28px; font-variant-numeric: tabular-nums;">
-                {{ index + 1 }}.
+              <!-- When in selection mode: show checkbox icon -->
+              <div v-if="isSelectionMode" class="mr-3 d-flex align-center" style="min-width: 32px;">
+                <v-icon
+                  :icon="isSelected(item.id) ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline'"
+                  :color="isSelected(item.id) ? 'primary' : 'lightText'"
+                  size="24"
+                />
               </div>
-              <v-avatar size="32" rounded="md" variant="tonal" :color="item.isAddon ? 'secondary' : 'primary'"
-                class="mr-3 font-weight-bold" style="font-size: 0.75rem;">
+
+              <!-- When NOT in selection mode: show Avatar (NO serial number) -->
+              <v-avatar
+                v-else
+                size="32"
+                rounded="md"
+                variant="tonal"
+                :color="item.isAddon ? 'secondary' : 'primary'"
+                class="mr-3 font-weight-bold flex-shrink-0"
+                style="font-size: 0.75rem;"
+              >
                 {{ getInitials(item.name) }}
               </v-avatar>
             </template>
 
-            <v-list-item-title class="text-body-1 font-weight-medium text-darkText d-flex align-center gap-1.5">
-              <span>{{ item.name }}</span>
-              <v-chip v-if="item.isAddon" size="x-small" variant="tonal" color="secondary"
-                class="font-weight-medium text-caption" style="font-size: 0.68rem;">
+            <v-list-item-title class="text-body-1 font-weight-medium text-darkText d-flex align-center gap-1.5 flex-wrap">
+              <span :class="{ 'font-weight-bold text-primary': isSelected(item.id) }">{{ item.name }}</span>
+              <v-chip
+                v-if="item.isAddon"
+                size="x-small"
+                variant="tonal"
+                color="secondary"
+                class="font-weight-medium text-caption"
+                style="font-size: 0.68rem;"
+              >
                 {{ item.relation || 'Addon' }}
               </v-chip>
             </v-list-item-title>
+
+            <template #append v-if="isSelectionMode && isSelected(item.id)">
+              <v-chip size="x-small" color="primary" variant="flat" class="font-weight-bold">
+                Selected
+              </v-chip>
+            </template>
           </v-list-item>
           <v-divider v-if="index < filteredNames.length - 1" :key="`div-${item.id || index}`" />
         </template>
@@ -159,17 +305,19 @@
                 Group Category &amp; Tags
               </div>
 
-              <!-- Group Category -->
+              <!-- Group Category (Persists previously added guest's group for seamless UX) -->
               <v-combobox
                 v-model="guestForm.group"
                 :items="guestsStore.allGroups"
                 label="Group Category *"
-                placeholder="Select or type category"
+                placeholder="Select or type category (e.g. Family, Friends, Relatives)"
                 variant="outlined"
                 density="comfortable"
                 rounded="lg"
                 prepend-inner-icon="mdi-folder-outline"
                 class="mb-3"
+                hint="Remains the same as previously added guest for fast entry"
+                persistent-hint
                 :rules="[(v) => !!v || 'Group category is required']"
               />
 
@@ -306,9 +454,7 @@ interface DisplayNameItem {
   relation?: string
 }
 
-const emit = defineEmits<{
-  (e: 'add-guest'): void
-}>()
+const emit = defineEmits(['add-guest'])
 
 const guestsStore = useGuestsStore()
 
@@ -319,7 +465,142 @@ const copied = ref(false)
 const showSnackbar = ref(false)
 const feedbackMessage = ref('')
 
-// Add Guest Dialog State
+// Selection Mode State (Long Press Selection)
+const selectedGuestIds = ref<Set<string>>(new Set())
+const isSelectionMode = computed(() => selectedGuestIds.value.size > 0)
+const selectedCount = computed(() => selectedGuestIds.value.size)
+
+const isAllFilteredSelected = computed(() => {
+  if (filteredNames.value.length === 0) return false
+  return filteredNames.value.every((item) => selectedGuestIds.value.has(item.id))
+})
+
+function toggleSelectAll() {
+  if (isAllFilteredSelected.value) {
+    clearSelection()
+  } else {
+    selectedGuestIds.value = new Set(filteredNames.value.map((i) => i.id))
+  }
+}
+
+function clearSelection() {
+  selectedGuestIds.value = new Set()
+}
+
+function isSelected(id: string) {
+  return selectedGuestIds.value.has(id)
+}
+
+function toggleSelection(id: string) {
+  const next = new Set(selectedGuestIds.value)
+  if (next.has(id)) {
+    next.delete(id)
+  } else {
+    next.add(id)
+  }
+  selectedGuestIds.value = next
+}
+
+// Long Press touch & mouse handlers
+let pressTimer: any = null
+let pressStartX = 0
+let pressStartY = 0
+let longPressOccurred = false
+
+function triggerLongPress(id: string) {
+  longPressOccurred = true
+  toggleSelection(id)
+  if (navigator?.vibrate) {
+    try {
+      navigator.vibrate(40)
+    } catch {}
+  }
+}
+
+function onTouchStart(id: string, e: TouchEvent) {
+  longPressOccurred = false
+  if (e.touches && e.touches.length > 0) {
+    pressStartX = e.touches[0].clientX
+    pressStartY = e.touches[0].clientY
+  }
+  clearTimeout(pressTimer)
+  pressTimer = setTimeout(() => {
+    triggerLongPress(id)
+  }, 450)
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (!pressTimer) return
+  if (e.touches && e.touches.length > 0) {
+    const deltaX = Math.abs(e.touches[0].clientX - pressStartX)
+    const deltaY = Math.abs(e.touches[0].clientY - pressStartY)
+    // If movement > 8px, user is scrolling, cancel timer
+    if (deltaX > 8 || deltaY > 8) {
+      clearTimeout(pressTimer)
+      pressTimer = null
+    }
+  }
+}
+
+function onTouchEnd() {
+  clearTimeout(pressTimer)
+  pressTimer = null
+}
+
+function onTouchCancel() {
+  clearTimeout(pressTimer)
+  pressTimer = null
+}
+
+function onMouseDown(id: string, e: MouseEvent) {
+  if (e.button !== 0) return
+  longPressOccurred = false
+  pressStartX = e.clientX
+  pressStartY = e.clientY
+  clearTimeout(pressTimer)
+  pressTimer = setTimeout(() => {
+    triggerLongPress(id)
+  }, 450)
+}
+
+function onMouseMove(e: MouseEvent) {
+  if (!pressTimer) return
+  const deltaX = Math.abs(e.clientX - pressStartX)
+  const deltaY = Math.abs(e.clientY - pressStartY)
+  if (deltaX > 8 || deltaY > 8) {
+    clearTimeout(pressTimer)
+    pressTimer = null
+  }
+}
+
+function onMouseUp() {
+  clearTimeout(pressTimer)
+  pressTimer = null
+}
+
+function onMouseLeave() {
+  clearTimeout(pressTimer)
+  pressTimer = null
+}
+
+function onContextMenu(e: MouseEvent) {
+  if (longPressOccurred || isSelectionMode.value) {
+    e.preventDefault()
+  }
+}
+
+function onItemClick(id: string) {
+  if (longPressOccurred) {
+    longPressOccurred = false
+    return
+  }
+  // If in selection mode, click toggles item selection
+  if (isSelectionMode.value) {
+    toggleSelection(id)
+  }
+}
+
+// Add Guest Dialog State (Preserves previously added group category)
 const addGuestDialog = ref(false)
 const isSaving = ref(false)
 const addGuestFormRef = ref<any>(null)
@@ -330,18 +611,19 @@ const guestForm = ref({
   name: '',
   phone: '',
   email: '',
-  group: 'Family',
+  group: guestsStore.lastUsedGroup || 'Family',
   tags: ['Family Event'] as string[],
   notes: '',
 })
 
 function openAddGuestDialog() {
   emit('add-guest')
+  // Group category must remain same as previously added guest
   guestForm.value = {
     name: '',
     phone: '',
     email: '',
-    group: 'Family',
+    group: guestsStore.lastUsedGroup || 'Family',
     tags: ['Family Event'],
     notes: '',
   }
@@ -357,7 +639,10 @@ function onGuestNameChange(val: string) {
   const trimmed = val.trim().toLowerCase()
   const match = guestsStore.guests.find((g) => g.name.toLowerCase() === trimmed)
   if (match) {
-    if (match.group) guestForm.value.group = match.group
+    if (match.group) {
+      guestForm.value.group = match.group
+      guestsStore.setLastUsedGroup(match.group)
+    }
     if (Array.isArray(match.tags) && match.tags.length > 0) guestForm.value.tags = [...match.tags]
     if (match.phone && !guestForm.value.phone) guestForm.value.phone = match.phone
     if (match.email && !guestForm.value.email) guestForm.value.email = match.email
@@ -392,11 +677,20 @@ async function saveNewGuest() {
     const rawName = guestForm.value.name
     const cleanName = (typeof rawName === 'string' ? rawName : (rawName as any)?.value || '').trim()
 
+    const rawGroup = guestForm.value.group
+    const cleanGroup =
+      (typeof rawGroup === 'string' ? rawGroup : (rawGroup as any)?.value || '').trim() ||
+      guestsStore.lastUsedGroup ||
+      'General'
+
+    // Remember the group category for next guest add
+    guestsStore.setLastUsedGroup(cleanGroup)
+
     const payload = {
       name: cleanName,
       phone: (guestForm.value.phone || '').trim(),
       email: (guestForm.value.email || '').trim(),
-      group: guestForm.value.group || 'General',
+      group: cleanGroup,
       tags: Array.isArray(guestForm.value.tags)
         ? guestForm.value.tags.map((t) => (typeof t === 'string' ? t.trim() : (t as any).value || '')).filter(Boolean)
         : [],
@@ -478,13 +772,24 @@ const filteredNames = computed<DisplayNameItem[]>(() => {
 
 const totalNamesCount = computed(() => filteredNames.value.length)
 
-async function copyAllNames() {
-  const namesText = filteredNames.value.map((item, idx) => `${idx + 1}. ${item.name}`).join('\n')
+// Copy Names (NO serial numbers; supports copying all or selected names)
+async function copyNames(mode: 'selected' | 'all') {
+  let itemsToCopy: DisplayNameItem[] = []
+  if (mode === 'selected') {
+    itemsToCopy = filteredNames.value.filter((item) => selectedGuestIds.value.has(item.id))
+  } else {
+    itemsToCopy = filteredNames.value
+  }
+
+  if (itemsToCopy.length === 0) return
+
+  // Plain names list, NO serial number!
+  const namesText = itemsToCopy.map((item) => item.name).join('\n')
+
   try {
     if (navigator?.clipboard?.writeText) {
       await navigator.clipboard.writeText(namesText)
     } else {
-      // Fallback
       const textarea = document.createElement('textarea')
       textarea.value = namesText
       document.body.appendChild(textarea)
@@ -493,7 +798,7 @@ async function copyAllNames() {
       document.body.removeChild(textarea)
     }
     copied.value = true
-    feedbackMessage.value = `${filteredNames.value.length} guest names copied to clipboard!`
+    feedbackMessage.value = `${itemsToCopy.length} guest name${itemsToCopy.length > 1 ? 's' : ''} copied to clipboard!`
     showSnackbar.value = true
     setTimeout(() => {
       copied.value = false
@@ -509,7 +814,23 @@ async function copyAllNames() {
   width: 100%;
 }
 
-.hover-bg:hover {
+.guest-item-row {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: background-color 0.15s ease;
+}
+
+.guest-item-row:hover {
   background-color: rgba(var(--v-theme-primary), 0.04);
+}
+
+.guest-item-selected {
+  background-color: rgba(var(--v-theme-primary), 0.08) !important;
+}
+
+.guest-item-selected:hover {
+  background-color: rgba(var(--v-theme-primary), 0.12) !important;
 }
 </style>

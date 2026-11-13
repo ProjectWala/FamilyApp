@@ -12,11 +12,8 @@
           </v-avatar>
           <div>
             <span class="text-caption text-white-75 text-uppercase font-weight-bold" style="letter-spacing: 0.5px;">
-              Tag Management
+              Tag Manager
             </span>
-            <div class="text-h6 font-weight-bold text-white line-height-1">
-              {{ totalDistinctTagsCount }} Tags in Catalog
-            </div>
           </div>
         </div>
 
@@ -30,7 +27,7 @@
           prepend-icon="mdi-plus"
           @click="openAddDialog()"
         >
-          + Add Tag
+          Add
         </v-btn>
       </div>
 
@@ -56,68 +53,6 @@
       </div>
     </v-card>
 
-    <!-- Domain Statistics Strip -->
-    <v-row dense class="mb-3">
-      <v-col cols="4">
-        <v-card
-          variant="outlined"
-          class="pa-2.5 rounded-lg text-center cursor-pointer transition-all border"
-          :class="{ 'border-primary bg-primary-subtle': selectedDomain === 'expenses' }"
-          @click="selectedDomain = selectedDomain === 'expenses' ? 'all' : 'expenses'"
-        >
-          <div class="text-caption text-lightText font-weight-medium d-flex align-center justify-center">
-            <v-icon icon="mdi-cash" size="14" class="text-warning mr-1" />
-            <span>Expenses</span>
-          </div>
-          <div class="text-subtitle-1 font-weight-bold text-warning">
-            {{ expenseTagsList.length }}
-          </div>
-          <div class="text-caption text-lightText" style="font-size: 0.68rem;">
-            {{ totalExpensesTagged }} items
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="4">
-        <v-card
-          variant="outlined"
-          class="pa-2.5 rounded-lg text-center cursor-pointer transition-all border"
-          :class="{ 'border-primary bg-primary-subtle': selectedDomain === 'guests' }"
-          @click="selectedDomain = selectedDomain === 'guests' ? 'all' : 'guests'"
-        >
-          <div class="text-caption text-lightText font-weight-medium d-flex align-center justify-center">
-            <v-icon icon="mdi-account-group" size="14" class="text-primary mr-1" />
-            <span>Guests</span>
-          </div>
-          <div class="text-subtitle-1 font-weight-bold text-primary">
-            {{ guestTagsList.length }}
-          </div>
-          <div class="text-caption text-lightText" style="font-size: 0.68rem;">
-            {{ totalGuestsTagged }} guests
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="4">
-        <v-card
-          variant="outlined"
-          class="pa-2.5 rounded-lg text-center cursor-pointer transition-all border"
-          :class="{ 'border-primary bg-primary-subtle': selectedDomain === 'shopping' }"
-          @click="selectedDomain = selectedDomain === 'shopping' ? 'all' : 'shopping'"
-        >
-          <div class="text-caption text-lightText font-weight-medium d-flex align-center justify-center">
-            <v-icon icon="mdi-cart" size="14" class="text-success mr-1" />
-            <span>Shopping</span>
-          </div>
-          <div class="text-subtitle-1 font-weight-bold text-success">
-            {{ shoppingTagsList.length }}
-          </div>
-          <div class="text-caption text-lightText" style="font-size: 0.68rem;">
-            {{ totalShoppingTagged }} items
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
 
     <!-- Search & Filter Controls -->
     <v-card variant="outlined" class="mb-4 pa-3 rounded-lg border bg-surface">
@@ -132,6 +67,7 @@
           hide-details
           rounded="lg"
           class="search-input"
+          @click:clear="searchQuery = ''"
         />
 
         <div class="d-flex align-center justify-space-between flex-wrap gap-2 pt-1">
@@ -303,6 +239,7 @@
                 clearable
                 :rules="[(v: string) => !!(v && v.trim()) || 'Tag name is required']"
                 hide-details="auto"
+                @click:clear="newTagName = ''"
               />
             </div>
 
@@ -405,7 +342,7 @@
             size="small"
             class="px-4 font-weight-bold"
             prepend-icon="mdi-check"
-            :disabled="!newTagName.trim() || selectedTargets.length === 0"
+            :disabled="!(newTagName && newTagName.trim()) || selectedTargets.length === 0"
             @click="saveTag"
           >
             Save Tag
@@ -591,7 +528,7 @@ const unifiedTagEntries = computed<TagItemView[]>(() => {
 
 // Filtered items
 const filteredTags = computed(() => {
-  const q = searchQuery.value.trim().toLowerCase()
+  const q = (searchQuery.value || '').trim().toLowerCase()
   return unifiedTagEntries.value.filter((item) => {
     if (selectedDomain.value !== 'all' && item.domain !== selectedDomain.value) {
       return false
@@ -647,7 +584,7 @@ function closeAddDialog() {
 }
 
 function saveTag() {
-  const tag = newTagName.value.trim()
+  const tag = (newTagName.value || '').trim()
   if (!tag || selectedTargets.value.length === 0) return
 
   if (selectedTargets.value.includes('expenses')) {

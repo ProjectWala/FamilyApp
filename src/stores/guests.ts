@@ -7,6 +7,7 @@ const STORAGE_KEY = 'guests_store_v1'
 const GUEST_NAMES_KEY = 'guests_catalog_names_v1'
 const GIFT_PRESETS_KEY = 'guests_gift_presets_v1'
 const GUEST_TAGS_KEY = 'guests_tags_catalog_v1'
+const LAST_USED_GROUP_KEY = 'guests_last_used_group_v1'
 
 const initialGuests: GuestItem[] = []
 
@@ -186,16 +187,6 @@ export const useGuestsStore = defineStore('guests', () => {
   // 2. Saved guest names catalog for auto-correct / autocomplete
   const storedNames = localStorage.getItem(GUEST_NAMES_KEY)
   let initialSavedNames: string[] = [
-    'Vikram Sharma',
-    'Ananya Sharma',
-    'Aarav Sharma',
-    'Priya Patel',
-    'Kavita Patel',
-    'Rahul Verma',
-    'Meera Verma',
-    'Uncle Rajesh Malhotra',
-    'Sunita Malhotra',
-    'Amitabh Sengupta',
   ]
   try {
     if (storedNames) {
@@ -209,6 +200,20 @@ export const useGuestsStore = defineStore('guests', () => {
   }
 
   const savedGuestNames = ref<string[]>(initialSavedNames)
+
+  const lastUsedGroup = ref<string>(localStorage.getItem(LAST_USED_GROUP_KEY) || 'Family')
+
+  function setLastUsedGroup(grp: string) {
+    if (grp && typeof grp === 'string') {
+      const clean = grp.trim()
+      if (clean) {
+        lastUsedGroup.value = clean
+        try {
+          localStorage.setItem(LAST_USED_GROUP_KEY, clean)
+        } catch {}
+      }
+    }
+  }
 
   function recordGuestName(name: string) {
     if (!name || typeof name !== 'string') return
@@ -539,9 +544,17 @@ export const useGuestsStore = defineStore('guests', () => {
     return []
   }
 
-  async function fetchFromSupabase() {
+  let isFetching = false
+  let hasFetchedOnce = false
+
+  async function fetchFromSupabase(force = false) {
+    if (isFetching) return
+    if (hasFetchedOnce && !force && guests.value.length > 0) return
+    isFetching = true
     try {
-      isSyncing.value = true
+      if (guests.value.length === 0) {
+        isSyncing.value = true
+      }
       const remote = await edgeCrud.list<any>('guests')
       if (Array.isArray(remote)) {
         const remoteGuests: GuestItem[] = remote.map((r) => ({
@@ -575,6 +588,8 @@ export const useGuestsStore = defineStore('guests', () => {
       console.warn('Failed to fetch guests from Edge Function:', e)
     } finally {
       isSyncing.value = false
+      isFetching = false
+      hasFetchedOnce = true
     }
   }
 
@@ -599,6 +614,10 @@ export const useGuestsStore = defineStore('guests', () => {
         : [],
       createdAt: now,
       updatedAt: now,
+    }
+
+    if (newGuest.group) {
+      setLastUsedGroup(newGuest.group)
     }
 
     guests.value.unshift(newGuest)
@@ -740,6 +759,8 @@ export const useGuestsStore = defineStore('guests', () => {
     guestsWithGiftCount,
     guestsWithoutGiftCount,
     allGroups,
+    lastUsedGroup,
+    setLastUsedGroup,
     allTags,
     tagCountMap,
     returnGiftsDistribution,
