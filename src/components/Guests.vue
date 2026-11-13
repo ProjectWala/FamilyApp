@@ -3,6 +3,7 @@
     <!-- Header Card (Switches to Selection Toolbar when in Selection Mode) -->
     <v-card
       class="mb-3 pa-4 rounded-lg elevation-0 text-white transition-swing"
+      :class="{ 'sticky-selection-header': isSelectionMode }"
       :style="isSelectionMode
         ? 'background: linear-gradient(135deg, #10239e 0%, #391085 100%);'
         : 'background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);'"
@@ -812,6 +813,13 @@ async function copyNames(mode: 'selected' | 'all') {
 <style scoped>
 .guests-names-container {
   width: 100%;
+}
+
+.sticky-selection-header {
+  position: sticky !important;
+  top: var(--mobile-header-height, 56px) !important;
+  z-index: 95 !important;
+  box-shadow: 0 8px 24px rgba(16, 35, 158, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15) !important;
 }
 
 .guest-item-row {

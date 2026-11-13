@@ -193,9 +193,14 @@ body {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.09);
 }
 
+:root {
+  --mobile-header-height: 56px;
+}
+
 .mobile-header {
   position: sticky;
   top: 0;
+  min-height: var(--mobile-header-height);
   z-index: 100;
   border-bottom: 1px solid rgba(var(--v-theme-borderLight), 0.8) !important;
 }

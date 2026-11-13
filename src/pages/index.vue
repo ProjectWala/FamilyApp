@@ -646,7 +646,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, toRef } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, toRef, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from 'vuetify'
 import MainDashboard from '@/components/MainDashboard.vue'
@@ -864,12 +864,21 @@ import {
   toggleAppTheme,
 } from '@/services/service.js'
 
+function updateHeaderHeight() {
+  const headerEl = document.querySelector('.mobile-header') as HTMLElement | null
+  if (headerEl && headerEl.offsetHeight > 0) {
+    document.documentElement.style.setProperty('--mobile-header-height', `${headerEl.offsetHeight}px`)
+  }
+}
+
 onMounted(() => {
   authStore.init()
+  nextTick(() => updateHeaderHeight())
   window.addEventListener('touchstart', handleTouchStart, { passive: true })
   window.addEventListener('touchend', handleTouchEnd, { passive: true })
   window.addEventListener('pointerdown', handlePointerDown)
   window.addEventListener('pointerup', handlePointerUp)
+  window.addEventListener('resize', updateHeaderHeight)
 })
 
 onUnmounted(() => {
@@ -877,6 +886,7 @@ onUnmounted(() => {
   window.removeEventListener('touchend', handleTouchEnd)
   window.removeEventListener('pointerdown', handlePointerDown)
   window.removeEventListener('pointerup', handlePointerUp)
+  window.removeEventListener('resize', updateHeaderHeight)
 })
 
 const isDark = computed(() => theme.global.current.value.dark)
